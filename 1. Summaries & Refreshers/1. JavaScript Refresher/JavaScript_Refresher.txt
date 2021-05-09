@@ -1,0 +1,111 @@
+JavaScript Refresher - Summary:
+1. Variables (Let and Const)
+2. Arrow Functions
+3. Exports & Imports
+4. Classes, Properties and Methods
+5. Spread and Rest Operators
+6. Destructuring
+7. Reference and Primitive Types
+
+------------------------------------------------------------------------------------
+1. JavaScript Variables:
+------------------------------------------------------------------------------------
+   > ES6 introduces let and const keywords to fix the scope of variables behind the scenes.
+   > Highly encouraged to use these variable keywords instead of the original var keyword.
+   var = original variable declaration keyword in JavaScript and can be either variable or constant scope values.
+   let = used for variable values (assign but can change throughout its life).
+   const = used for constant values (assign once and never change).
+
+   ES5 JavaScript Syntax Example:
+      var name = 'Max';
+      name = 'John';
+      var age;
+      age = 28;
+      age = 29;
+
+   > Note: that for both ES5 and ES6 JavaScript you do not need to assign a value after the variable has been declared.
+
+   ES6 JavaScript Syntax Example:
+      const name = 'Max';
+      let age = 28;
+      age = 29;
+
+   > A const variable will throw a Type Error if you try to mutate the value of the variable e.g.
+      const name = 'Max';
+      name = 'John';
+
+------------------------------------------------------------------------------------
+2. ES6 Arrow Functions:
+------------------------------------------------------------------------------------
+   > ES6 introduces a new way of writing JavaScript functions.
+   > It resolves the issue with the "this" keyword context within the ES5 JavaScript syntax.
+
+   ES5 JavaScript Syntax Example:
+      var myFunc = function() {
+         ...
+      };
+
+      function myFunc() {
+         ...
+      };
+
+   ES6 JavaScript Syntax Example:
+      const myFunc() = () => {
+         ...
+      };
+
+   > The this keyword will always keeps it's context within the arrow function and will not change on runtime as it previously did with the ES5 syntax.
+   > The arrow function must be stored in a const or let variable (it could also be in a var but highly not recommended).
+   > You can omit the round bracket if there is inly one parameter/argument for the function.
+   > You can omit the curly brackets and write as one single line if the function body only returns something and has not other code.
+
+   For example:
+      const multiply = (number) => {
+         return number * 2;
+      };
+
+      const multiply = number => number * 2;
+
+   > Note that you must omit the return keyword if you use dcide to use this shorthand approach without the curly brackets.
+
+------------------------------------------------------------------------------------
+3. Modules (Exports and Imports):
+------------------------------------------------------------------------------------
+   > JavaScript code can be split into multiple files to create modular code. These are known as modules.
+   > To export a module so that another module code can import its content and make reference to it, the  export keyword is used.
+
+   ES6 JavaScript Syntax Example:
+      person.js:
+         const person = {
+            name: 'Max;
+         };
+         export default person;
+
+      utility.js:
+         export const clean = () => { ... };
+         export const baseData = 10;
+
+   > Note that the 'default' keyword is a special keyword in JavaScript which marks the person variable as the default export of the module/file.
+   > A file can export multiple things such as variables, functions, objects, etc. as seen with the second example of utility.js.
+   > To import a module into another module, the import keyword is used.
+
+   ES6 JavaScript Syntax Example:
+      app.js:
+         import person from './person.js';
+         import prs from './person.js';
+
+         import { baseData } from './utility.js';
+         import { clean } from './utility.js';
+         import { clean as cln } from './utility.js';
+         import { baseData, clean } from './utility.js';
+         import * as bundle from './utility.js';
+
+   > The above example demonstrates the different import syntaxes than can be used.
+   > In the first example it does not matter whether we called the import 'person' or 'prs' because the import module would know exactly what to use from the person.js export module because it used the default keyword.
+   > In the second example of importing from utility.js requires the curly brackets. This is because the importing module must know specifically what specific things to target that have been exported by the export file sine there is no default exports. This is known as named exports because you import things by their name. The name must be exactly the same as defined by the export module.
+   > You can use alias by using the 'as' keyword.
+   > You can use comma's to separate the different named exports as seen in the second last example which imports both the 'baseData' and 'clean' exports on a single line syntax.
+   > You can import everything from an export module by using the asterisk * key character as seen in the last example.
+   > If you decide to give the * an alias (not required but optional), i order to access the property you would use the dot notation e.g. bundle.baseData to access the baseData variable from the export module.
+
+IMPORTANT NOTE: Not all web browsers support the latest versions of ES6 and beyond features; however, you can use compilers (such as Webpack and Babel) which can convert ES6+ syntax into regular ES5 syntax which are supported by all browsers JavaScript engines.
