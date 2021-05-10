@@ -225,3 +225,43 @@ IMPORTANT NOTE: Not all web browsers support the latest versions of ES6 and beyo
    > Destructuring an array elements uses the square bracket syntax while destructuring an object uses the curly bracket syntax.
    > In an array destructuring the order defines which properties are extracted/destructed.
    > In an object destructuring the property name defines which properties are extracted/destructed. This is why the age variable would return undefined as no values was destructed from the object's age property.
+
+------------------------------------------------------------------------------------
+7. Reference and Primitive Types:
+------------------------------------------------------------------------------------
+   > JavaScript have a few Primitive Data Types such as string, numbers and booleans. Whenever you re-assign or or store a variable in another variable, it will copy the value.
+
+   Primitive Type Example:
+      const number = 1;
+      const num2 = number;
+
+   > In the above example the number variable which stores the value 1 is a primitive type variable. When variable num2 is assigned the number variable it creates a real copy of the primitive value and stores it inside of num2.
+   > The variable num2 is now a primitive type variable.
+
+   > JavaScript arrays and objects are Reference Data Types. When you assign a variable to an array or object, it will not actually copy the array/object but rather it copies the pointer to the array/object in memory.
+
+   Reference Type Example:
+      const person = {
+         name: 'Max
+      };
+      const secondPerson = person;
+      person.name = 'John';
+      console.log(secondPerson);    // John
+
+   > In the above example the object (or array) is stored in memory while the const person variable stores a pointer to the object (or array) in memory.
+   > When person is assigned to the secondPerson variable, it actually copies the person's pointer and not the object (or array) in memory.
+   > Therefore, when the Person's name property is changed to 'John', after it has been copied, the secondPerson variable is also affected by this change because the pointer points to the same reference object held in memory.
+   > The concept of Primitive and Reference Types is very important in React because it can lead to unexpected behaviours if you copy object or arrays.
+   > Note: there are techniques to copy arrays and object in an immutable way using the spread operator (see example below):
+
+      Reference Type Immutable Copy Technique Example:
+      const person = {
+         name: 'Max
+      };
+      const secondPerson = { 
+         ...person
+      };
+      person.name = 'John';
+      console.log(secondPerson);    // Max
+
+   > The above creates a real copy of the object (or array) rather than a copy of the pointer. Hence, in this example the change to the name property value in the person object does not affect the value of secondPerson's name property.
