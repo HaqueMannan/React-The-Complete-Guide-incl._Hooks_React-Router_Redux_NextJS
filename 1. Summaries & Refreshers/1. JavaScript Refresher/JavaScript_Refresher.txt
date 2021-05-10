@@ -109,3 +109,81 @@ JavaScript Refresher - Summary:
    > If you decide to give the * an alias (not required but optional), i order to access the property you would use the dot notation e.g. bundle.baseData to access the baseData variable from the export module.
 
 IMPORTANT NOTE: Not all web browsers support the latest versions of ES6 and beyond features; however, you can use compilers (such as Webpack and Babel) which can convert ES6+ syntax into regular ES5 syntax which are supported by all browsers JavaScript engines.
+
+------------------------------------------------------------------------------------
+4. Classes (Properties and Methods):
+------------------------------------------------------------------------------------
+   > Classes are like blueprints for JavaScript objects.
+   > A class is created with the "class" keyword.
+   > A class can have properties (variables) and methods (functions).
+
+   ES6 JavaScript Syntax Example:
+      class Person {
+         name = 'Max'
+         call = () => { ... };
+      };
+
+      const myPerson = new Person();
+      myPerson.call();
+      console.log(myPerson.name);
+
+   > A class is instantiated using the "new" keyword
+   > You create JavaScript objects with classes as the blueprints.
+   > Classes support inheritance which means that you have another class which you can inherit from taking across all its properties and method, while potentially adding new properties and methods.
+   > To inherit from another class you would use the "extends" keyword.
+
+   ES6 JavaScript Syntax Example:
+      class Human {
+         constructor() {
+            this.gender = 'male';
+         };
+         printGender() {
+            console.log(this.gender);
+         };
+      };
+
+      class Person extends Human {
+         constructor() {
+            super();
+            this.name = 'Max';
+         };
+         printMyName() {
+            console.log(this.name);
+         };
+      };
+
+      const Person = new Person();
+      person.printMyName();
+      person.printGender();
+
+   > Properties are added using the constructor() method which gets called automatically when a Class is instantiated.
+   > A method is created by defining the name followed by round brackets which holds method's arguments/parameters and then followed by the code body/block within curly brackets.
+   > The Person class inherits from the Human class i.e. it inherits all of its properties and methods.
+   > If extending from another class and are using a constructor within the class, the super() method is required within the constructor method.
+   > The super() keyword executes the parent constructor which would correctly initialise the class. Without this you would run into a Reference Error.
+   > Classes are used by React to create one of the two ways of it's components.
+   > Classes are very comparable to constructor functions while inheritance are comparable to prototypes.
+   > ES7 introduces another syntax of initialising properties and methods in JavaScript.
+   > No longer are you required to use the constructor function to define properties. Furthermore, you can now use arrow functions for methods without the issue of the "this" keyword's scope.
+
+   ES7 JavaScript Syntax Example:
+      Class ClassObject {
+         myProperty = 'value';
+         myMethod = () => { ... };
+      };
+
+   > You no longer require to call the super() method when inheriting from a class which uses a constructor() method. As seen with the refactored example below:
+      ES7 JavaScript Syntax Example:
+         class Human {
+            this.gender = 'male';
+            printGender = () => {
+               console.log(this.gender);
+            };
+         };
+
+         class Person extends Human {
+            this.name = 'Max';
+            printMyName = () => {
+               console.log(this.name);
+            };
+         };
