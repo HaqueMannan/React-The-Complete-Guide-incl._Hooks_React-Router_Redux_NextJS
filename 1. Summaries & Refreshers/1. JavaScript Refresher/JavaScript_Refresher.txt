@@ -187,3 +187,41 @@ IMPORTANT NOTE: Not all web browsers support the latest versions of ES6 and beyo
                console.log(this.name);
             };
          };
+
+------------------------------------------------------------------------------------
+5. Spread & Rest Operator:
+------------------------------------------------------------------------------------
+   > The Spread and Rest Operator uses three periods (...). Which one is called depends on how you use it.
+   > The spread operator is used to split up Array Elements or Object Properties
+
+      ES6 JavaScript Syntax Example:
+         const newArray = [...oldArray, 1, 2];
+         const newObject = { ...oldObject, newProp: 5 };
+
+   > The three periods before the array or object will pull out the array elements/object properties and add it to the new array/object.
+   > Note that if the oldObject had a property of newProp, this would be replaced by the new object's newProp property value because the new object takes precedence.
+   > The rest operator which also uses the three periods is used within functions. The rest operator is used to merge a list of function arguments/parameters into an array.
+
+      ES6 JavaScript Syntax Example:
+         function sortArgs(...args) {
+            return args.sort();
+         };
+
+------------------------------------------------------------------------------------
+6. Destructuring:
+------------------------------------------------------------------------------------
+   > Destructuring allows you to easily extract array elements or object properties and store them in variables.
+   > The spread operator takes out all elements/properties and distributes them in a new array/object. Destructuring on the other hand allows you to pull out single elements/properties from array/objects and store them in variables.
+
+      ES6 JavaScript Syntax Example:
+         [a, b] = ['Hello', 'Max'];
+         console.log(a);      // Hello
+         console.log(b);      // Max
+
+         { name } = { name: 'Max', age: 28 };
+         console.log(name);   // Max
+         console.log(age);    // undefined
+
+   > Destructuring an array elements uses the square bracket syntax while destructuring an object uses the curly bracket syntax.
+   > In an array destructuring the order defines which properties are extracted/destructed.
+   > In an object destructuring the property name defines which properties are extracted/destructed. This is why the age variable would return undefined as no values was destructed from the object's age property.
