@@ -1,0 +1,26 @@
+React Basics & Working with Components - Summary:
+1. What are Components?
+2. How are Components Built?
+
+------------------------------------------------------------------------------------
+1. What are Components?:
+------------------------------------------------------------------------------------
+   > HTML, CSS and JavaScript are web technologies for building User Interfaces.
+   > React is a JavaScript library for building User Interfaces (UI).
+   > React makes building complex interactive and reactive UI simpler.
+   > React embraces a concept called "Components".
+   > React is all above components because all UI at the end of the day are made up of components.
+   > Components are a combination of HTML for structure, CSS for styling and possibly JavScript for logic.
+   > Components have a trait of being reusable.
+   > This creates individual building blocks which can be combined together to build a UI.
+   > React embraces Components because of reusability (DRY principal) and separation of concerns (functions Single-Responsibility principle). Both concepts are important in programming in general.
+
+
+------------------------------------------------------------------------------------
+2. How are Components Built?:
+------------------------------------------------------------------------------------
+   > When you work with React and build components, you are simply combining HTML, CSS and JavaScript. You then combine all these components together to build the entire UI.
+   > The CSS is the least important aspect when building components in React.
+   > Vanilla JavaScript requires you to tell it where a certain HTML element should be created and inserted at a pacific place on the UI (if you were creating HTML using vanilla JavaScript).
+   > React uses a 'Declarative Approach' for building components. This means with React, you would define the desired end state i.e. target state(s) and let React figure out the actual JavaScript DOM instructions under the hood.
+   > Therefore, you can say that with React, you build your own custom HMTL Elements which you combine together to build a UI.
