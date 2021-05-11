@@ -6,6 +6,7 @@ JavaScript Refresher - Summary:
 5. Spread and Rest Operators
 6. Destructuring
 7. Reference and Primitive Types
+8. Array Functions
 
 ------------------------------------------------------------------------------------
 1. JavaScript Variables:
@@ -265,3 +266,22 @@ IMPORTANT NOTE: Not all web browsers support the latest versions of ES6 and beyo
       console.log(secondPerson);    // Max
 
    > The above creates a real copy of the object (or array) rather than a copy of the pointer. Hence, in this example the change to the name property value in the person object does not affect the value of secondPerson's name property.
+
+------------------------------------------------------------------------------------
+8. Array Functions:
+------------------------------------------------------------------------------------
+   > JavaScript has a many built-in array functions that you can use on arrays.
+   > Array functions are part of the normal JavaScript i.e. ES5 and is not a next generation JavaScript feature.
+   > A list of array functions and what they do and how they work can be found on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#
+
+   Array Function Examples:
+      const numbers = [1, 2, 3];
+      const doubleNumbers = numbers.map((num) => {
+         return num * 2
+      });
+      console.log(numbers);            // [1, 2, 3]
+      console.log(doubleNumbers);      // [2, 4, 6]
+
+   > The .map() array function allows you to pass in a function that is executed on each element within the array.
+   > The "num" argument/parameter could have been called anything but it represents each array element as the map function iterates through each element within the array.
+   > The .map() function then returns a new array which is stored in the new variable.
