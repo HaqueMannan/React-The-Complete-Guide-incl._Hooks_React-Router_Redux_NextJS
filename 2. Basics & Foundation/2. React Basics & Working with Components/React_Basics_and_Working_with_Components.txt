@@ -1,6 +1,7 @@
 React Basics & Working with Components - Summary:
 1. What are Components?
 2. How are Components Built?
+3. Creating a New React Project
 
 ------------------------------------------------------------------------------------
 1. What are Components?:
@@ -15,7 +16,6 @@ React Basics & Working with Components - Summary:
    > This creates individual building blocks which can be combined together to build a UI.
    > React embraces Components because of reusability (DRY principal) and separation of concerns (functions Single-Responsibility principle). Both concepts are important in programming in general.
 
-
 ------------------------------------------------------------------------------------
 2. How are Components Built?:
 ------------------------------------------------------------------------------------
@@ -24,3 +24,26 @@ React Basics & Working with Components - Summary:
    > Vanilla JavaScript requires you to tell it where a certain HTML element should be created and inserted at a pacific place on the UI (if you were creating HTML using vanilla JavaScript).
    > React uses a 'Declarative Approach' for building components. This means with React, you would define the desired end state i.e. target state(s) and let React figure out the actual JavaScript DOM instructions under the hood.
    > Therefore, you can say that with React, you build your own custom HMTL Elements which you combine together to build a UI.
+
+------------------------------------------------------------------------------------
+3. Creating a New React Project:
+------------------------------------------------------------------------------------
+   > Create-React-App is a console tool that allows you to quickly generate a boiler plate react project (https://create-react-app.dev/).
+   > Further documentation resource: https://reactjs.org/docs/create-a-new-react-app.html
+   > This will create pre-configured folders, basic react code files and most importantly a bunch of configuration files to help build the react application for production as well as provide a local development environment.
+   > To execute the Create-React-App tool, you will require Node.js to be installed on your machine which is a runtime for JavaScript which will allow you to run JavaScript code.
+   > Node.js comes bundled with the Node Package Manager (NPM) which allows you to install external packages.
+   > https://nodejs.org/en/
+   > Within the terminal, navigate to the desired path you wish to create a new React Project using the 'cd' (change directory) command.
+   > Execute the following commands to create the new React Project within the current directory path:
+
+   Terminal Commands:
+      $: npx create-react-app [app-name]
+      $: cd [app-name]
+      $: npm start
+
+   > Replace [app-name] with the name of your React application e.g. 'npx create-react-app my-app'
+   > Important Note: NPM naming restrictions restricts you from using capital letters within the app name, thus, you cannot use camelCase naming of the App file.
+   > Your new project files will be created in the destination. The 'npm start' command will run your React app in your local development environment i.e. localhost:3000 (you must be in the directory before you run the command).
+   > You are now ready to start editing the base dummy code and creating your React Application.
+   > To stop the React local web server from running, hold down the control key and press the c button on your keyboard in the terminal that is running the server.
