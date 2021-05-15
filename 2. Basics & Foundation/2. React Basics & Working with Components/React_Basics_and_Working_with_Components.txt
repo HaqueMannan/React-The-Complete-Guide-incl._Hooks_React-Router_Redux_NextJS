@@ -4,6 +4,8 @@ React Basics & Working with Components - Summary:
 3. Creating a New React Project
 4. Analysing a Standard React Project
 5. Introducing JSX
+6. Building a Custom Component
+7. Writing a more Complex JSX Code
 
 ------------------------------------------------------------------------------------
 1. What are Components?:
@@ -81,3 +83,91 @@ React Basics & Working with Components - Summary:
    > You can view the transformed code by opening the Developer tool within your browser for the React App and within the Sources tab you can see all the scripts and files downloaded by the browser to render the page on the screen.
    > The static/js folder will hold the transformed JavaScript code which looks like some cryptic JavaScript code which you have not written in your project code which is a more simple and developer friendly code.
    > The code in these files are not only your code but also the entire React Package code.
+
+------------------------------------------------------------------------------------
+6. Building a Custom Component:
+------------------------------------------------------------------------------------
+   > It is considered best practice to place new components into new files. To organise the source code, you can create a new 'src/components' folder which will hold all the components source files.
+   > The App.js will not move into the components directory because this will act as a special kind of component (not regarding its code but rather it's role within the application).
+   > The App.js will be the root component which will be the main component rendered in the main index.js file.
+   > All other components will either be nested inside of App.js or other Component files which will eventually be nested into the App.js file.
+   > With React you are building a "Component Tree", for example:
+
+   Component Tree Example:
+                  <App />
+            _________|_________
+            |                 |
+         <Header />        <Tasks />
+                              |
+                  ____________|____________
+                  |           |           |
+               <Task />    <Task />    <Task />
+
+   > Big Applications can result in large Component Trees where only the topmost (i.e. <App />) component is rendered into the single HTML page with the help of the ReactDOM.render() function.
+   > It is a common naming convention to name your component JavaScript files using PascalCase (i.e. the first letter of each word is capitalised and the first character must always be capitalised).
+   > The name of the component should tell the developer what kind of logic and HTML code will live inside of the file.
+   > A component code in React is simply a function that will be exported. It is a special type of function in terms of what it returns i.e. JSX code. Other than that it is just a regular JavaScript function.
+
+   React Component Example:
+      src/components/ExpenseItem.js:
+         function ExpenseItem() {
+            return <h2>Expense Item</h2>;
+         };
+         export default ExpenseItem;
+
+   > The convention is to name the function the same as the component name without the .js extension name.
+   > You must return something in a function by calling the return() method. Note in the example above, since we are returning a <h2> element, we can write this onto a single line without wrapping it in the round brackets.
+   > The round brackets signals to JavaScript that the return statement/code are one and the same statement even if they should span across multiple lines.
+   > To use the component you must export it, otherwise it is only useable within the file itself which is not helpful.
+   > The 'export default' keyword is used to export the function as the default function for this component file.
+   > This component can now be imported in another file.
+   > You will use this component like a regular HTML element inside of the html code written in the App.js component file.
+
+   Importing React Component Example:
+      src/App.js:
+         import ExpenseItem from './components/ExpenseItem';
+         function App() {
+            return (
+               <div>
+                  <ExpenseItem></ExpenseItem>
+               </div>
+            );
+         };
+         export default App;
+   
+   > The 'import' keyword tells JavaScript the relative file path from App.js to the exported component function file to import from.
+   > The imported function can now be used in the App.js like a regular HTML element.
+   > The element name must be the same as the imported default function name which must be in PascalCase. This allows for the connection of the imported component function.
+   > You can use either opening and closing tags or self closing tags e.g. <ExpenseItem></ExpenseItem> or <ExpenseItem />.
+   > Lowercase Elements are default HTML elements while PascalCase Elements are custom made components created by the developer. This allows for React to detect the custom component from regular HTML elements.
+
+------------------------------------------------------------------------------------
+7. Writing a more Complex JSX Code:
+------------------------------------------------------------------------------------
+   > React has one important rule regarding JSX code that is returned from the Component function.
+   > You must only have one root element per return statement / JSX code snippet.
+
+   Incorrect JSX Code:
+      return (
+         <div>Date</div>
+         <div>
+            <h2>Title</h2>
+            <div>Amount</div>
+         </div>
+      );
+
+   > The above is invalid because there are two side by side <div> elements (both being root elements being returned by the function).
+   > One of the simplest work workaround fix is to wrap the whole code in a single root <div> element which abides by the rule that a component can only return a single root element.
+
+   Valid JSX Code:
+      return (
+         <div>
+            <div>Date</div>
+            <div>
+               <h2>Title</h2>
+               <div>Amount</div>
+            </div>
+         </div>
+      );
+
+   > The single parent <div> element can have multiple div elements inside it that can be side by side. This demonstrates that you should only return a root/parent element that must be a single element from your component function.
