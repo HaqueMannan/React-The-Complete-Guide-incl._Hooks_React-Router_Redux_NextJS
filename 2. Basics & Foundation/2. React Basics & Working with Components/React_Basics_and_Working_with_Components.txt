@@ -47,3 +47,26 @@ React Basics & Working with Components - Summary:
    > Your new project files will be created in the destination. The 'npm start' command will run your React app in your local development environment i.e. localhost:3000 (you must be in the directory before you run the command).
    > You are now ready to start editing the base dummy code and creating your React Application.
    > To stop the React local web server from running, hold down the control key and press the c button on your keyboard in the terminal that is running the server.
+
+------------------------------------------------------------------------------------
+4. Analysing a Standard React Project:
+------------------------------------------------------------------------------------
+   > The src folder within your React Project is the main source folder where you would write your React code.
+   > React code is just JavaScript code, but you would use special syntax code introduced by React.
+   > The index.js file is the first code file that will be executed whenever the root page is loaded.
+   > Important Note: the index.js code will actually be a transformed/optimised version of the code which is generated behind the scenes. For example the below codes are not valid JavaScript syntax but will be converted to be valid JavaScript code:
+      "import './index.css';" and 
+      "ReactDOM.render(<React.StrictMode><App /></React.StrictMode>, document.getElementById('root'));"
+   > This allows you to write code in a nice and easily readable developer friendly way but have transformed valid code at the end of the day that can run in the browser.
+
+   > The public/index.html file is the single HTML file that is loaded in the browser. React creates a so-called single page application typically. This means it creates one single HTML file that is delivered and rendered to the browser and the finished React (JavaScript) code that is what we actually see on the screen that manipulates the DOM.
+   > The <div id="root"></div> is the single HTML element within the file. This element has the id of 'root'. It is this element that is selected by the index.js ReactDOM.render() snippet i.e. 'document.getElementById('root')'.
+   > The <noscript> HTML element is used to load the React JavaScript code into the HTML.
+
+   > The <App /> is the JavaScript file (i.e. 'import App from './App';') that we would have imported into the index.js file.
+   > Using the ReactDOM.render() function from the 'react-dom' library we are injecting the <App /> (i.e. the App.js JavaScript code) into the <div id="root"> element which ultimately gets rendered to the screen.
+   > This is not regular JavaScript syntax but something called JSX syntax which we will revisit in 5. Introducing JSX.
+   > The <App /> is the first React Component which we render inside of the 'root' <div> element.
+
+   > The App.js is the file that holds a function called App() which is then exported. This allows you to use the App function in the index.js file.
+   > The App() function returns something which is a HTML code inside of a JavaScript file. This is not a valid JavaScript code; however, it works because of the JSX feature which is a special syntax invented and introduced by the React team. This syntax works due to the overall project setup and the behind the scenes transformations that convert the code into valid JavaScript code.
