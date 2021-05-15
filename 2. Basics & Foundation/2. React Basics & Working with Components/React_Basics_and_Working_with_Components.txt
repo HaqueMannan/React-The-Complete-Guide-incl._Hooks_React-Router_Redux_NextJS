@@ -2,6 +2,8 @@ React Basics & Working with Components - Summary:
 1. What are Components?
 2. How are Components Built?
 3. Creating a New React Project
+4. Analysing a Standard React Project
+5. Introducing JSX
 
 ------------------------------------------------------------------------------------
 1. What are Components?:
@@ -70,3 +72,12 @@ React Basics & Working with Components - Summary:
 
    > The App.js is the file that holds a function called App() which is then exported. This allows you to use the App function in the index.js file.
    > The App() function returns something which is a HTML code inside of a JavaScript file. This is not a valid JavaScript code; however, it works because of the JSX feature which is a special syntax invented and introduced by the React team. This syntax works due to the overall project setup and the behind the scenes transformations that convert the code into valid JavaScript code.
+
+------------------------------------------------------------------------------------
+5. Introducing JSX:
+------------------------------------------------------------------------------------
+   > JSX stands for JavaScript XML because you could say HTML in the end is XML.
+   > There are transformation steps working behind the scenes which transforms the JSX JavaScript code to a more browser friendly code before everything is actually served to the browser.
+   > You can view the transformed code by opening the Developer tool within your browser for the React App and within the Sources tab you can see all the scripts and files downloaded by the browser to render the page on the screen.
+   > The static/js folder will hold the transformed JavaScript code which looks like some cryptic JavaScript code which you have not written in your project code which is a more simple and developer friendly code.
+   > The code in these files are not only your code but also the entire React Package code.
