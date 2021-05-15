@@ -6,6 +6,7 @@ React Basics & Working with Components - Summary:
 5. Introducing JSX
 6. Building a Custom Component
 7. Writing a more Complex JSX Code
+8. Adding Basic CSS Styling
 
 ------------------------------------------------------------------------------------
 1. What are Components?:
@@ -171,3 +172,34 @@ React Basics & Working with Components - Summary:
       );
 
    > The single parent <div> element can have multiple div elements inside it that can be side by side. This demonstrates that you should only return a root/parent element that must be a single element from your component function.
+
+------------------------------------------------------------------------------------
+8. Adding Basic CSS Styling:
+------------------------------------------------------------------------------------
+   > To add styling to React Components you would still use regular CSS.
+   > Typically you would create a new CSS file next to the Component file by using the same name but with the .css extension name.
+
+   CSS Code for Component Example:
+      src/components/ExpenseItem.css:
+         .expense-item {
+            display: flex;
+            background-color: #4b4b4b;
+         }
+
+   > In ExpenseItem.js Component file, you need to make the overall build process aware of the CSS file and tell it that the CSS file should be considered and injected it into the finished application transformation build.
+   > You simply import the CSS file into the Component file which will then tell the React process when building the final app code.
+
+   Importing CSS Code in the Component File Example:
+      src/components/ExpenseItem.js:
+         import './ExpenseItem.css';
+         function ExpenseItem() {
+            return (
+               <div className="expense-item">
+                  ...
+               </div>
+            );
+         };
+
+   > To apply the CSS styling to an element we would need to provide an id/class property to the element. To add a class property to an element in JSX, you would use className instead of class.
+   > Remember JSX may look like HTML but is a syntax created by the React team. JSX in the end is JavaScript code and also the reason for why most attributes are the same as HTML but not all (class being one of these). This is because class is a reserved keyword within JavaScript.
+   > Other than the above, it is really just standard CSS code which is then added to your custom element.
