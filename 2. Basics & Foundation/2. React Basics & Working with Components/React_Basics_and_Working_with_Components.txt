@@ -11,6 +11,7 @@ React Basics & Working with Components - Summary:
 10. Passing Data via Props
 11. Adding "Normal" JavaScript Logic to Components
 12. Splitting Components into Multiple Components
+13. The Concept of Composition (Props.Children)
 
 ------------------------------------------------------------------------------------
 1. What are Components?:
@@ -389,3 +390,82 @@ React Basics & Working with Components - Summary:
    > Remember: you would need to pass the date as a 'Prop' attribute for the ExpenseDate component element in order to extract the date and format it.
    > You will now notice the data value for date is passing down multiple component i.e. from the <App /> Component to the <ExpenseItem /> Component and finally reaching the <ExpenseDate /> Component.
    > The ExpenseDate Component can now be used by any other Components that require this component.
+
+------------------------------------------------------------------------------------
+13. The Concept of Composition (Props.Children):
+------------------------------------------------------------------------------------
+   > So far, this approach of building a User Interface from smaller building blocks is called "Composition".
+   > What if we want to create a Component which actually just serves as a shell around any other content?
+   > Sometimes you want a Component where you do not configure everything through 'Props' but you are instead able to pass content between the opening and closing tags of that Component.
+   > For Example, your application code could have a container/boxes that have rounded corners and a slight box-shadows around UI elements. The whole point of having building blocks (Components) is to avoid code duplications. In this example, there is a HTML structure and style duplication.
+   > You can extract the styles Components have in common into a separate Component. Below is a sample code:
+
+   Composition (Children Props) Example:
+      src/components/Card.js:
+         import './Card.css';
+         function Card(props) {
+            const classes = 'card' + props.className
+            return <div className={classes}>{props.children}</div>
+         };
+         export default Card;
+
+      src/components/Card.css:
+         .card {
+            border-radius: 12px;
+            box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+         }
+
+      src/components/ExpenseItem.js:
+         import ExpenseDate from './ExpenseDate';
+         import Card from './Card';
+         import './ExpenseItem.css';
+         function ExpenseItem(props) {
+            return (
+               <Card className="expense-item">
+                  <ExpenseDate date={props.date} />
+                  <div className="expense-item__description">
+                     <h2>{props.title}</h2>
+                     <div className="expense-item__price">£{props.amount}</div>
+                  </div>
+               </Card>
+            );
+         };
+         export default ExpenseItem;
+
+      src/components/ExpenseItem.css:
+         .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            margin: 1rem 0;
+            background-color: #4b4b4b;
+         }
+
+      src/components/Expenses.css:
+         import ExpenseItem from './ExpenseItem';
+         import Card from './Card';
+         import './Expenses.css';
+         function Expenses(props) {
+            return (
+               <Card className="expenses">
+                  <ExpenseItem title={ props.items[0].title} amount={props.items[0].amount} date={props.items[0].date } />
+                  <ExpenseItem title={ props.items[1].title} amount={props.items[1].amount} date={props.items[1].date } />
+                  <ExpenseItem title={ props.items[2].title} amount={props.items[2].amount} date={props.items[2].date } />
+                  <ExpenseItem title={ props.items[3].title} amount={props.items[3].amount} date={props.items[3].date } />
+               </Card>
+            );
+         };
+         export default Expenses;
+
+   > The Card Component acts as a shell around other components that require the .card container styling.
+   > The ExpenseItem can import the Card Component and wrap its content using the shell (e.g. <Shell>Content</Shell>).
+   > However, out-of-the-box you cannot use your Components as wrappers around other kind of content i.e. having contents between the opening and closing custom Component element does not work out-of-the-box unlike built in HTML such as the <div> or <h2> element tags.
+   > To make it work with our custom Component, the Card Component would have to use the 'Props' argument/property provided by React.
+   > There is one special property built into React which every component receives even if it is not set explicitly called the 'props.children'.
+   > The '.children' property is a reserved name and the value of this .children property will always be the content between the opening and closing tags of the custom Component. Therefore, in the above example, the content between the opening and closing <Card><Card/> component wrapper will be available on the {props.children} property.
+   > Important Note: This may break the styling defined in other CSS files such as ExpenseItem.css file. You must not forget that the custom Component is defined by you. While all the default HTML elements support className for adding CSS classes to the rendered HTML elements, custom Components only support what you tell them to support.
+   > To ensure that a className can be set on your custom Component and has an affect you would need to create a const variable and set its value adding the 'props.className' which would take in anything that is received as a className outside of the component. The className for the custom Component can then point at this dynamically set const variable value.
+   > The 'const classes = 'card' + props.className' code ensures the "card" class name is combined with any other external classNames (e.g. ".expense-item").
+   > You now have a reusable Component shell/wrapper that can now be used anywhere it is required (as seen in the above example being used in the Expenses Component).
+   > This Composition concept allows you to save on code duplication especially with more complex wrapper Components such as Modals. You would use Composition all the time with React and it is an important concept to understand and learn as part of the basic fundamentals of React.
