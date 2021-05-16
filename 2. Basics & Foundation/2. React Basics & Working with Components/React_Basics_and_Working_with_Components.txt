@@ -7,6 +7,8 @@ React Basics & Working with Components - Summary:
 6. Building a Custom Component
 7. Writing a more Complex JSX Code
 8. Adding Basic CSS Styling
+9. Outputting Dynamic Data & Working with Expressions in JSX
+10. Passing Data via Props
 
 ------------------------------------------------------------------------------------
 1. What are Components?:
@@ -203,3 +205,115 @@ React Basics & Working with Components - Summary:
    > To apply the CSS styling to an element we would need to provide an id/class property to the element. To add a class property to an element in JSX, you would use className instead of class.
    > Remember JSX may look like HTML but is a syntax created by the React team. JSX in the end is JavaScript code and also the reason for why most attributes are the same as HTML but not all (class being one of these). This is because class is a reserved keyword within JavaScript.
    > Other than the above, it is really just standard CSS code which is then added to your custom element.
+
+------------------------------------------------------------------------------------
+9. Outputting Dynamic Data & Working with Expressions in JSX:
+------------------------------------------------------------------------------------
+   > It was mentioned that Components are a combination of HTML, CSS and JavaScript. Thus far we have seen HTML and CSS in action but have not seen JavaScript other than the component being a function.
+   > You can add JavaScript code inside of the function before it returns the HTML output.
+
+   Outputting Dynamic Data Example:
+      src/components/ExpenseItem.js:
+         function ExpenseItem() {
+            const expenseDate = new Date(2021, 4, 15);
+            const expenseTitle = 'Car Insurance';
+            const expenseAmount = 745.36
+
+            return (
+               <div className="expense-item">
+                  <div>{expenseDate.toISOString()}</div>
+                  <div className="expense-item__description">
+                     <h2>{expenseTitle}</h2>
+                     <div className="expense-item__price">£{expenseAmount}</div>
+                  </div>
+               </div>
+            );
+         };
+
+   > Note that later on we will explore how you can use dynamic data coming from for example an API or Database or a React Form etc.
+   > However, the concept is the same that you would use regular JavaScript to grab data which you can then return in the HTML i.e. JSX syntax.
+   > JSX provides the opening and closing curly braces syntax to inject basic JavaScript expressions. The result of the expression is what will appear on the screen. For example the JavaScript expression of {1+1} will display 2 on the screen or {Math.random()} which will generate a random number on the screen.
+   > By repeating the name of the variable is a valid JavaScript expression which simply points at a variable.
+   > Important Note: the date is a Date Object and cannot be output as text which would break the App. Instead, you can call on the .toISOString() which is a built in JavaScript method available on all Date Objects to output the date as a string and avoid the breaking code.
+   > Note that the date will not be in a easily readable string but is a first step for converting Date Objects into a string representation.
+   > Using this method allows you to inject dynamic data into the JSX (HTML) code so that the values are not hardcoded.
+   > The above example would still output the same hardcoded values as before but it is now injected into the JSX code and is the first step towards dynamic data output.
+   > You can now have the concrete value to be the result of a calculation, HTTP/HTTPS request or a value stored in a variable (as demonstrated above).
+
+------------------------------------------------------------------------------------
+10. Passing Data via Props:
+------------------------------------------------------------------------------------
+   > To make a component reusable you would simply copy the component element within the JSX code.
+
+   Example of Reusing a Component:
+      src/App.js:
+         import ExpenseItem from './components/ExpenseItem';
+         function App() {
+            return (
+               <div>
+                  <ExpenseItem></ExpenseItem>
+                  <ExpenseItem></ExpenseItem>
+               </div>
+            );
+         };
+
+   > In the above example the ExpenseItem component is reused and repeated two times.
+   > the component is not actually reusable at the moment because the data inside of the ExpenseItem component is baked in displaying the same data inside of the component.
+   > In regular JavaScript, you would have functions to split functionality across multiple smaller code bases and also have reusable functions that you can call multiple times. Functions have parameters which allows you to reuse functions with different argument/parameter values.
+   > React has the same concept built-in. To make components reusable you would use parameters and a concept called 'Props'.
+
+   > As a hypothetical example, the <App /> component has a goalItem variable which holds a string of "Finished!" (i.e. const goalItem = 'Finished!'). You then have a custom component called <CourseGoalItem /> which stores a list item where the goalItem value should be outputted dynamically (i.e. <li>{goalItem}</li>). The issue here is that the goalItem variable lives in the <App /> component and not in the <CourseGoalItem /> component.
+   > This is good because the CourseGoalItem component is made independent and does not store the concrete value internally.
+   > Components cannot have access to use data stored in other components. Instead, you can utilise a concept called 'Props' to pass data to a custom component by adding an attribute. Inside of that component you can get access to all the attributes which might have been set on the custom component.
+   > Again, you are building your own custom HTML elements and just as HTML elements can have attributes, so can Reacts custom Components. This concept is called 'Props' which stands for properties which is the same as the HTML elements attributes concept.
+
+   Props Example:
+      src/App.js:
+         import ExpenseItem from './components/ExpenseItem';
+         function App() {
+            const expenses = [
+               {id: 'e1', title: 'Toilet Paper', amount: 12.00, date: new Date(2021, 4, 16)},
+               {id: 'e2', title: 'TV', amount: 345.99, date: new Date(2021, 3, 30)},
+               {id: 'e3', title: 'Car Insurance', amount: 745.36, date: new Date(2021, 4, 15)},
+               {id: 'e4', title: 'New Desk (Wood)', amount: 400.00, date: new Date(2021, 4, 12)},
+            ];
+            return (
+               <div>
+                  <ExpenseItem title={expenses[0].title} amount={expenses[0].amount} date={expenses[0].date}></ExpenseItem>
+                  <ExpenseItem title={expenses[1].title} amount={expenses[1].amount} date={expenses[1].date}></ExpenseItem>
+                  <ExpenseItem title={expenses[2].title} amount={expenses[2].amount} date={expenses[2].date}></ExpenseItem>
+                  <ExpenseItem title={expenses[3].title} amount={expenses[3].amount} date={expenses[3].date}></ExpenseItem>
+               </div>
+            );
+         };
+
+      src/components/ExpenseItem.js:
+         function ExpenseItem(props) {
+            const expenseDate = new Date(2021, 4, 15);
+            const expenseTitle = 'Car Insurance';
+            const expenseAmount = 745.36;
+
+            return (
+               <div className="expense-item">
+                  <div>{props.date.toISOString()}</div>
+                  <div className="expense-item__description">
+                     <h2>{props.title}</h2>
+                     <div className="expense-item__price">£{props.amount}</div>
+                  </div>
+               </div>
+            );
+         };
+
+   > In the above example, the expenses data is stored as an array of objects within the App.js component file. These objects can be passed to the different ExpenseItem components.
+   > The ExpenseItem components require to be made configurable from outside the component file itself. This is achieved by the App.js file passing the object values as attributes/props to the ExpenseItem component.
+   > You can use JavaScript Expressions to pass the value as an attribute value using the curly brackets (refer to 9. Outputting Dynamic Data & Working with Expressions in JSX).
+   > The name of the attributes/props is entirely up to you but should be meaningful for readability of your code.
+   > Remember that JavaScript arrays uses zero indexing.
+   > Within the Component file itself that is receiving 'Props' you need to do something with these attributes/props which is the second part of the process.
+   > React ensures that the Component will receive one argument/parameter to the custom Component function. This function argument/parameter will be an object that holds all of the attributes that is passed as properties. Hence, the name of 'Props' for the overall concept.
+   > You can name this function argument/parameter whatever you want because it is your function. Therefore, you can call it data, but typically it is called props to make it clear that this argument/parameter holds all the values that you get from the attributes on the custom component element.
+   > You get key:value pairs from this argument/parameter object which is passed in via React automatically. The keys will be the attributes names passed to the component element and the values will be the set values of those attributes.
+   > To access the value you would use the argument/parameter name followed by the key name you wish to access (e.g. {props.title} will return the title's key value coming from the attribute/props passed into the Component element). Remember that the key name is the name of the attribute/prop you passed into the component element.
+   > You should ensure the attribute/prop names you choose are self-explanatory and makes sense as good practice so that other developers understand your Component's code.
+   > The data now comes outside the component and you no longer need to define them within the component function itself. This helps you step one step closer to truly dynamic data and reusable components.
+   > This is how you share data between React Components. Props is a key/important concept in React and you should become familiar with this concept before moving on.
