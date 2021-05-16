@@ -9,6 +9,7 @@ React Basics & Working with Components - Summary:
 8. Adding Basic CSS Styling
 9. Outputting Dynamic Data & Working with Expressions in JSX
 10. Passing Data via Props
+11. Adding "Normal" JavaScript Logic to Components
 
 ------------------------------------------------------------------------------------
 1. What are Components?:
@@ -289,10 +290,6 @@ React Basics & Working with Components - Summary:
 
       src/components/ExpenseItem.js:
          function ExpenseItem(props) {
-            const expenseDate = new Date(2021, 4, 15);
-            const expenseTitle = 'Car Insurance';
-            const expenseAmount = 745.36;
-
             return (
                <div className="expense-item">
                   <div>{props.date.toISOString()}</div>
@@ -317,3 +314,33 @@ React Basics & Working with Components - Summary:
    > You should ensure the attribute/prop names you choose are self-explanatory and makes sense as good practice so that other developers understand your Component's code.
    > The data now comes outside the component and you no longer need to define them within the component function itself. This helps you step one step closer to truly dynamic data and reusable components.
    > This is how you share data between React Components. Props is a key/important concept in React and you should become familiar with this concept before moving on.
+   > Important Note: 'Props' are not limited to dynamically set values and you can pass in hardcoded values.
+
+------------------------------------------------------------------------------------
+11. Adding "Normal" JavaScript Logic to Components:
+------------------------------------------------------------------------------------
+   > You will notice that the date values using the JavaScript .toString method does not provide a human readable data format.
+   > You can use normal JavaScript functions to Components since a component is simply JavaScript code that returns a JSX (HTML).
+   > JavaScript has some built-in date conversion methods such as .toISOString(), .toLocaleString() and .getFullYear() which you can use to format dates using normal JavaScript logic.
+
+   Adding "Normal" JavaScript Logic Example:
+      src/components/ExpenseItem.js:
+         function ExpenseItem(props) {
+            const day = props.date.toLocaleString('en-GB', { day: '2-digit' });
+            const month = props.date.toLocaleString('en-GB', { month: 'long' });
+            const year = props.date.getFullYear();
+
+            return (
+               <div className="expense-item">
+                  <div>
+                     <div{day}></div>
+                     <div{month}></div>
+                     <div{year}></div>
+                  </div>
+                  <div className="expense-item__description">
+                     <h2>{props.title}</h2>
+                     <div className="expense-item__price">£{props.amount}</div>
+                  </div>
+               </div>
+            );
+         };
