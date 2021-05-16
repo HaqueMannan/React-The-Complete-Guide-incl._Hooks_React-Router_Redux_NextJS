@@ -10,6 +10,7 @@ React Basics & Working with Components - Summary:
 9. Outputting Dynamic Data & Working with Expressions in JSX
 10. Passing Data via Props
 11. Adding "Normal" JavaScript Logic to Components
+12. Splitting Components into Multiple Components
 
 ------------------------------------------------------------------------------------
 1. What are Components?:
@@ -143,6 +144,7 @@ React Basics & Working with Components - Summary:
    > The imported function can now be used in the App.js like a regular HTML element.
    > The element name must be the same as the imported default function name which must be in PascalCase. This allows for the connection of the imported component function.
    > You can use either opening and closing tags or self closing tags e.g. <ExpenseItem></ExpenseItem> or <ExpenseItem />.
+   > If you have a component element with no content inside of the opening and closing tags you can use the self-closing syntax (e.g. <ExpenseItem />).
    > Lowercase Elements are default HTML elements while PascalCase Elements are custom made components created by the developer. This allows for React to detect the custom component from regular HTML elements.
 
 ------------------------------------------------------------------------------------
@@ -344,3 +346,46 @@ React Basics & Working with Components - Summary:
                </div>
             );
          };
+
+------------------------------------------------------------------------------------
+12. Splitting Components into Multiple Components:
+------------------------------------------------------------------------------------
+   > React has the concept of Components because it allows you to split your application into smaller building blocks where every component is focused on one core task/aspect. You then build your overall User Interface (UI) by combining these Component building blocks. This helps you keep your Component code small and manageable while being able to build more complex UI.
+   > There is no hard and fast rule when to break your components into smaller components.
+
+   Splitting Components Example:
+      src/components/ExpenseItem.js:
+         import ExpenseDate from './ExpenseDate';
+         function ExpenseItem(props) {
+            return (
+               <div className="expense-item">
+                  <ExpenseDate date={props.date} />
+                  <div className="expense-item__description">
+                     <h2>{props.title}</h2>
+                     <div className="expense-item__price">£{props.amount}</div>
+                  </div>
+               </div>
+            );
+         };
+
+      src/components/ExpenseDate.js:
+         function ExpenseDate(props) {
+            const day = props.date.toLocaleString('en-GB', { day: '2-digit' });
+            const month = props.date.toLocaleString('en-GB', { month: 'long' });
+            const year = props.date.getFullYear();
+
+            return (
+               <div>
+                  <div>{day}</div>
+                  <div>{month}</div>
+                  <div>{year}</div>
+               </div>
+            );
+         };
+
+   > In the above example, the date logic has been split into it's own component file. This now makes the ExpenseItem Component more lean.
+   > Remember: the file that is using the Component as an custom HTML element must import the Component first. This can be seend with ExpenseItem.js importing the ExpenseDate.js Component file.
+   > The ExpenseDate component receives a props argument/parameter in order to receive properties from other Components.
+   > Remember: you would need to pass the date as a 'Prop' attribute for the ExpenseDate component element in order to extract the date and format it.
+   > You will now notice the data value for date is passing down multiple component i.e. from the <App /> Component to the <ExpenseItem /> Component and finally reaching the <ExpenseDate /> Component.
+   > The ExpenseDate Component can now be used by any other Components that require this component.
