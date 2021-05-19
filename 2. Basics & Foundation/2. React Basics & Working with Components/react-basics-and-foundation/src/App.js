@@ -1,3 +1,4 @@
+import React from 'react';       // Modern React project setups allows you to omit this import statement from the Component code.
 import Expenses from './components/Expenses';
 
 function App() {
@@ -14,6 +15,14 @@ function App() {
          <Expenses items={expenses} />
       </div>
    );
+
+   // The JSX code above gets converted/transformed under the hood to the below code (it requires the React object from the 'react' library in order to work). JSX is syntactic sugar:
+   // return React.createElement(
+   //    'div',
+   //    {},
+   //    React.createElement('h2', {}, 'Hello World'),
+   //    React.createElement(Expenses, {items: expenses})
+   // );
 };
 
 export default App;

@@ -12,6 +12,7 @@ React Basics & Working with Components - Summary:
 11. Adding "Normal" JavaScript Logic to Components
 12. Splitting Components into Multiple Components
 13. The Concept of Composition (Props.Children)
+14. A Closer Look at JSX
 
 ------------------------------------------------------------------------------------
 1. What are Components?:
@@ -469,3 +470,31 @@ React Basics & Working with Components - Summary:
    > The 'const classes = 'card' + props.className' code ensures the "card" class name is combined with any other external classNames (e.g. ".expense-item").
    > You now have a reusable Component shell/wrapper that can now be used anywhere it is required (as seen in the above example being used in the Expenses Component).
    > This Composition concept allows you to save on code duplication especially with more complex wrapper Components such as Modals. You would use Composition all the time with React and it is an important concept to understand and learn as part of the basic fundamentals of React.
+
+------------------------------------------------------------------------------------
+14. A Closer Look at JSX:
+------------------------------------------------------------------------------------
+   > JSX is syntactical sugar which gets transformed into regular HTML code behind the scenes.
+   > In the package.json file you will find all the dependencies with most handling the behind the scenes transformations.
+   > There are two dependencies which are related to React which are 'react' and 'react-dom'.
+   > The 'react-dom' library is imported and being used within the index.js file. However, we never import/use the 'react' library anywhere in our code. This setup works all modern React project setups using the create-react-app CLI tool.
+   > In the past in older React projects you actually needed to import React from the 'react' library in all of your Component files (i.e. in all files that you use JSX). There are a lot of React projects out in the wild which have the import statement for bringing in the 'react' library into their Component file.
+   > The import of the 'react' library in the Component can be omitted in modern React projects because there are some special things occurring behind the scenes to make it all work.
+   > The 'react' library is responsible for making JSX code transform into methods called on the React object which is why you needed to import React from 'react'; in the past.
+   > the React.createElement() method at the end of the day is what is being called and this method takes in three arguments/parameters. The first argument is the element to be created e.g. a <div>. The second is an object that configures the element, specifically the attributes of the element. The third and final argument is the content within the opening and closing element tags. The final argument can be an infinite list of arguments which are the different content pieces within the opening and closing tags.
+
+   React Object's createElement Method Example:
+      import React from 'react';
+      import Expenses from './components/Expenses';
+      return React.createElement('div', {}, 'Hello World');
+      return React.createElement('div', {}, React.createElement('h2', {}, 'Let\'s get started!'), React.createElement(Expenses, {items: expenses}));
+
+   > The first return createElement method would return the HTML element: <div>Hello World</div>
+   > The second return createElement method would return the HTML element: <div><h2>Let\'s get started!</h2>...</div>
+   > Pointing at a custom element at the end of the day is simply pointing to an imported function (i.e. the imported Component which is a function).
+   > The Expenses custom element would be all the HTML elements that was defined in that file (represented by ... i.e. it could be <div>Expenses</div>);
+   > You could write your whole React applications as seen in the above example; however, it would be much cumbersome to write that code compared to writing using JSX code.
+   > This is the reason for why in the past you were required to import the React object from the 'react' library into your Component files because it is the under the hood code which gets created automatically when you use JSX.
+   > Modern React projects can omit the import statement because the setup allows the transformation without the import needing to be added.
+   > If you are working on projects where it uses the import of the 'react' library just note that this was a past requirement.
+   > You can now appreciate the reason for why JSX requires a single root element and cannot have two root elements side by side. There is no way JSX can convert the code into the code that is required by the .createElement method. You cannot return more than one thing unless it is an array of elements but this is not the case. In the React world, you would create one wrapper root element which may have more child elements.
