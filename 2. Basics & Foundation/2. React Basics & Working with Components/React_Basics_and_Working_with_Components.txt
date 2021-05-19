@@ -14,6 +14,7 @@ React Basics & Working with Components - Summary:
 13. The Concept of Composition (Props.Children)
 14. A Closer Look at JSX
 15. Organising Component Files
+16. An Alternative Function Syntax (Arrow Functions)
 
 ------------------------------------------------------------------------------------
 1. What are Components?:
@@ -507,3 +508,25 @@ React Basics & Working with Components - Summary:
    > You may have a component folder for generic UI elements that is not tied to a specific feature.
    > You may have a component folder for more specific feature components.
    > This will help you keep your files organised as your project grows in size and the files are not in one big folder. Ultimately, it is up to you as the developer how you would like to organise your project files. If working within a team then you would want to follow the teams organising files pattern.
+
+------------------------------------------------------------------------------------
+16. An Alternative Function Syntax (Arrow Functions):
+------------------------------------------------------------------------------------
+   > This is not specific to React. ES6 introduces arrow functions as an alternative syntax for functions which resolves some JavaScript issues with the 'this' keyword scope and makes writing functions shorter.
+
+   React Component with Arrow Function Example:
+      const App = () => {
+         const expenses = [
+            {id: 'e2', title: 'TV', amount: 345.99, date: new Date(2021, 3, 30)},
+         ];
+
+         return (
+            <div>
+               <h2>Hello World</h2>
+               <Expenses items={expenses} />
+            </div>
+         );
+      };
+
+   > You store the function within a variable. This is standard JavaScript code and it is up to you as the developer which syntax you are comfortable using.
+   > If working on a larger code base within a team/organisation then you would need to conform to the team's syntax style.
