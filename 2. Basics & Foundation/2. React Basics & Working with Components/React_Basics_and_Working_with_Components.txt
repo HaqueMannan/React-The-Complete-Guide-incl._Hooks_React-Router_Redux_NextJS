@@ -13,6 +13,7 @@ React Basics & Working with Components - Summary:
 12. Splitting Components into Multiple Components
 13. The Concept of Composition (Props.Children)
 14. A Closer Look at JSX
+15. Organising Component Files
 
 ------------------------------------------------------------------------------------
 1. What are Components?:
@@ -498,3 +499,11 @@ React Basics & Working with Components - Summary:
    > Modern React projects can omit the import statement because the setup allows the transformation without the import needing to be added.
    > If you are working on projects where it uses the import of the 'react' library just note that this was a past requirement.
    > You can now appreciate the reason for why JSX requires a single root element and cannot have two root elements side by side. There is no way JSX can convert the code into the code that is required by the .createElement method. You cannot return more than one thing unless it is an array of elements but this is not the case. In the React world, you would create one wrapper root element which may have more child elements.
+
+------------------------------------------------------------------------------------
+15. Organising Component Files:
+------------------------------------------------------------------------------------
+   > As your project grows, you would want to organise your Component files. Typically, you would create sub-folders within the 'components' folder.
+   > You may have a component folder for generic UI elements that is not tied to a specific feature.
+   > You may have a component folder for more specific feature components.
+   > This will help you keep your files organised as your project grows in size and the files are not in one big folder. Ultimately, it is up to you as the developer how you would like to organise your project files. If working within a team then you would want to follow the teams organising files pattern.

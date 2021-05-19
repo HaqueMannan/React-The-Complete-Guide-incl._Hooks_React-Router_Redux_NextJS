@@ -1,5 +1,5 @@
 import React from 'react';       // Modern React project setups allows you to omit this import statement from the Component code.
-import Expenses from './components/Expenses';
+import Expenses from './components/Expenses/Expenses';
 
 function App() {
    const expenses = [
