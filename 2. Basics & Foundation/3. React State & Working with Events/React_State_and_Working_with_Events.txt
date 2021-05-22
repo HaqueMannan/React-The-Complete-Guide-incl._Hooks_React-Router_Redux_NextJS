@@ -1,0 +1,38 @@
+React State & Working with Events - Summary:
+1. Listening to Events & Working with Event Handlers
+
+------------------------------------------------------------------------------------
+1. Listening to Events & Working with Event Handlers:
+------------------------------------------------------------------------------------
+   > On all built-in HTML elements (such as <div>, <h1>, <button>, etc) you have full access to the native DOM events which you can listen to.
+   > You can use the Mozilla Developer Web Doc website to search for HTML elements for example the <button> element (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button) to find an article about the HTML element. You may find a link to the DOM interface for the element (e.g. https://developer.mozilla.org/en-US/docs/Web/API/HTMLButtonElement).
+   > You can see from which other elements/classes the element inherits from and you will notice the HTMLButtonElement is a more specific form of the HTMLElement, which is a more specific form of the Element, which is a more specific form of the Node and so on until it reaches the root class.
+   > If you click on Elements for instance, you will see that there are a bunch of events (https://developer.mozilla.org/en-US/docs/Web/API/Element#events) you can listen to such as click and blur.
+   > For all the default HTML Events there is a 'Prop' equivalent in React.
+   > Instead of using the normal JavaScript method for listening to an HTMLElement event for example:
+
+   JavaScript HTML Event Listener Example:
+      document.getElementByID('root').addEventListener();
+
+   > In React you would go to the JSX element within the Component file and add a special 'Prop'.
+   > The 'Prop' is not a a prop which sets some value for the element but it is instead a prop that starts with the 'on' keyword. React exposes all the default events as props with 'on' keyword in front of the event listener name for example onClick is Reacts equivalent to the default click event (the event listener name must start with a capital letter).
+
+   React HTML Event Listener Example:
+      const ExpenseItem = (props) => {
+         const clickHandler = () => console.log('Clicked');
+         return(
+            <button onClick={clickHandler}>Change Title</button>
+         )
+      };
+
+   > When you add a React 'on' prop event listener to a JSX element, you need to define what should happen when the event occurs. You do this by assigning a value to the event listener 'on Prop'.
+   > The value you assign has to be code that should be executed with the event occurs i.e. you would assign a function. All React 'on Prop' event handlers want a function as a value, so that it can execute the function when the event occurs.
+   > You can either create the function on the fly using an anonymous function such as: 
+      <button onClick={function() {console.log('Clicked!')}}>Change Title</button>
+      <button onClick={() => {console.log('Clicked!')}}>Change Title</button>
+   > Typically you would not want to work with anonymous inline functions because this could bloat the code within your JSX code within your Component file. Instead, you would want to define your function before the return JSX code. the React event handler 'on Prop' will point to the function and React JSX uses curly brackets to inject basic JavaScript expressions as seen in the above example code.
+   > It is important that you point at the function and not execute it (onClick={clickHandler()} would execute the function when you add the round brackets after the function name).
+   > The reason you would not add round brackets after the function name when you reference the function in the 'on prop' value is because JavaScript would execute the function when the line of code is being parsed when the JSX code is being returned. This would result in the function being executed too early and is also the reason why you would just point at the function by passing in the pointer to the function. React will memorise the pointer and can execute the function for us whenever the event occurs.
+   > This is how you can add Event Listeners and Event Handlers in React Components.
+   > Important Note: some events are available on every elements while other events are available on specific elements but it is all based on the default DOM interface behaviour.
+   > It is common practice to name your Event Handler functions with 'Handler' at the end of the function name. This will help make it clear that the function is attached and called on an React event handler and will be executed by react when the event occurs. However, this is a preferential naming convention for Event Handler functions which you may follow.
