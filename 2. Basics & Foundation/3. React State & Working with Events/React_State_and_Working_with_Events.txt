@@ -1,5 +1,6 @@
 React State & Working with Events - Summary:
 1. Listening to Events & Working with Event Handlers
+2. How Component Functions are Executed
 
 ------------------------------------------------------------------------------------
 1. Listening to Events & Working with Event Handlers:
@@ -22,7 +23,7 @@ React State & Working with Events - Summary:
          const clickHandler = () => console.log('Clicked');
          return(
             <button onClick={clickHandler}>Change Title</button>
-         )
+         );
       };
 
    > When you add a React 'on' prop event listener to a JSX element, you need to define what should happen when the event occurs. You do this by assigning a value to the event listener 'on Prop'.
@@ -36,3 +37,33 @@ React State & Working with Events - Summary:
    > This is how you can add Event Listeners and Event Handlers in React Components.
    > Important Note: some events are available on every elements while other events are available on specific elements but it is all based on the default DOM interface behaviour.
    > It is common practice to name your Event Handler functions with 'Handler' at the end of the function name. This will help make it clear that the function is attached and called on an React event handler and will be executed by react when the event occurs. However, this is a preferential naming convention for Event Handler functions which you may follow.
+
+------------------------------------------------------------------------------------
+2. How Component Functions are Executed:
+------------------------------------------------------------------------------------
+   > Reacting to events is an important first step. How can you change what shows up on the screen?
+   > Using the previous button example, we want to change the title of an element when the button is clicked. You may think the below example would work:
+
+   (Incorrect) Changing Title Event Handler Example:
+      const ExpenseItem = (props) => {
+         let title = props.title;
+         const clickHandler = () => { title = 'Updated!'};
+
+         return(
+            <div>
+               <h2>{title}</h2>
+               <button onClick={clickHandler}>Change Title</button>
+            <div>
+         );
+      };
+
+   > You would think the onClick event handler would change the <h2> element text value to 'Updated!' when the <button> element is clicked, triggering the onClick event handler function. You would think that by initially storing the props.title value in the variable called title, you can change the value of the variable via the clickHandler function and because the <h2> element points at the title variable this should update what is displayed on screen when the button is clicked. However, this does not work in React. Why is this happening?
+   > Note that the clickHandler function is being triggered when the button is clicked (which can be proved by adding a console.log(title) in the Event Handler function). Therefore, there is no issue with the execution of the function. So why do we not see that reflected in the DOM because after all you are displaying the title variable value?
+   > It is simply because React does not operate like this.
+
+   > Keep in mind your React Component is a regular JavaScript function. The only special feature of your function is that it returns JSX.
+   > Since it is a function someone has to call it. You will notice that you never call your Component function. Instead, you use the Components (functions) like HTML elements in the JSX code. for example <ExpenseItem/>
+   > Under the hood this is almost like a function call - by using your Components in the JSX code, you make React aware of your Component functions. Whenever React evaluates the JSX code, it will call the Component functions. The Component functions itself returns JSX code which are also evaluated up until there are no more JSX code (i.e. functions) left to be evaluated.
+   > After it has executed all JSX code, React then evaluate the overall results and then translates that into DOM instructions which renders the output to the screen.
+   > This is how React works and it is all triggered off with the root index.js file (i.e. the 'main' function execution of the app) where you initially point at the <App /> Component function. The only problem with this is that React never repeats this process. It only executes once when the application is initially rendered but thereafter it is done.
+   > We need a way to tell React that something has changed and that a certain Component should be re-evaluated. This is where React introduces a special concept called 'State'.
