@@ -1,6 +1,7 @@
 React State & Working with Events - Summary:
 1. Listening to Events & Working with Event Handlers
 2. How Component Functions are Executed
+3. Working with 'State'
 
 ------------------------------------------------------------------------------------
 1. Listening to Events & Working with Event Handlers:
@@ -67,3 +68,83 @@ React State & Working with Events - Summary:
    > After it has executed all JSX code, React then evaluate the overall results and then translates that into DOM instructions which renders the output to the screen.
    > This is how React works and it is all triggered off with the root index.js file (i.e. the 'main' function execution of the app) where you initially point at the <App /> Component function. The only problem with this is that React never repeats this process. It only executes once when the application is initially rendered but thereafter it is done.
    > We need a way to tell React that something has changed and that a certain Component should be re-evaluated. This is where React introduces a special concept called 'State'.
+
+------------------------------------------------------------------------------------
+3. Working with 'State':
+------------------------------------------------------------------------------------
+   > 'State' is not a React specific concept but it is a key concept in React.
+   > When data in a Component changes and that change should result in the Component being re-evaluated in order to re-render what is drawn on the screen when the data changes, State is important.
+   > Regular variables does not trigger a re-evaluation. React does not care about changes to regular variables.
+   > To tell React that it should run the re-evaluation process again, we would need to import something from the 'react' library.
+   > We do this by adding a so-called named import which is done by using curly brackets and selecting specific named things from the library that has been exported.
+
+   Importing Named Import Syntax Example:
+      import React, { useState } from 'react';
+
+   > Notice that the 'React' object is the default export for the 'react' library. The single pieces within the curly brackets are named imports i.e. things such as variables, functions, objects, etc. that have been exported by the library.
+   > The 'useState' named import is a function provided by the 'react' library. This function allows us to define values as 'State' where changes to these values should reflect in the Component function being called again for re-evaluation. This is the key difference to regular variables that you would define in the Component file.
+
+   Using State Example:
+      import React, { useState } from 'react';
+      const ExpenseItem = (props) => {
+         useState(props.title);
+         const clickHandler = () => console.log('Clicked');
+         return(
+            <button onClick={clickHandler}>Change Title</button>
+         );
+      };
+
+   > To use the useState function, you simply call the useState() function within your Component function as seen above.
+   > The useState is a so-called 'React-Hook' and there are other 'React-Hooks'. React-Hooks can be recognised as they all start with the 'use' keyword in their function names.
+   > React-Hook must only be called inside of React Component functions and they should not be called in any nested functions i.e. they can only be called directly inside the Component functions. Below are examples of incorrect calls:
+
+   (Incorrect) Outside Component Functions Example:
+      import React, { useState } from 'react';
+      useState();
+      const ExpenseItem = (props) => {
+         ...
+      };
+
+   (Incorrect) Inside Nested Component Functions Example:
+      import React, { useState } from 'react';
+      const ExpenseItem = (props) => {
+         const clickHandler = () => {
+            useState();
+            console.log('Clicked');
+         }
+         ...
+      };
+
+   > The useState should be called inside of the ExpenseItem Component function as correctly demonstrated in the 'Using State Example'. However, there is one exception to this rule which we will revisit later.
+   > React-Hooks is a new feature introduced by the React team and is a topic in itself.
+
+   > The useState(); function requires a default state value as an argument/parameter. This is because with the useState() function, you create a special type of variable i.e. a variable where changes would lead to the Component function to be re-called again for re-evaluation. For Example:
+      useState(props.title);
+   > The useState() function also returns something which gives us access to this special variable but also a special function that you can call to assign a new value to the variable.
+   > Therefore, you will no longer be assigning values using the normal assign operator (=) to this special variable as you would with the regular variables, but rather you would use a special function instead. This is how the useState() variable works.
+   > The useState() function actually returns an array where the first value is the special variable itself and the second value is the update function.
+   > You can therefore use a modern JavaScript feature called array destructuring to store both elements in separate variables (the name of the destructed variables does not matter but the ordering does).
+
+   Destructuring useState Syntax Example:
+      import React, { useState } from 'react';
+      const ExpenseItem = (props) => {
+         const [title, setTitle] = useState(props.title);
+         const clickHandler = () => {
+            setTitle('Updated!');
+            console.log(title);
+         };
+         return(
+            <button onClick={clickHandler}>Change Title</button>
+         );
+      };
+
+   > The first element is the pointer to the managed variable (i.e. the default state value passed ito the function i.e. props.title) while the second element is the function that you can later call to set a new value to the managed variable.
+   > The common naming convention for the destructed variables names is to use something that describes the value for the name of the first element (e.g. title) and then use the 'set' keyword followed by the first element name repeated for the name of the second element (e.g. setTitle).
+   > The useState() function always returns exactly two elements where the first element is the current state value and the second element is the function to update that state value.
+   > To set a new value, you will call the special function passing in the value as an argument.
+   > React manages the special variable somewhere in memory which the special function will update.
+   > Calling this special function does not only assign a new value to the special variable, but the Component function in which you called the special function will be executed again. Therefore, the Component function will be recalled again whenever the State changes.
+   > This is you would tell React that you want to assign a new value to the 'State' and that then tells React that the Component, in which the 'State' was registered with, should be re-evaluated. This will then execute the Component function again and re-evaluate the JSX code again. This will draw any changes to the text compared to tha last time it evaluated the Component function onto the screen.
+   > You will notice when the button is clicked, the console.log(title) will display the previous value for the <ExpenseItem /> before it updated. This is because calling the state updating function actually does not change the value right away but instead schedules the state update. Therefore, the new value is not available yet which is why you would see the previous value being concole.log() even though you updated it (i.e. setTitle('Updated!)) before logging the value. You would see the change on the screen because the Component is eventually re-evaluated and re-drawn to the screen.
+   > This is how React State works and is another key concept in React.
+   > If you have data which might change and where changes to that data should be reflected on the user interface, you then require State because regular variables will not work in React.
