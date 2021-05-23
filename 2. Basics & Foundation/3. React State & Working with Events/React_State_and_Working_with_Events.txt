@@ -3,6 +3,7 @@ React State & Working with Events - Summary:
 2. How Component Functions are Executed
 3. Working with 'State'
 4. A Closer Look at the 'useState' Hook
+5. Adding Form Inputs
 
 ------------------------------------------------------------------------------------
 1. Listening to Events & Working with Event Handlers:
@@ -165,3 +166,55 @@ React State & Working with Events - Summary:
    > React always provides the latest snapshot of the state whenever the Component function is evaluated and this is how useState() works under the hood.
    > Using State is simple but it is just as important that you understand how React State works under the hood (which will help you avoid running into problems in more complex React applications).
    > Note that the 'State' can be updated in many ways in React and not by user events only! While it is common for state to be updated upon a user event you can update the state for whatever reason for example on a HTTP request completing or because a timer (using setTimeout() JavaScript function) has expired.
+
+------------------------------------------------------------------------------------
+5. Adding Form Inputs:
+------------------------------------------------------------------------------------
+   > To gather user input to allow users to interact and add data into your application you would require to create a Form Input.
+   > You would probably create the Form element into a new Component sub-folder to keep your Component building blocks organised.
+   > You would use default HTML elements and attributes to build the HTML Form for your Component function in JSX.
+   > Note: The <input /> element in React should be in a self-closing tag when you have no value between the <input> element tags. So you should use a self-closing tag.
+
+   Input Form Component Example:
+      src/components/NewExpense/NewExpense.js:
+         import React from 'react';
+         import ExpenseForm from './ExpenseForm';
+         const NewExpense = (props) => {
+            return (
+               <div>
+                  <ExpenseForm />
+               </div>
+            );
+         };
+         export default NewExpense;
+
+      src/components/NewExpense/ExpenseForm.js:
+         import React from 'react';
+         import './ExpenseForm.css';
+         const ExpenseForm = () => {
+            return (
+               <form>
+                  <div className="new-expense__controls">
+                     <div className="new-expense__control">
+                        <label>Title</label>
+                        <input type="text" />
+                     </div>
+                     <div className="new-expense__control">
+                        <label>Amount</label>
+                        <input type="number" min="0.01" step="0.01" />
+                     </div>
+                     <div className="new-expense__control">
+                        <label>Date</label>
+                        <input type="date" min="2021-01-01" max="20235-12-31" />
+                     </div>
+                  </div>
+                  <div className="new_expense__actions">
+                     <button type="submit">Add Expenses</button>
+                  </div>
+               </form>
+            );
+         };
+         export default ExpenseForm;
+
+   > Remember that you would need to use the <NewExpense /> Component in either the root App.js JSX code or another file which is called by the App.js JSX, ultimately allowing the NewExpense Component function to be executed in order to be rendered to the screen.
+   > This is the first step of allowing users to interact with your application. The next step requires you to gather the user inputs and do something with it when the user submits the input form.
