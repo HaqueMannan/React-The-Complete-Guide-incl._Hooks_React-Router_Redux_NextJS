@@ -2,6 +2,7 @@ React State & Working with Events - Summary:
 1. Listening to Events & Working with Event Handlers
 2. How Component Functions are Executed
 3. Working with 'State'
+4. A Closer Look at the 'useState' Hook
 
 ------------------------------------------------------------------------------------
 1. Listening to Events & Working with Event Handlers:
@@ -148,3 +149,19 @@ React State & Working with Events - Summary:
    > You will notice when the button is clicked, the console.log(title) will display the previous value for the <ExpenseItem /> before it updated. This is because calling the state updating function actually does not change the value right away but instead schedules the state update. Therefore, the new value is not available yet which is why you would see the previous value being concole.log() even though you updated it (i.e. setTitle('Updated!)) before logging the value. You would see the change on the screen because the Component is eventually re-evaluated and re-drawn to the screen.
    > This is how React State works and is another key concept in React.
    > If you have data which might change and where changes to that data should be reflected on the user interface, you then require State because regular variables will not work in React.
+
+------------------------------------------------------------------------------------
+4. A Closer Look at the 'useState' Hook:
+------------------------------------------------------------------------------------
+   > The useState() function registers some value as a state for the Component instance in which it is being called.
+   > For example, if the <ExpenseItem /> Component is being used multiple times with its own separate data (State), the ExpenseItem Component function would then be called each time for each <ExpenseItem /> instance. Everytime the Component function is called a new separate state is created in the same way but managed independently by React.
+   > Therefore, if you change the state data in one of the <ExpenseItem /> Component, the other <ExpenseItem /> instances will not be affected since each state is managed independently from one another.
+   > It is important to remember that the useState() is on a per Component instance basis.
+   > Consequently, whenever a state changes, it is only the Component instance that gets re-evaluated and re-draw that Component change to the screen.
+   > When destructuring the useState elements we are assigning it to a const variable. This may seem strange to use a const variable because the state data may eventually be reassigned a new value? However, you need to keep in mind you are not assigning a value with the assignment operator (=). That would indeed fail. The state is updated by calling the special state updating function (e.g. setTitle()) which is managed by React elsewhere. React is managing the value for us and we never see that variable itself. Therefore, using the const variable is perfectly fine.
+   > How do you get the latest state data? Keep in mind the Component function is re-executed when the state is updated and therefore the 'const [title, setTitle] = useState(props.title)' line of code is also executed again. React fetches the state data it is managing for us.
+   > When React re-executes the Component function, you may think that the 'const [title, setTitle] = useState(props.title)' line of code will always override any state changes with the 'props.title'. However, React will keep track when useState() is called for the first time in a given Component instance.
+   > When the useState() is called for the first time it will take the argument/parameter as the initial value but when the Component function is re-evaluated and the line of code is re-executed, React will not re-initialise the state. Instead, React will detect the state initialised in the past and it will grab the latest state and give that state instead.
+   > React always provides the latest snapshot of the state whenever the Component function is evaluated and this is how useState() works under the hood.
+   > Using State is simple but it is just as important that you understand how React State works under the hood (which will help you avoid running into problems in more complex React applications).
+   > Note that the 'State' can be updated in many ways in React and not by user events only! While it is common for state to be updated upon a user event you can update the state for whatever reason for example on a HTTP request completing or because a timer (using setTimeout() JavaScript function) has expired.
