@@ -4,6 +4,7 @@ React State & Working with Events - Summary:
 3. Working with 'State'
 4. A Closer Look at the 'useState' Hook
 5. Adding Form Inputs
+6. Listening to User Input
 
 ------------------------------------------------------------------------------------
 1. Listening to Events & Working with Event Handlers:
@@ -217,4 +218,36 @@ React State & Working with Events - Summary:
          export default ExpenseForm;
 
    > Remember that you would need to use the <NewExpense /> Component in either the root App.js JSX code or another file which is called by the App.js JSX, ultimately allowing the NewExpense Component function to be executed in order to be rendered to the screen.
-   > This is the first step of allowing users to interact with your application. The next step requires you to gather the user inputs and do something with it when the user submits the input form.
+   > This is the first step of allowing users to interact with your application. The next step requires you to gather the user inputs in order to do something with it when the user submits the input form.
+
+------------------------------------------------------------------------------------
+6. Listening to User Input:
+------------------------------------------------------------------------------------
+   > You may wish to gather user input on every change to any of the inputs to your Form. For example on every keystroke you would want to gather the user input value and store that value somewhere to use later (e.g. console log the value to the console).
+   > You would need to add listeners to listen for every keystroke or change to the input fields. You can do this by adding Reacts event listener attributes (i.e. Reacts 'on prop') on the input you wish to listen to. The question is what type of event do you want to listen to. For example: '<input type="text" onChange={titleChangeHandler} />'.
+   > The onInput event listens to all keystroke events on a text input element. The onChange event is similar to the onInput i.e. it also listens to every keystroke but you are able to use this event listener on all input type.
+   > Refer back to '1. Listening to Events & Working with Event Handlers' section on how to use React Events and Event Handlers.
+   > Typically, you would want to get the value the user has entered in the input field.
+
+   Vanilla JavaScript Input Gathering Example:
+      > document.getElementByID('inputIdName').addEventListener('click', (event) => {...})
+
+   > You would add an event listener to a HTML element which takes in two parameter. The first is an event to listen to e.g. the click event and the second is a function call to trigger on the event. In the anonymous function call, JavaScript provides you an event object which describes the event that occurred. This is the default JavaScript behaviour in the browser when you listen to events.
+   > In React you also get this default event object as well and you do not need to do anything to get this event object.
+   > When you pass the pointer to your event handler function for your React 'on prop' event listener, React (or more specifically the browser) will ensure that you get an 'event' object whenever the event occurs.
+
+   React Event Handler Example:
+      src/components/NewExpense/ExpenseForm.js:
+         const ExpenseForm = () => {
+            const titleChangeHandler = (event) => {
+               consol.log(event);
+               consol.log(event.target.value);
+            };
+            return (...);
+         };
+
+   > You can console.log() the event object to see what object is returned from the event. This object will have a bunch of data you can explore but the most interesting data for you is the target property.
+   > The target property is an object which points at the DOM element for which the event occurred. The input element (in this instance) has a long list of properties which you can read and set.
+   > The input element has a value property and this value property holds the current value of the input at the point in time the event occurred.
+   > This allows you to use dot notation to drill into the event object to retrieve the users input value e.g. event.target.value.
+   > Now that you can gather the user's input value the next step is to do something with that value when the user submits the input form.
