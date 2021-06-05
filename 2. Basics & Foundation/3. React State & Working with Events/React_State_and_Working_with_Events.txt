@@ -11,6 +11,7 @@ React State & Working with Events - Summary:
 10. Handling Form Submission
 11. Adding Two-Way Binding
 12. Child to Parent Component Communication (Bottom-Up)
+13. Lifting the State Up
 
 ------------------------------------------------------------------------------------
 1. Listening to Events & Working with Event Handlers:
@@ -571,3 +572,33 @@ React State & Working with Events - Summary:
             };
             return (...);
          };
+
+------------------------------------------------------------------------------------
+13. Lifting the State Up
+------------------------------------------------------------------------------------
+   > 'The Child to Parent Component Communication' concept is very important in React and it is closely related to another concept called 'Lifting the State Up'.
+
+   Example Component Tree:
+                                                [This component has access
+                                                to both involved components]
+                                                         App.js
+                              -------------------------- [State] <---------------------------|
+                              |           __________________|__________________              |
+    Pass State Data via Props |           |                                   |              | "Lifting the state up"
+                              |      <Expenses />                        <NewExpense />      |
+                              |---> [Data/State is                      [Data/State is  _____|
+                                    needed here]                        generated here]
+
+   > Consider the above basic component tree where the App Component which in turn renders an Expenses Component and a NewExpense Component.
+   > The NewExpense Component is a component which generates some data/state (i.e. fetching some user input). 
+   > It is quite common that you generate or fetch data in a Component but you might not need that data in that Component. Instead, you need that data in another Component (e.g. in the Expenses Component).
+   > Naturally you would like to hand that data over across to the other Component. However, it does not work like this because there is no direct connection between two sibling Components.
+   > You can only communicate from Parent to Child and vice versa.
+   > Therefore, you would utilise the closest Parent Component which has direct or indirect access to both involved Components.
+   > The App Component has direct access to both the Expenses and NewExpense Components because it renders both Components in it's returned JSX code.
+   > You can store the State in the closest involved component by "lifting the state up".
+   > This is done by utilising 'props' i.e by calling on a function and then by passing the data into the called function. This lifts the data/state up.
+   > The data can then be passed down to another Component from the Parent Component via props.
+   > 'Lifting the State Up' is another very important concept/term to understand when working with React.
+   > Remember: 'Lifting the State Up' term is all about moving Data/State from a Child Component to some Parent Component to either use it in the Parent Component or to then pass it down to some other Child Component.
+   > It is not always the root App Component to which you want to lift your Data/State up. Instead, the goal is to lift the Data/State up as high as necessary in your Component Tree until you have a Component which has both access to the Components that generates the Data/State as well as the Component that needs that data.
