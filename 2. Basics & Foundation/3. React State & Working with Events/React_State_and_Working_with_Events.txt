@@ -9,6 +9,7 @@ React State & Working with Events - Summary:
 8. Using One State vs Using Multiple States
 9. Updating State that Depends on the Previous State
 10. Handling Form Submission
+11. Adding Two-Way Binding
 
 ------------------------------------------------------------------------------------
 1. Listening to Events & Working with Event Handlers:
@@ -400,3 +401,42 @@ React State & Working with Events - Summary:
    > Using the event object you can cancel the default behaviour using the preventDefault() method which is built into JavaScript by default.
    > The properties in the object can be named whatever you want but ultimately will point to the different useState values.
    > You should now have an object containing the submitted form data which you can now do something with such as the example above printing to the browser's console.
+
+------------------------------------------------------------------------------------
+11. Adding Two-Way Binding:
+------------------------------------------------------------------------------------
+   > Using State provides an advantage over using global variable inside your Component JavaScript files.
+   > State allows you to implement something called 'Two-Way Binding'.
+   > 'Two-Way Binding' simply means, for inputs, you do not only listen to changes but you can also pass a new value back into the input.
+   > 'Two-Way Binding' allows you to reset or change the input value programmatically.
+   > Simply add the 'value' attribute (which is a default HTML attribute property) to the <input> element. This will set the internal input value that every <input> element has.
+   > You can use JSX to bind to the State property value.
+
+   Two-Way Binding Example:
+      import React, { useState } from 'react';
+      const ExpenseForm = () => {
+         const [enteredTitle, setEnteredTitle] = useState('');
+         const titleChangeHandler = (event) => { setEnteredTitle(event.target.value); };
+         ...
+         const submitHandler = (event) => {
+            ...
+            setEnteredTitle('');
+         };
+         return (
+            <form onSubmit={submitHandler}>
+               <div className="new-expense__control">
+                  <label>Title</label>
+                  <input type="text" value={enteredTitle} onChange={titleChangeHandler} />
+               </div>
+               ...
+               <div className="new_expense__actions">
+                  <button type="submit">Add Expenses</button>
+               </div>
+            </form>
+         );
+      };
+
+   > In the example above, the enteredTitle State property value is being used to Two-Way bind the data to the Title input element.
+   > The <input> element not only listens for 'onChange' events to update the 'enteredTitle' State but it now also feeds back into the input so that when you change the input State you are also changing the input 'value' attribute. This may sound like an infinite loop but it is not and will not have a problem with 'Two-Way Binding'.
+   > This provides you with the advantage of being able to reset the input fields when the form is submitted as demonstrated in the example with setEnteredTitle(''); in the submitHandler function.
+   > 'Two-Way Binding' is another key concept in React when working with Forms.
