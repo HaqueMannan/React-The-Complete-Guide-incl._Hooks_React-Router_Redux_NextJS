@@ -6,6 +6,7 @@ React State & Working with Events - Summary:
 5. Adding Form Inputs
 6. Listening to User Input
 7. Working with Multiple States
+8. Using One State vs Using Multiple States
 
 ------------------------------------------------------------------------------------
 1. Listening to Events & Working with Event Handlers:
@@ -279,3 +280,46 @@ React State & Working with Events - Summary:
       };
 
    > You may have more than one state per Component and is perfectly fine to have separate States and manage/update them separately. This is a key part of the entire State concept that React ships with.
+
+------------------------------------------------------------------------------------
+8. Using One State vs Using Multiple States:
+------------------------------------------------------------------------------------
+   > While you can add multiple States to a Component there is an alternative method (which depends on your personal preference).
+   > In the previous example, you could argue that all three states are related to the form and is storing user input i.e. the same concept repeated three times. Therefore, you could use one state instead of three separate states whereby you would pass in an object as the default value for the useState parameter.
+   > The object is important because you can now group together multiple state values into one State in your Component.
+
+   One State Holding Multiple State Values Example:
+      import React, { useState } from 'react';
+      const ExpenseForm = () => {
+         const [userInput, setUserInput] =useState({
+            enteredTitle: '',
+            enteredAmount: '',
+            enteredDate: ''
+         });
+
+         const titleChangeHandler = (event) => {
+            setUserInput({
+               ...userInput,
+               enteredTitle: event.target.value
+            });
+         };
+         const amountChangeHandler = (event) => {
+            setUserInput({
+               ...userInput,
+               enteredAmount: event.target.value
+            });
+         };
+         const dateChangeHandler = (event) => {
+            setUserInput({
+               ...userInput,
+               enteredDate: event.target.value
+            });
+         };
+         return (...);
+      };
+
+   > The difference with this approach is that whenever you update this state you will need to update all properties and not just the one.
+   > If you updated only the one property in the object you would end up dumping/losing the previous object properties because React will not merge the new property with the old values (i.e. React will replace the old object State with the new object State value).
+   > Therefore, using the One State approach is your responsibility to ensure any other state values are not lost when updating the State.
+   > You can use JavaScript spread operator (...) to create a copy of the current object and then update the property that has changed in the copy object and then use the new copy object as the update value for the updated State value. This will ensure other values (which have not changed) are not lost when updating the State.
+   > This is an alternative method of storing multiple state values within one useState rather than using multiple useState pieces.
