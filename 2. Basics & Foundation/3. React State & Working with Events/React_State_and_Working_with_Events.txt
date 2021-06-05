@@ -8,6 +8,7 @@ React State & Working with Events - Summary:
 7. Working with Multiple States
 8. Using One State vs Using Multiple States
 9. Updating State that Depends on the Previous State
+10. Handling Form Submission
 
 ------------------------------------------------------------------------------------
 1. Listening to Events & Working with Event Handlers:
@@ -355,3 +356,47 @@ React State & Working with Events - Summary:
    > Using the latter approach, React will guarantee that the State snapshot given in the inner anonymous function will always be the latest State snapshot keeping all scheduled State updates in mind.
    > This is the safer method to ensure that you are always operate on the latest State snapshot.
    > Therefore, whenever your state depends on the previous State, you should always use the inner function call syntax approach to update the State object.
+
+------------------------------------------------------------------------------------
+10. Handling Form Submission:
+------------------------------------------------------------------------------------
+   > At this point you should now have a form which can receive input from a user and you can save that input into a State. However, at this point you are not doing much with the State.
+   > While you can add a 'onClick' listener on the <button> element it is not the best approach.
+   > There is a default behaviour built into browsers and Forms on webpages. If a button with the type 'submit' is clicked inside of a Form, the overall <form> element will emit a 'submit' event to which you can listen to.
+   > Therefore, on the form 'onSubmit' event you can execute some function whenever the form is actually submitted using the form's 'submit' button.
+
+   Handling Form Submission Example:
+      import React, { useState } from 'react';
+      const ExpenseForm = () => {
+         const [enteredTitle, setEnteredTitle] = useState('');
+         const [enteredAmount, setEnteredAmount] = useState('');
+         const [enteredDate, setEnteredDate] = useState('');
+         const titleChangeHandler = (event) => { setEnteredTitle(event.target.value); };
+         const amountChangeHandler = (event) => { setEnteredAmount(event.target.value); };
+         const dateChangeHandler = (event) => { setEnteredDate(event.target.value); };
+         const submitHandler = (event) => {
+            event.preventDefault();
+            const expenseData = {
+               title: enteredTitle,
+               amount: enteredAmount,
+               date: new Date(enteredDate)
+            };
+            console.log(expenseData);
+         };
+         return (
+            <form onSubmit={submitHandler}>
+               <div className="new-expense__controls">
+               ...
+               <div className="new_expense__actions">
+                  <button type="submit">Add Expenses</button>
+               </div>
+            </form>
+         );
+      };
+
+   > Note that the above example uses the Multiple State methodology.
+   > Unfortunately, a part of the default browser behaviour causes the webpage to reload whenever a form's submit button is clicked. The browser will automatically send a request whenever a form is submitted to the server that is hosting the webpage. This is not a behaviour we would want.
+   > Instead, you would want to handle the Form submission with JavaScript to manually collect and combine the data to do something with the data.
+   > Using the event object you can cancel the default behaviour using the preventDefault() method which is built into JavaScript by default.
+   > The properties in the object can be named whatever you want but ultimately will point to the different useState values.
+   > You should now have an object containing the submitted form data which you can now do something with such as the example above printing to the browser's console.
