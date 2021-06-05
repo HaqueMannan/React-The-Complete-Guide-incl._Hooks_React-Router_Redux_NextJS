@@ -7,6 +7,7 @@ React State & Working with Events - Summary:
 6. Listening to User Input
 7. Working with Multiple States
 8. Using One State vs Using Multiple States
+9. Updating State that Depends on the Previous State
 
 ------------------------------------------------------------------------------------
 1. Listening to Events & Working with Event Handlers:
@@ -323,3 +324,34 @@ React State & Working with Events - Summary:
    > Therefore, using the One State approach is your responsibility to ensure any other state values are not lost when updating the State.
    > You can use JavaScript spread operator (...) to create a copy of the current object and then update the property that has changed in the copy object and then use the new copy object as the update value for the updated State value. This will ensure other values (which have not changed) are not lost when updating the State.
    > This is an alternative method of storing multiple state values within one useState rather than using multiple useState pieces.
+
+------------------------------------------------------------------------------------
+9. Updating State that Depends on the Previous State:
+------------------------------------------------------------------------------------
+   > In the previous example using the One State method it is not an entirely correct the way the object was being updated using the spread operator approach. While technically the approach would work but there are niche cases the approach would fail; thus, it would not be great practice to update th One State method as seen in the previous example.
+   > The problem lies with when you need to depend on the previous State for updating the State. Therefore, whenever you update the State and you depend on the previous State you should use the method below:
+
+   Updating State that Depends on the Previous State Example:
+      import React, { useState } from 'react';
+      const ExpenseForm = () => {
+         const [userInput, setUserInput] =useState({
+            enteredTitle: '',
+            enteredAmount: '',
+            enteredDate: ''
+         });
+
+         const titleChangeHandler = (event) => {
+            setUserInput((prevState) => {
+               return { ...prevState, enteredTitle: event.target.value };
+            });
+         };
+         ...
+         return (...);
+      };
+
+   > You should pass in a function as a parameter to the useState 'set' function call. React will automatically call on this function and this function will receive the previous State snapshot for the State for which you are calling the update function for. You would then return the new State snapshot from your function.
+   > You can now copy the previous State snapshot and then override the value that has changed.
+   > While both approaches are fine when updating a One State that has multiple State, the latter is the better approach because React schedules State Updates and does not perform them instantly. Therefore, theoretically if you schedule a lot of State updates at the same time, you could end up depending on an old out-dated/incorrect State snapshot if you were to use the former approach.
+   > Using the latter approach, React will guarantee that the State snapshot given in the inner anonymous function will always be the latest State snapshot keeping all scheduled State updates in mind.
+   > This is the safer method to ensure that you are always operate on the latest State snapshot.
+   > Therefore, whenever your state depends on the previous State, you should always use the inner function call syntax approach to update the State object.
