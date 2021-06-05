@@ -10,6 +10,7 @@ React State & Working with Events - Summary:
 9. Updating State that Depends on the Previous State
 10. Handling Form Submission
 11. Adding Two-Way Binding
+12. Child to Parent Component Communication (Bottom-Up)
 
 ------------------------------------------------------------------------------------
 1. Listening to Events & Working with Event Handlers:
@@ -264,23 +265,24 @@ React State & Working with Events - Summary:
    > All the states inside of the same Component will also be separated from each other.
 
    Multiple useState Example:
-      import React, { useState } from 'react';
-      const ExpenseForm = () => {
-         const [enteredTitle, setEnteredTitle] = useState('');
-         const [enteredAmount, setEnteredAmount] = useState('');
-         const [enteredDate, setEnteredDate] = useState('');
+      src/components/NewExpense/ExpenseForm.js:
+         import React, { useState } from 'react';
+         const ExpenseForm = () => {
+            const [enteredTitle, setEnteredTitle] = useState('');
+            const [enteredAmount, setEnteredAmount] = useState('');
+            const [enteredDate, setEnteredDate] = useState('');
 
-         const titleChangeHandler = (event) => {
-            setEnteredTitle(event.target.value);
+            const titleChangeHandler = (event) => {
+               setEnteredTitle(event.target.value);
+            };
+            const amountChangeHandler = (event) => {
+               setEnteredAmount(event.target.value);
+            };
+            const dateChangeHandler = (event) => {
+               setEnteredDate(event.target.value);
+            };
+            return (...);
          };
-         const amountChangeHandler = (event) => {
-            setEnteredAmount(event.target.value);
-         };
-         const dateChangeHandler = (event) => {
-            setEnteredDate(event.target.value);
-         };
-         return (...);
-      };
 
    > You may have more than one state per Component and is perfectly fine to have separate States and manage/update them separately. This is a key part of the entire State concept that React ships with.
 
@@ -292,34 +294,35 @@ React State & Working with Events - Summary:
    > The object is important because you can now group together multiple state values into one State in your Component.
 
    One State Holding Multiple State Values Example:
-      import React, { useState } from 'react';
-      const ExpenseForm = () => {
-         const [userInput, setUserInput] =useState({
-            enteredTitle: '',
-            enteredAmount: '',
-            enteredDate: ''
-         });
+      src/components/NewExpense/ExpenseForm.js:
+         import React, { useState } from 'react';
+         const ExpenseForm = () => {
+            const [userInput, setUserInput] =useState({
+               enteredTitle: '',
+               enteredAmount: '',
+               enteredDate: ''
+            });
 
-         const titleChangeHandler = (event) => {
-            setUserInput({
-               ...userInput,
-               enteredTitle: event.target.value
-            });
+            const titleChangeHandler = (event) => {
+               setUserInput({
+                  ...userInput,
+                  enteredTitle: event.target.value
+               });
+            };
+            const amountChangeHandler = (event) => {
+               setUserInput({
+                  ...userInput,
+                  enteredAmount: event.target.value
+               });
+            };
+            const dateChangeHandler = (event) => {
+               setUserInput({
+                  ...userInput,
+                  enteredDate: event.target.value
+               });
+            };
+            return (...);
          };
-         const amountChangeHandler = (event) => {
-            setUserInput({
-               ...userInput,
-               enteredAmount: event.target.value
-            });
-         };
-         const dateChangeHandler = (event) => {
-            setUserInput({
-               ...userInput,
-               enteredDate: event.target.value
-            });
-         };
-         return (...);
-      };
 
    > The difference with this approach is that whenever you update this state you will need to update all properties and not just the one.
    > If you updated only the one property in the object you would end up dumping/losing the previous object properties because React will not merge the new property with the old values (i.e. React will replace the old object State with the new object State value).
@@ -334,22 +337,22 @@ React State & Working with Events - Summary:
    > The problem lies with when you need to depend on the previous State for updating the State. Therefore, whenever you update the State and you depend on the previous State you should use the method below:
 
    Updating State that Depends on the Previous State Example:
-      import React, { useState } from 'react';
-      const ExpenseForm = () => {
-         const [userInput, setUserInput] =useState({
-            enteredTitle: '',
-            enteredAmount: '',
-            enteredDate: ''
-         });
-
-         const titleChangeHandler = (event) => {
-            setUserInput((prevState) => {
-               return { ...prevState, enteredTitle: event.target.value };
+      src/components/NewExpense/ExpenseForm.js:
+         import React, { useState } from 'react';
+         const ExpenseForm = () => {
+            const [userInput, setUserInput] =useState({
+               enteredTitle: '',
+               enteredAmount: '',
+               enteredDate: ''
             });
+            const titleChangeHandler = (event) => {
+               setUserInput((prevState) => {
+                  return { ...prevState, enteredTitle: event.target.value };
+               });
+            };
+            ...
+            return (...);
          };
-         ...
-         return (...);
-      };
 
    > You should pass in a function as a parameter to the useState 'set' function call. React will automatically call on this function and this function will receive the previous State snapshot for the State for which you are calling the update function for. You would then return the new State snapshot from your function.
    > You can now copy the previous State snapshot and then override the value that has changed.
@@ -367,33 +370,34 @@ React State & Working with Events - Summary:
    > Therefore, on the form 'onSubmit' event you can execute some function whenever the form is actually submitted using the form's 'submit' button.
 
    Handling Form Submission Example:
-      import React, { useState } from 'react';
-      const ExpenseForm = () => {
-         const [enteredTitle, setEnteredTitle] = useState('');
-         const [enteredAmount, setEnteredAmount] = useState('');
-         const [enteredDate, setEnteredDate] = useState('');
-         const titleChangeHandler = (event) => { setEnteredTitle(event.target.value); };
-         const amountChangeHandler = (event) => { setEnteredAmount(event.target.value); };
-         const dateChangeHandler = (event) => { setEnteredDate(event.target.value); };
-         const submitHandler = (event) => {
-            event.preventDefault();
-            const expenseData = {
-               title: enteredTitle,
-               amount: enteredAmount,
-               date: new Date(enteredDate)
+      src/components/NewExpense/ExpenseForm.js:
+         import React, { useState } from 'react';
+         const ExpenseForm = () => {
+            const [enteredTitle, setEnteredTitle] = useState('');
+            const [enteredAmount, setEnteredAmount] = useState('');
+            const [enteredDate, setEnteredDate] = useState('');
+            const titleChangeHandler = (event) => { setEnteredTitle(event.target.value); };
+            const amountChangeHandler = (event) => { setEnteredAmount(event.target.value); };
+            const dateChangeHandler = (event) => { setEnteredDate(event.target.value); };
+            const submitHandler = (event) => {
+               event.preventDefault();
+               const expenseData = {
+                  title: enteredTitle,
+                  amount: enteredAmount,
+                  date: new Date(enteredDate)
+               };
+               console.log(expenseData);
             };
-            console.log(expenseData);
+            return (
+               <form onSubmit={submitHandler}>
+                  <div className="new-expense__controls">
+                  ...
+                  <div className="new_expense__actions">
+                     <button type="submit">Add Expenses</button>
+                  </div>
+               </form>
+            );
          };
-         return (
-            <form onSubmit={submitHandler}>
-               <div className="new-expense__controls">
-               ...
-               <div className="new_expense__actions">
-                  <button type="submit">Add Expenses</button>
-               </div>
-            </form>
-         );
-      };
 
    > Note that the above example uses the Multiple State methodology.
    > Unfortunately, a part of the default browser behaviour causes the webpage to reload whenever a form's submit button is clicked. The browser will automatically send a request whenever a form is submitted to the server that is hosting the webpage. This is not a behaviour we would want.
@@ -413,30 +417,157 @@ React State & Working with Events - Summary:
    > You can use JSX to bind to the State property value.
 
    Two-Way Binding Example:
-      import React, { useState } from 'react';
-      const ExpenseForm = () => {
-         const [enteredTitle, setEnteredTitle] = useState('');
-         const titleChangeHandler = (event) => { setEnteredTitle(event.target.value); };
-         ...
-         const submitHandler = (event) => {
+      src/components/NewExpense/ExpenseForm.js:
+         import React, { useState } from 'react';
+         const ExpenseForm = () => {
+            const [enteredTitle, setEnteredTitle] = useState('');
+            const titleChangeHandler = (event) => { setEnteredTitle(event.target.value); };
             ...
-            setEnteredTitle('');
-         };
-         return (
-            <form onSubmit={submitHandler}>
-               <div className="new-expense__control">
-                  <label>Title</label>
-                  <input type="text" value={enteredTitle} onChange={titleChangeHandler} />
-               </div>
+            const submitHandler = (event) => {
                ...
-               <div className="new_expense__actions">
-                  <button type="submit">Add Expenses</button>
-               </div>
-            </form>
-         );
-      };
+               setEnteredTitle('');
+            };
+            return (
+               <form onSubmit={submitHandler}>
+                  <div className="new-expense__control">
+                     <label>Title</label>
+                     <input type="text" value={enteredTitle} onChange={titleChangeHandler} />
+                  </div>
+                  ...
+                  <div className="new_expense__actions">
+                     <button type="submit">Add Expenses</button>
+                  </div>
+               </form>
+            );
+         };
 
    > In the example above, the enteredTitle State property value is being used to Two-Way bind the data to the Title input element.
    > The <input> element not only listens for 'onChange' events to update the 'enteredTitle' State but it now also feeds back into the input so that when you change the input State you are also changing the input 'value' attribute. This may sound like an infinite loop but it is not and will not have a problem with 'Two-Way Binding'.
    > This provides you with the advantage of being able to reset the input fields when the form is submitted as demonstrated in the example with setEnteredTitle(''); in the submitHandler function.
    > 'Two-Way Binding' is another key concept in React when working with Forms.
+
+------------------------------------------------------------------------------------
+12. Child to Parent Component Communication (Bottom-Up)
+------------------------------------------------------------------------------------
+   > Up to this point you should now know how to pass data down from the Parent Component to the Child Component (Top-Down)
+      - Refer back to "React Basics & Foundation - 2. React Basics & Working with Components 10. Passing Data via Props".
+   > There will be times when you need to pass the data from a Child Component to the Parent Component (Bottom-Up).
+   > You can think of the <input> element as a Component i.e it is not one of your own custom Component but rather a pre-built Component provided to us by React and translated to the <input> DOM element. This has a Component character at the end of the day. You can set props on this Component including the special 'onChange' prop which wants a function as a value. Internally, the the input adds a 'change' listener on the rendered input element. This is a pattern you can replicate on your own Components as well.
+   > You can create your own event props and expect functions as values which would then allow you to pass a function from a Parent Component to a Child Component and then call that function inside of the Child Component. When you then call the function you can then pass data into the function as a parameter.
+   > This pattern allows you to communicate up from the Child Component to the Parent Component.
+   > Important to Remember: props can only be passed from Parent to Child and you cannot skip intermediary Components.
+
+   Child To Parent (Bottom-Up) Example:
+      src/components/NewExpense/NewExpense.js:
+         import React from 'react';
+         import ExpenseForm from './ExpenseForm';
+         const NewExpense = () => {
+            const saveExpenseDataHandler = (enteredExpenseData) => {
+               const expenseData = {
+                  ...enteredExpenseData,
+                  id: Math.random().toString()
+               };
+               console.log(expenseData);
+            };
+            return (
+               <div className="new-expense">
+                  <ExpenseForm onSaveExpenseData={saveExpenseDataHandler} />
+               </div>
+            );
+         };
+
+      src/components/NewExpense/ExpenseForm.js:
+         import React, { useState } from 'react';
+         import './ExpenseForm.css';
+         const ExpenseForm = (props) => {
+            ...
+            const submitHandler = (event) => {
+               event.preventDefault();
+               const expenseData = {
+                  title: enteredTitle,
+                  amount: enteredAmount,
+                  date: new Date(enteredDate)
+               };
+               props.onSaveExpenseData(expenseData);
+               ...
+            };
+            return (...);
+         };
+
+   Parent:
+   > The function parameter would expect some data. The parameter can be named anything you want as it is your function but it should be clear what data is being received (e.g. enteredExpenseData).
+   > In the example above the saveExpenseDataHandler will receive the enteredExpenseData which will come from the Child Component. We can copy this object data using the spread operator and also add more properties to the new copied object (e.g. the id property).
+   > Note: Math.random() is used for demonstration purpose for a random value but will not create unique id values.
+   > The naming convention using 'on' (e.g. 'onSaveExpenseData') should clearly indicate the value for the 'prop' is a function which will eventually be triggered when something happens inside of the Component. However, you could name the 'prop' whatever you want and do not need to follow this naming convention of starting with 'on'.
+   > The 'prop' should point to the function to be called (and not executed e.g. saveExpenseDataHandler()) when the event is triggered.
+   > The second step requires you to use the function inside of the custom component manually.
+   > This second step was not required for the <input> Component because these are built-in Components. The 'onChange' prop takes in a function and React internally will add a listener and call the function you pass in whenever the change event occurs.
+
+   Child:
+   > Inside of the <ExpenseForm /> Child Component you can now expect the onSaveExpenseData 'prop' because it is being set when you use the <ExpenseForm /> Custom Component.
+   > Inside of the ExpenseForm.js file you can now extract the value passed for the 'prop' i.e. the function saveExpenseDataHandler.
+   > Inside of the ExpenseForm you now expect to receive some 'props' which is passed as a parameter to the Component function.
+   > Inside of the ExpenseForm's submitHandler function you can access from the 'props' parameter object the 'onSaveExpenseData' to execute the event.
+   > The saveExpenseDataHandler function defined in the NewExpense Parent Component file will execute from a different Component file i.e. when the ExpenseForm Child Component's submitHandler function is triggered via the Forms submit event.
+   > The saveExpenseDataHandler can be executed from the ExpenseForm Child Component file because you are passing a pointer to the function through the onSaveExpenseData prop.
+   > The saveExpenseDataHandler function expects to receive a argument/parameter which you can pass the data from the Child Component i.e. the expenseData object from ExpenseForm.
+   > The Parent now has the data from the Child.
+
+   > This is a very important pattern to remember because you will use this pattern a lot in React. This is how you can communicate between Components in both Top-Down and Bottom-Up directions.
+   > The importance of the pattern relies on passing a pointer at the Parent's function to the Child Component which allows the function to be called by the Child Component which can then pass the data to this function.
+   > The chain can continue up the Component Tree as seen below between NewExpense,js and App.js Component files.
+
+   Child To Parent (Bottom-Up) Chaining Example:
+      src/App.js:
+         import React from 'react';
+         import Expenses from './components/Expenses/Expenses';
+         import NewExpense from './components/NewExpense/NewExpense';
+         const App = () => {
+            ...
+            const addExpenseHandler = expense => {
+               console.log('In App.js');
+               console.log(expense);
+            };
+            return (
+               <div>
+                  <NewExpense onAddExpense={addExpenseHandler} />
+                  <Expenses items={expenses} />
+               </div>
+            );
+         };
+
+      src/components/NewExpense/NewExpense.js:
+         import React from 'react';
+         import ExpenseForm from './ExpenseForm';
+         const NewExpense = (props) => {
+            const saveExpenseDataHandler = (enteredExpenseData) => {
+               const expenseData = {
+                  ...enteredExpenseData,
+                  id: Math.random().toString()
+               };
+               props.onAddExpense(expenseData);
+            };
+            return (
+               <div className="new-expense">
+                  <ExpenseForm onSaveExpenseData={saveExpenseDataHandler} />
+               </div>
+            );
+         };
+
+      src/components/NewExpense/ExpenseForm.js:
+         import React, { useState } from 'react';
+         import './ExpenseForm.css';
+         const ExpenseForm = (props) => {
+            ...
+            const submitHandler = (event) => {
+               event.preventDefault();
+               const expenseData = {
+                  title: enteredTitle,
+                  amount: enteredAmount,
+                  date: new Date(enteredDate)
+               };
+               props.onSaveExpenseData(expenseData);
+               ...
+            };
+            return (...);
+         };
