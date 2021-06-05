@@ -5,6 +5,7 @@ React State & Working with Events - Summary:
 4. A Closer Look at the 'useState' Hook
 5. Adding Form Inputs
 6. Listening to User Input
+7. Working with Multiple States
 
 ------------------------------------------------------------------------------------
 1. Listening to Events & Working with Event Handlers:
@@ -251,3 +252,30 @@ React State & Working with Events - Summary:
    > The input element has a value property and this value property holds the current value of the input at the point in time the event occurred.
    > This allows you to use dot notation to drill into the event object to retrieve the users input value e.g. event.target.value.
    > Now that you can gather the user's input value the next step is to do something with that value when the user submits the input form.
+
+------------------------------------------------------------------------------------
+7. Working with Multiple States:
+------------------------------------------------------------------------------------
+   > To handle multiple states, you can call on the useState hook multiple times i.e. you can have multiple useState pieces per Component.
+   > All the states inside of the same Component will also be separated from each other.
+
+   Multiple useState Example:
+      import React, { useState } from 'react';
+      const ExpenseForm = () => {
+         const [enteredTitle, setEnteredTitle] = useState('');
+         const [enteredAmount, setEnteredAmount] = useState('');
+         const [enteredDate, setEnteredDate] = useState('');
+
+         const titleChangeHandler = (event) => {
+            setEnteredTitle(event.target.value);
+         };
+         const amountChangeHandler = (event) => {
+            setEnteredAmount(event.target.value);
+         };
+         const dateChangeHandler = (event) => {
+            setEnteredDate(event.target.value);
+         };
+         return (...);
+      };
+
+   > You may have more than one state per Component and is perfectly fine to have separate States and manage/update them separately. This is a key part of the entire State concept that React ships with.
