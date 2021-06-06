@@ -1,6 +1,7 @@
 Rendering Lists & Conditional Content - Summary:
 1. Rendering Lists of Data
 2. Understanding Keys
+3. Outputting Conditional Content
 
 ------------------------------------------------------------------------------------
 1. Rendering Lists of Data:
@@ -117,3 +118,80 @@ Rendering Lists & Conditional Content - Summary:
    > In most scenarios you will have a unique id because typically you will render some data that comes from a Database which will have a unique identifiers that you can use. You can use any primitive values as a unique id value i.e. numbers or strings.
    > The warning message should now disappear from the browser's JavaScript Console and React will now have a much efficient way to update a list using the 'keys' prop.
    > You should always use the 'keys' props when mapping out list of items.
+
+------------------------------------------------------------------------------------
+3. Outputting Conditional Content:
+------------------------------------------------------------------------------------
+   > Conditional Content is about rendering different output under different conditions.
+   > This is not about rendering a list but rather rendering A, B or C based on condition 1, 2 or 3 (i.e. whatever you need).
+   > You can accomplish this using the JSX dynamic expression using the curly brackets.
+
+   Conditional Content Example:
+      src/components/Expenses/Expenses.js:
+         import React, {useState} from 'react';
+         ...
+         const Expenses = (props) => {
+            const [filteredYear, setFilteredYear] = useState('2021');
+            const filterChangeHandler = selectedYear => {
+               setFilteredYear(selectedYear);
+            };
+            const filteredExpenses = props.items.filter(expense => {
+               return expense.date.getFullYear().toString() === filteredYear;
+            });
+            return (
+               <div>
+                  <Card className="expenses">
+                     <ExpensesFilter selected={filteredYear} onFilterChange={filterChangeHandler} />
+                     {filteredExpenses.length === 0 ? <p>No expenses found.</p> : filteredExpenses.map((expense) => (
+                        <ExpenseItem key={expense.id} title={expense.title} amount={expense.amount} date={expense.date} />
+                     ))}
+                  </Card>
+               </div>
+            );
+         };
+
+   > You can use the dynamic expression in your JSX code and simply use a condition.
+   > Important Note: You cannot use a 'if' condition or 'for' loop condition because long statements are not allowed in JSX dynamic expressions. Instead, you would use JavaScript ternary expression which is allowed.
+   > JavaScript's ternary expression is a way of writing an if condition in a short form/single line syntax.
+   > The above checks if the filteredExpenses length is equal to zero and if it evaluates to true the paragraph element is rendered else the filtered array list is rendered as a list of <ExpenseItem /> elements.
+   > You can use a JavaScript trick to break down long ternary expressions into smaller readable code pieces and can be seen in the example below:
+
+   JavaScript Ternary Express Trick Example:
+      <Card className="expenses">
+         ...
+         {filteredExpenses.length === 0 && <p>No expenses found.</p> }
+         {filteredExpenses.length > 0 && filteredExpenses.map((expense) => (
+            <ExpenseItem key={expense.id} title={expense.title} amount={expense.amount} date={expense.date} />
+         ))}
+      </Card>
+   
+   > Using the '&&' operator after the expression, JavaScript will basically return the part (value) after the '&&' operator the ternary expression evaluates to true.
+   > This allows you to refactor and split the long ternary expression into standalone expressions which checks for different conditions.
+   > This can make your JSX a little more readable. However, this may seem like too much logic within the JSX code and there is another alternative way as demonstrated below:
+
+   Conditional Content Alternative Example:
+      src/components/Expenses/Expenses.js:
+         import React, {useState} from 'react';
+         ...
+         const Expenses = (props) => {
+            ...
+            let expensesContent = <p>No expenses found.</p>;
+            if(filteredExpenses.length > 0) {
+               expensesContent = filteredExpenses.map((expense) => (
+                  <ExpenseItem key={expense.id} title={expense.title} amount={expense.amount} date={expense.date} />
+               ));
+            };
+            return (
+               <div>
+                  <Card className="expenses">
+                     <ExpensesFilter selected={filteredYear} onFilterChange={filterChangeHandler} />
+                     {expensesContent}
+                  </Card>
+               </div>
+            );
+         };
+
+   > In the above, you would create a variable outside of the JSX code and store a default JSX content in a variable. You can then return that variable or use it anywhere else where you work with values.
+   > You can now add an if statement condition to overwrite the content of the variable depending on the condition.
+   > Finally, the JSX code can point at this variable. The JSX code snippet is now lean with the logic now contained within the Component function itself.
+   > It can be argued that this approach is more readable. The approach you take will all depend on your personal preference.
