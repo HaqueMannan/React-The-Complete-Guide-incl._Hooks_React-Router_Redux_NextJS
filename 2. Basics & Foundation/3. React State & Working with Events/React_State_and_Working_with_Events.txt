@@ -385,7 +385,7 @@ React State & Working with Events - Summary:
                event.preventDefault();
                const expenseData = {
                   title: enteredTitle,
-                  amount: enteredAmount,
+                  amount: +enteredAmount,
                   date: new Date(enteredDate)
                };
                console.log(expenseData);
@@ -407,6 +407,7 @@ React State & Working with Events - Summary:
    > Using the event object you can cancel the default behaviour using the preventDefault() method which is built into JavaScript by default.
    > The properties in the object can be named whatever you want but ultimately will point to the different useState values.
    > You should now have an object containing the submitted form data which you can now do something with such as the example above printing to the browser's console.
+   > The '+' used before 'enteredAmount' is used to ensure JavaScript enforces a number conversion otherwise when adding multiple values, those values would be added as strings instead of numbers.
 
 ------------------------------------------------------------------------------------
 11. Adding Two-Way Binding:
@@ -487,7 +488,7 @@ React State & Working with Events - Summary:
                event.preventDefault();
                const expenseData = {
                   title: enteredTitle,
-                  amount: enteredAmount,
+                  amount: +enteredAmount,
                   date: new Date(enteredDate)
                };
                props.onSaveExpenseData(expenseData);
@@ -565,7 +566,7 @@ React State & Working with Events - Summary:
                event.preventDefault();
                const expenseData = {
                   title: enteredTitle,
-                  amount: enteredAmount,
+                  amount: +enteredAmount,
                   date: new Date(enteredDate)
                };
                props.onSaveExpenseData(expenseData);
