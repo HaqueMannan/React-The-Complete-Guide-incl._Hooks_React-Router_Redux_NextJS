@@ -1,5 +1,6 @@
 Rendering Lists & Conditional Content - Summary:
 1. Rendering Lists of Data
+2. Understanding Keys
 
 ------------------------------------------------------------------------------------
 1. Rendering Lists of Data:
@@ -88,3 +89,31 @@ Rendering Lists & Conditional Content - Summary:
    > The spread operator can be used on both objects and arrays within vanilla JavaScript.
    > Now that the 'expenses' data is being used by the App Component to pass the Data/State to the Expenses Component via 'props', you will now have a dynamic list which automatically updates and renders to the screen when new expense items are added.
    > You now have a truly dynamic list rendered using State and the array map() method.
+
+------------------------------------------------------------------------------------
+2. Understanding Keys:
+------------------------------------------------------------------------------------
+   > React has a special concept when it comes to rendering a list of data. This concept exists to ensure that React is able to update and render such lists efficiently without performance loss or bugs which may occur.
+   > To understand the issue with performance loss, if you were to open the JavaScript Console within the browser and navigate to the Elements tab to inspect the list of div elements. When you add a new ExpenseItem, React creates a new div element as the last item in the list of div elements and it then updates all the div items and replaces their contents such that it matches the oder in the array. This causes performance loss issues.
+   > While the final result is correct, from a performance perspective this is not great because all items are visited again and updated which can also lead to bugs (e.g. state changes causing loss to the original state to a State Components i.e. the old first state item overridden by the new first state item causing state loss and unexpected bugs).
+   > React behaves like the above because it has no other way to behave when updating a list. React simply checks the length of the array and then has a look at the number of elements already rendered to the DOM. The individual elements all look the same to React and it cannot know where the new item should be added.
+   > This is the reason behind the "Warning: Each child in a list should have a unique "key" prop." warning message in the browser's JavaScript Console because you have a way of telling React where the new item should be added.
+   > You would add a special 'prop' called 'key' to the area that is rendering the list.
+
+   Special Key Prop with Unique Key Value Example:
+      {props.items.map((expense) => (
+         <ExpenseItem key={expense.id} title={expense.title} amount={expense.amount} date={expense.date} />
+      ))}
+
+   Special Key Prop using Map's Index as the Unique Key Value Example:
+      {props.items.map((expense, index) => (
+         <ExpenseItem key=index title={expense.title} amount={expense.amount} date={expense.date} />
+      ))}
+
+   > The 'key' prop can be added to any Component (i.e. Default HTML or Custom JSX Component Elements).
+   > This helps React identify the individual items.
+   > The 'key' prop value must be set to a unique value per list item. In the above example this was the 'expense.id' value.
+   > If you have no unique id, you can ue the second argument/parameter from the function you pass to the map() array method which is an automatically managed index. However, it is discouraged to use the map() method's index argument/parameter because you can still run into some bugs because the index of a given item is always the same and not directly attached to the content of the item.
+   > In most scenarios you will have a unique id because typically you will render some data that comes from a Database which will have a unique identifiers that you can use. You can use any primitive values as a unique id value i.e. numbers or strings.
+   > The warning message should now disappear from the browser's JavaScript Console and React will now have a much efficient way to update a list using the 'keys' prop.
+   > You should always use the 'keys' props when mapping out list of items.
