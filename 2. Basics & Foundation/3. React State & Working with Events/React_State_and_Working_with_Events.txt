@@ -12,6 +12,7 @@ React State & Working with Events - Summary:
 11. Adding Two-Way Binding
 12. Child to Parent Component Communication (Bottom-Up)
 13. Lifting the State Up
+14. Controlled vs Uncontrolled Components & Stateless vs Stateful Components
 
 ------------------------------------------------------------------------------------
 1. Listening to Events & Working with Event Handlers:
@@ -602,3 +603,68 @@ React State & Working with Events - Summary:
    > 'Lifting the State Up' is another very important concept/term to understand when working with React.
    > Remember: 'Lifting the State Up' term is all about moving Data/State from a Child Component to some Parent Component to either use it in the Parent Component or to then pass it down to some other Child Component.
    > It is not always the root App Component to which you want to lift your Data/State up. Instead, the goal is to lift the Data/State up as high as necessary in your Component Tree until you have a Component which has both access to the Components that generates the Data/State as well as the Component that needs that data.
+
+------------------------------------------------------------------------------------
+14. Controlled vs Uncontrolled Components & Stateless vs Stateful Components
+------------------------------------------------------------------------------------
+   Component Terminology:
+      Controlled Components:
+         > Whenever you use 'Two-Way Binding' on your Component, this is known as Controlling a Component (i.e. Controlled Component).
+         > Controlled Component means both the value and changes to the value are not handled in the Component itself but rather in a Parent Component.
+         > Therefore, where a value is used in a Component (e.g. a value from a dropdown) is passed on to a Parent Component through 'props' and is received from a Parent Component. Both the currently set value as well as the function that handles the selected value is not part of that Component. The Component (i.e. Child Component) is really just a Component which presents the the value (e.g. the dropdown) and attaches a couple of listeners and/or 'props'. The real logic resides in the Parent Component. This turns the Child Component into what is known as a Controlled Component.
+         > For example, the child <ExpensesFilter /> component which is responsible for the dropdown selection of year filter is turned into a Controlled Component to the parent <Expenses /> Component.
+         > Controlled Component is just a special term used to describe a Component type within React.
+
+      Uncontrolled Components:
+         > The Component's is independent from any other Components i.e. it does not use "Two-Way Binding".
+
+      Presentational/Stateless/Dumb Components:
+         > Components which do not manage some Data/State are known as Stateless or Dumb Components. The Component is purely presentational to output some data.
+
+         Stateless Component Example:
+            src/components/Expenses/ExpenseItem.js:
+               import React from 'react';
+               import ExpenseDate from './ExpenseDate';
+               import Card from '../UI/Card';
+               const ExpenseItem = (props) => {
+                  return (
+                     <Card className="expense-item">
+                        <ExpenseDate date={props.date} />
+                        <div className="expense-item__description">
+                           <h2>{props.title}</h2>
+                           <div className="expense-item__price">£{props.amount}</div>
+                        </div>
+                     </Card>
+                  );
+               };
+
+      Stateful/Smart Components:
+         > Components which manages some Data/State are known as Stateful or Smart Components.
+         > Any Component that uses the useState hook is known as a Stateful Component because it is now managing some Data/State within the Component.
+         > You may pass these Data/State to other Components (i.e. Stateless Components) to display the values.
+
+         Stateful Component Example:
+            src/components/Expenses/Expenses.js:
+               import React, {useState} from 'react';
+               import ExpenseItem from './ExpenseItem';
+               import ExpensesFilter from './ExpensesFilter';
+               import Card from '../UI/Card';
+               const Expenses = (props) => {
+                  const [filteredYear, setFilteredYear] = useState('2021');
+                  const filterChangeHandler = selectedYear => {
+                     setFilteredYear(selectedYear);
+                  };
+                  return (
+                     <div>
+                        <Card className="expenses">
+                           <ExpensesFilter selected={filteredYear} onFilterChange={filterChangeHandler} />
+                           <ExpenseItem title={ props.items[0].title} amount={props.items[0].amount} date={props.items[0].date } />
+                           <ExpenseItem title={ props.items[1].title} amount={props.items[1].amount} date={props.items[1].date } />
+                        </Card>
+                     </div>
+                  );
+               };
+
+   Stateless vs Stateful Components:
+      > In most React applications you will have more Stateless/Dumb Components. While 'Dumb' may seem negative and that Stateful Components may be better this is not the case. These are just terms to describe Components within your React application.
+      > Typically you will end up with less Stateful Components than Stateless Components because you would want to split up your application into small re-usable pieces and most pieces/components will only focus on outputting something.
