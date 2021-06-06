@@ -1,0 +1,90 @@
+Rendering Lists & Conditional Content - Summary:
+1. Rendering Lists of Data
+
+------------------------------------------------------------------------------------
+1. Rendering Lists of Data:
+------------------------------------------------------------------------------------
+   > In most web applications you will not know in advance how many items you would want to render. Therefore, hardcoding the number of occurrence of a Component Element is not the way to go.
+   > To render a list dynamically you would first need to pass the data that requires to be rendered down to the Component which needs it via 'props'.
+   > Once the Component gets the list of data required you can then use that data to dynamically render one Component Element per item within the data list/array.
+
+   Rendering a Dynamic List Example:
+      src/app.js:
+         import React from 'react';
+         import Expenses from './components/Expenses/Expenses';
+         import NewExpense from './components/NewExpense/NewExpense';
+         const App = () => {
+            const expenses = [
+               {id: 'e1', title: 'Toilet Paper', amount: 12.00, date: new Date(2021, 4, 16)},
+               {id: 'e2', title: 'TV', amount: 345.99, date: new Date(2021, 3, 30)},
+            ];
+            const addExpenseHandler = expense => console.log(expense);
+            return (
+               <div>
+                  <NewExpense onAddExpense={addExpenseHandler} />
+                  <Expenses items={expenses} />
+               </div>
+            );
+         };
+
+      src/components/Expenses/Expenses.js:
+         import React, {useState} from 'react';
+         import ExpenseItem from './ExpenseItem';
+         import ExpensesFilter from './ExpensesFilter';
+         import Card from '../UI/Card';
+         const Expenses = (props) => {
+            const [filteredYear, setFilteredYear] = useState('2021');
+            const filterChangeHandler = selectedYear => setFilteredYear(selectedYear);
+            return (
+               <div>
+                  <Card className="expenses">
+                     <ExpensesFilter selected={filteredYear} onFilterChange={filterChangeHandler} />
+                     {props.items.map((expense) => (
+                        <ExpenseItem title={expense.title} amount={expense.amount} date={expense.date} />
+                     ))}
+                  </Card>
+               </div>
+            );
+         };
+
+   > The <App /> Parent Component passes on the expenses array data via 'props' to the <Expenses /> Child Component. The <Expenses /> Child Component can now use this data to loop through the list to render dynamically multiple <ExpenseItem /> Components required to display each item within the array.
+   > You would use curly brackets {} to execute a dynamic expression in your JSX code (i.e. curly brackets are used in React JSX to execute JavaScript expressions).
+   > Accessing the 'props.items' allows you to access the array data passed from App to Expenses via 'props' (which the array was named 'items'). You can now use the built-in vanilla JavaScript array method called map() which allows you to create a new array based on another array. This allows you to transform every element in the original array.
+   > The map() array method takes in a function as an argument/parameter which is called/executed on each item within the original array allowing you to transform the data and store the results in the newly created array. You can then use this new array to dynamically create the <ExpenseItem /> JSX Component Element to render and display the dynamic list.
+   > If you have an array of JSX element, React is capable of rendering each element within the array side by side.
+   > The 'expense' object is used to extract the 'title', 'amount' and 'date' values. The 'expense' represents each item within the array and the data changes on each iteration loop.
+   > This will now dynamically list each array item as an <ExpenseItem /> JSX element. You will notice a warning message of "Warning: Each child in a list should have a unique "key" prop." within the browser's console which you can ignore for now. You can now change this array and those changes will now be reflected in the list display.
+   > The App.js file can be updated to become a Stateful Component so that it holds the latest list data. This can be seen in the below example code:
+
+   Rendering a Dynamic List Update to App.js Example:
+      src/app.js:
+         import React, { useState } from 'react';
+         import Expenses from './components/Expenses/Expenses';
+         import NewExpense from './components/NewExpense/NewExpense';
+         const dummy_expenses = [
+            {id: 'e1', title: 'Toilet Paper', amount: 12.00, date: new Date(2021, 4, 16)},
+            {id: 'e2', title: 'TV', amount: 345.99, date: new Date(2021, 3, 30)},
+         ];
+         const App = () => {
+            const [expenses, setExpenses] = useState(dummy_expenses);
+            const addExpenseHandler = expense => {
+               setExpenses(previousExpenses => {
+                  return [expense, ...previousExpenses];
+               });
+            };
+            return (
+               <div>
+                  <NewExpense onAddExpense={addExpenseHandler} />
+                  <Expenses items={expenses} />
+               </div>
+            );
+         };
+
+   > The useState is imported to manage the State within the App.js file. The 'dummy_expenses' array is stored outside of the Component function because it is some dummy data to initialise the state with. Inside of the App Component function you can call on useState to pass in that 'dummy_expenses' array as the initial array value.
+   > Using destructuring you can get access to the useState data and the special 'set' updating function.
+   > The 'addExpenseHandler' function can now call the 'setExpenses' function you destructed from the 'useState' to set a new array using the new 'expense' received by the 'addExpenseHandler' function when it is called.
+   > You would use the special function form to get the current snapshot of the 'previousExpenses' array passed into the 'setExpenses' function.
+   > When you return a new array containing the new 'expense' item received by the 'addExpenseHandler' function, the special function form will allow you to user the spread operator on the 'previousExpenses' array snapshot to populate the rest of the new array with the existing elements (i.e. preserving the existing elements).
+   > The spread operator can be used on both objects and arrays within vanilla JavaScript.
+   > Now that the 'expenses' data is being used by the App Component to pass the Data/State to the Expenses Component via 'props', you will now have a dynamic list which automatically updates and renders to the screen when new expense items are added.
+   > You now have a truly dynamic list rendered using State and the array map() method.
