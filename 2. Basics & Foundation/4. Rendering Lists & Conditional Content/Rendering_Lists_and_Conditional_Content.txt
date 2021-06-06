@@ -3,6 +3,7 @@ Rendering Lists & Conditional Content - Summary:
 2. Understanding Keys
 3. Outputting Conditional Content
 4. Conditional Return Statements
+5. Adding Dynamic Styles
 
 ------------------------------------------------------------------------------------
 1. Rendering Lists of Data:
@@ -243,3 +244,34 @@ Rendering Lists & Conditional Content - Summary:
    > This is an alternative method approach for outputting conditional content compared to the approaches demonstrated in the previous section 3. Outputting Conditional Content.
    > Important: The 'return' keyword ends function execution and specifies a value to be returned to the function caller in JavaScript. Therefore, even if a Component function has multiple return statements, JavaScript will end the function execution when it reaches a line with the 'return' keyword. This behaviour means that only one return statement will ever be executed from the Component function.
    > This allows you to use conditional return statements as an alternative approach for conditionally rendering JSX provided the whole JSX content that should be returned is changed by the condition.
+
+------------------------------------------------------------------------------------
+5. Adding Dynamic Styles:
+------------------------------------------------------------------------------------
+   > The 'style' prop is used in React to add dynamic css styles via JavaScript to HTML elements.
+   > The 'style' prop works slightly different to the default HTML 'style' attribute within a React application.
+   > The 'style' prop expects to receive an object and not a string value.
+
+   Adding Dynamic Style Example:
+      src/components/Chart/ChartBar.js:
+         import React from 'react';
+         import './ChartBar.css';
+         const ChartBar = (props) => {
+            let barFillHeight = '0%';
+            if(props.max > 0) {
+               barFillHeight = Math.round((props.value / props.maxValue) * 100);
+            };
+            return(
+               <div className="chart-bar">
+                  <div className="chart-bar__inner">
+                     <div className="chart-bar__fill" style={{height: barFillHeight}}></div>
+                  </div>
+                  <div className="chart-bar__label">{props.label}</div>
+               </div>
+            );
+         };
+
+   > Therefore, when you see this double curly bracket syntax within a React application it is not a special double curly bracket syntax. The first curly bracket is required for the JSX dynamic expression  and the second inner curly bracket is used for a JavaScript Object. The only special thing here is that the 'style' prop wants a JavaScript object as a value.
+   > The CSS property names should be used as the 'key' names and the values as the 'value' for the keys:value pairs.
+   > If you have a style property that has a hyphen such as background-colour, the property name should be surrounded with a single quote (e.g. 'background-color') or alternatively you should use camelCase version of the name removing the hyphens (e.g. backgroundColor). Failing to do this will cause an error.
+   > This is how you would add dynamic styles via JSX in your Component functions.
