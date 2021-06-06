@@ -2,6 +2,7 @@ Rendering Lists & Conditional Content - Summary:
 1. Rendering Lists of Data
 2. Understanding Keys
 3. Outputting Conditional Content
+4. Conditional Return Statements
 
 ------------------------------------------------------------------------------------
 1. Rendering Lists of Data:
@@ -195,3 +196,50 @@ Rendering Lists & Conditional Content - Summary:
    > You can now add an if statement condition to overwrite the content of the variable depending on the condition.
    > Finally, the JSX code can point at this variable. The JSX code snippet is now lean with the logic now contained within the Component function itself.
    > It can be argued that this approach is more readable. The approach you take will all depend on your personal preference.
+
+------------------------------------------------------------------------------------
+4. Conditional Return Statements:
+------------------------------------------------------------------------------------
+   > If what a Component returns changes entirely based on different conditions you can use a different approach which has conditional return statements.
+   > This approach should not be used if only part of the JSX snippet that is returned from the JSX changes.
+
+   Conditional Return Statement Example:
+      src/components/Expenses/ExpensesList.js:
+         import React from 'react';
+         import ExpenseItem from './ExpenseItem';
+         const ExpensesList = (props) => {
+            if(props.items.length === 0) {
+               return <h2 className="expenses-list__fallback">Found no expenses.</h2>
+            };
+            return (
+               <ul className="expenses-list">
+                  {props.items.map((expense) => (
+                     <ExpenseItem key={expense.id} title={expense.title} amount={expense.amount} date={expense.date} />
+                  ))}
+               </ul>
+            );
+         };
+
+      src/components/Expenses/Expenses.js:
+         import React, {useState} from 'react';
+         import ExpensesFilter from './ExpensesFilter';
+         import ExpensesList from './ExpensesList';
+         import Card from '../UI/Card';
+         const Expenses = (props) => {
+            const [filteredYear, setFilteredYear] = useState('2021');
+            const filterChangeHandler = selectedYear => setFilteredYear(selectedYear);
+            const filteredExpenses = props.items.filter(expense => return expense.date.getFullYear().toString() === filteredYear);
+            return (
+               <li>
+                  <Card className="expenses">
+                     <ExpensesFilter selected={filteredYear} onFilterChange={filterChangeHandler} />
+                     <ExpensesList items={filteredExpenses} />
+                  </Card>
+               </li>
+            );
+         };
+
+   > In the above example the ExpensesList Component returned JSX content changes completely depending on a condition if there is an array data passed down from the 'prop' from the Expenses Component.
+   > This is an alternative method approach for outputting conditional content compared to the approaches demonstrated in the previous section 3. Outputting Conditional Content.
+   > Important: The 'return' keyword ends function execution and specifies a value to be returned to the function caller in JavaScript. Therefore, even if a Component function has multiple return statements, JavaScript will end the function execution when it reaches a line with the 'return' keyword. This behaviour means that only one return statement will ever be executed from the Component function.
+   > This allows you to use conditional return statements as an alternative approach for conditionally rendering JSX provided the whole JSX content that should be returned is changed by the condition.
