@@ -1,0 +1,31 @@
+Styling React Components - Summary:
+1. Setting Dynamic Inline Styles
+
+------------------------------------------------------------------------------------
+1. Setting Dynamic Inline Styles:
+------------------------------------------------------------------------------------
+   > While you create separate .css files for your Components and you are importing them into the Component .js files the CSS styles is not scoped to the particular Component. The style continues to be  global and would affect any elements in any Component file that contain the class name.
+   > You can add inline CSS styles to JSX elements similar to regular HTML by using the 'style' prop.
+   > The 'style' prop in React requires a JavaScript object instead of a string. Hence the double curly bracket syntax.
+   > Using key:value pairs within the object will add the style for the styling property.
+   > If the style property has a hyphen in the name you should either wrap it in single quotes or use the camelCase notation.
+   > You can use the ternary operator to make the inline style dynamic.
+
+   Dynamic Inline Style Example:
+      return (
+         <form onSubmit={formSubmitHandler}>
+            <div>
+               <label style={{ color: !isValid ? 'red' : 'black' }}>Course Goal</label>
+               <input style={{ borderColor: !isValid ? 'red' : 'black', background: !isValid ? 'salmon' : 'transparent' }} type="text" onChange={goalInputChangeHandler} />
+            </div>
+            <Button type="submit">Add Goal</Button>
+         </form>
+      );
+
+   > In the above example, the 'style' prop is passed an object. The 'color' style is the key. The value, however, uses the ternary operator to dynamically set the value to either red or black depending on the condition if isValid variable is not true i.e. false. The label will now change colour based on this condition.
+   > The same is true for the border-colour property which is written in camelCase notation (it could have been wrapped in single quotations).
+   > Note: the code could be refactored so that the logic is handled and output stored in a variable outside the JSX snippet.
+   > Note: you can use the formSubmitHandler function to check if the input has a valid input and return true or false as the value for the 'isValid' variable using state which will help dynamically control the label input colour to be rendered.
+   > You can add multiple inline styles by separating each key:value pair with a comma separator.
+   > Inline styles has the highest priority in CSS which will overwrite all other styles in CSS. Therefore, the above inline style approach may not be a good approach as you would have two styles in different locations that would compete against each other and the inline style will always take precedence due to it's high priority in CSS.
+   > Thus, what alternative approach do we have to set styles dynamically using inline styles?
