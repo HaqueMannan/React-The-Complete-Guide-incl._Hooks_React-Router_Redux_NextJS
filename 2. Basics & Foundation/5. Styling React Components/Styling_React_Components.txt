@@ -1,6 +1,7 @@
 Styling React Components - Summary:
 1. Setting Dynamic Inline Styles
 2. Setting CSS Classes Dynamically
+3. Introducing Styled-Components Package
 
 ------------------------------------------------------------------------------------
 1. Setting Dynamic Inline Styles:
@@ -38,7 +39,7 @@ Styling React Components - Summary:
    > You can create the styles inside of the Component's CSS file and then dynamically set the CSS Class on the JSX element.
 
    Setting CSS Classes Dynamically Example:
-      src/components/CourseInput/CourseInput.css:
+      src/components/CourseGoal/CourseInput/CourseInput.css:
          .form-control.invalid input {
             border-color: red;
             background: #ffd7d7;
@@ -47,7 +48,7 @@ Styling React Components - Summary:
             color: red;
          }
 
-      src/components/CourseInput/CourseInput.css:
+      src/components/CourseGoal/CourseInput/CourseInput.css:
          ...
          import './CourseInput.css';
          const CourseInput = props => {
@@ -70,3 +71,50 @@ Styling React Components - Summary:
    > The CSS file has two styles targeting specifically the styling of the label and input elements where the parent element has a class of 'form-control.invalid'.
    > This is a powerful technique because you can now revert back to working with CSS files to contain CSS styling and use template literal syntax to dynamically add/remove classes on an element to control the elements styling.
    > It will become Reacts job to add/remove classes in the DOM while you specify the different states to control the styling.
+
+------------------------------------------------------------------------------------
+3. Introducing Styled Components Package:
+------------------------------------------------------------------------------------
+   > Styles in the CSS files are not scoped to the Component file they relate to (i.e. it is global in scope). While it is not necessarily a problem because you can be very careful about your selectors. You can use class selectors or id selectors in CSS to ensure the class/id that are being selected are only used in the places where you want the style to be applied to.
+   > However, in larger projects with a potentially large development team woking on the code, the classes/id could potentially be used twice in different Component CSS files. Therefore, there is a chance of styles spilling over to other Components and you might want to avoid this.
+   > There are various ways to avoid this issue, but below are two popular methods:
+      1. Use a package called styled-components (https://styled-components.com/).
+      2. Use CSS Modules
+
+   > Styled-Components is a package that helps you build Components that have certain styles attached to them where the styles really on affect the Components in which they are attached to.
+   > To use styled-components you would need to open up terminal and navigate to your project directory to run the following npm install command:
+      $: npm install --save styled-components
+   > Important Note: if you have your development server running using 'npm start', stop the server first by pressing ctrl + c on your keyboard in the terminal that is running the server. You can then run the above npm command to install the package to your project. After installing you can re-run your development server again.
+   > the package will be downloaded and added to the node_modules folder and the package.json file will be updated to include this package as a dependency for your project.
+   > Once the package is installed you can use the library in your project.
+
+   Styled-Components Example:
+      src/components/UI/Button/Button.js:
+         import styled from 'styled-components';
+         const Button = styled.button `
+            color: white;
+            background: #8b005d;
+            cursor: pointer;
+            &:focus {
+               outline: none;
+            }
+            &:hover,
+            &:active {
+               background: #ac0e77;
+            }
+         `;
+         export default Button;
+
+   > This uses JavaScript tagged template literal feature and is not specific to the styled-components package or to React. You can use this tagged template literal syntax in any regular JavaScript file.
+   > The .button is a method on the styled object which is imported from styled-components library. Instead of calling the button method using round brackets you use back-ticks instead.
+   > In the end the button method will be executed as a method behind the scenes and what you pass between the two back-ticks will be passed into the method just in a special way.
+   > The button method will return a new button Component.
+   > The styled-components package has methods for all HTML Elements such as .p for <p>, .h1 for <h1>, .div for <div>, etc.
+   > The back-ticks allows you to write a multi-line code. You would add your CSS styles here.
+   > There is no need to include the selector for the element itself i.e. for the button element you do not need the .button CSS element selector. This is because the back-ticks styles will directly affect the element.
+   > For any pseudo selectors you would use the '&' symbol instead of the element. This tells the method that you want a special pseudo selector for the component which is created by the method.
+   > In the example above, this will give you a button element with all the styles. The button that is returned also by default applies all the props you might pass into your own Button Component which you are exporting. Therefore, you can still use props such as 'onClick', 'type', etc. which will all be forwarded by the styled-components package to the core built-in button which is now used inside of the button method.
+   > You no longer require the React import statement because you are no longer dealing with JSX within the file. You React application should continue to work as normal using the styled-components package.
+   > If you now inspect the button in the browser you will notice something different. You will notice that there is a very strange class. These are class names dynamically generated by the styled-components package.
+   > the styled-package library looks at the styles and wraps the styles into generated class names where it guarantees that every class name is unique and it will add these classes as global CSS. Since you have unique class names for every Styled Component, the styles setup on the Component will never be able to affect (spill over) another Component.
+   > This is how the styled-components library works.
