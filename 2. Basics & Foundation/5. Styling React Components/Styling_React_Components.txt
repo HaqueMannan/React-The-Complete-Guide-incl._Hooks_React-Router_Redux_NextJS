@@ -1,5 +1,6 @@
 Styling React Components - Summary:
 1. Setting Dynamic Inline Styles
+2. Setting CSS Classes Dynamically
 
 ------------------------------------------------------------------------------------
 1. Setting Dynamic Inline Styles:
@@ -29,3 +30,43 @@ Styling React Components - Summary:
    > You can add multiple inline styles by separating each key:value pair with a comma separator.
    > Inline styles has the highest priority in CSS which will overwrite all other styles in CSS. Therefore, the above inline style approach may not be a good approach as you would have two styles in different locations that would compete against each other and the inline style will always take precedence due to it's high priority in CSS.
    > Thus, what alternative approach do we have to set styles dynamically using inline styles?
+
+------------------------------------------------------------------------------------
+2. Setting CSS Classes Dynamically:
+------------------------------------------------------------------------------------
+   > An alternative method to setting inline styles dynamically is to use CSS Classes.
+   > You can create the styles inside of the Component's CSS file and then dynamically set the CSS Class on the JSX element.
+
+   Setting CSS Classes Dynamically Example:
+      src/components/CourseInput/CourseInput.css:
+         .form-control.invalid input {
+            border-color: red;
+            background: #ffd7d7;
+         }
+         .form-control.invalid label {
+            color: red;
+         }
+
+      src/components/CourseInput/CourseInput.css:
+         ...
+         import './CourseInput.css';
+         const CourseInput = props => {
+            ...
+            return (
+               <form onSubmit={formSubmitHandler}>
+                  <div className={`form-control ${!isvalid? 'invalid' : ''}`>
+                     <label>Course Goal</label>
+                     <input type="text" onChange={goalInputChangeHandler} />
+                  </div>
+                  <Button type="submit">Add Goal</Button>
+               </form>
+            );
+         };
+
+   > You would simply use JSX's double curly bracket syntax to dynamically inject dynamic JavaScript expressions. This will allow you to dynamically add classes to the JSX element.
+   > Vanilla JavaScript has something called 'template literals' which allows you to concatenate strings together and inject variable/expression values into the string using a cleaner syntax. Everything inside of the two back-ticks (``) is treated as a string including variable/expression values.
+   > To inject a variable inside of a template literal you would use the JavaScript syntax of ${} where the variable name would be inside of the curly brackets.
+   > In the above example if isValid is not true the class is set to 'form-control.invalid'. else the class will be 'form-control'.
+   > The CSS file has two styles targeting specifically the styling of the label and input elements where the parent element has a class of 'form-control.invalid'.
+   > This is a powerful technique because you can now revert back to working with CSS files to contain CSS styling and use template literal syntax to dynamically add/remove classes on an element to control the elements styling.
+   > It will become Reacts job to add/remove classes in the DOM while you specify the different states to control the styling.
