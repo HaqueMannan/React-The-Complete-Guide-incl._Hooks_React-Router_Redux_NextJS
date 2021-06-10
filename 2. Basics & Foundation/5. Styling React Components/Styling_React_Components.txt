@@ -5,6 +5,7 @@ Styling React Components - Summary:
 4. Styled Components & Dynamic Props
 5. Styled Components & Media Queries
 6. Using CSS Modules
+7. Dynamic Style with CSS Modules
 
 ------------------------------------------------------------------------------------
 1. Setting Dynamic Inline Styles:
@@ -269,8 +270,47 @@ Styling React Components - Summary:
 
    > The CSS file needs to be renamed to contain the extension of '.module.css' in order for React to carry out the code transformation. This signals the underlying compilation process to transform the code so that CSS modules works in the React Application.
    > To import a CSS as a Module you need to use the 'import styles from' syntax followed by the path of the '.module.css' file you wish to import into the Component file.
+   > Important Note: when you import the CSS object from your '.module.css' file, you can name this object anything you would like. However, 'styles' is a common descriptive name that is used to best describe the object you are importing from the Component CSS file.
    > To use the styles from the CSS module, you would use className prop and use JSX dynamic expression passing in the imported styles object which contains all the style class identifiers from that '.module.css' file. Therefore, in the above example 'className={styles.button}' will apply the '.button' class to the element which will apply the relevant class styling.
    > You should now see something interesting when you inspect the element. The class on the element will have a strange class name which is not the same as the class name created in styled-components but rather something that looks similar to the class you have defined but with more information added to the class name. It basically adds a class name comprised of the Component name followed by an underscore and the CSS class name and then a double underscore with some unique hash.
    > The build process takes the CSS class identifiers from the '.modules.css' file and changes the class names to be unique for every Component file. This ensures the styles are scoped to the file the '.module.css' file is imported into.
    > You would need to work with CSS class identifiers in order work work with CSS Modules and set className attributes to the style class. This is how you create the connection between the dynamically generated class names (which you as the developer will not know in advance) and the Components.
    > This is how you can use CSS Modules to get the best of two worlds i.e. you have your styles setup in your CSS files but they are still scoped to the Components you are using them.
+
+------------------------------------------------------------------------------------
+7. Dynamic Style with CSS Modules:
+------------------------------------------------------------------------------------
+   > To access a class style which has a hyphen within the class name you would wrap the class name in square brackets and single quotes.
+   > Strings are valid keys in JavaScript objects which you would wrap in square brackets.
+   > Alternatively, you could choose CSS class names without hyphens.
+
+   Referencing Class Name with Hyphens Example:
+      <div className={styles['form-control']}>
+
+   > The above resembles .form-control CSS class name to be selected from the styles object.
+   > To add a style dynamically using CSS Modules you can use JavaScript's template literal syntax to inject css class names.
+
+   Injecting Dynamic CSS Module Class Names Example:
+      <div className={`${styles['form-control']} ${!isValid && styles.invalid}`}>
+
+   > This will inject dynamically the class name of either '.form-control' or '.form-control.invalid' depending if 'isValid' value is set to false.
+   > You can add media queries as you would normally do in CSS.
+
+   CSS Media Query Example:
+      @media (min-width: 768px) {
+         .button {
+            width: auto;
+         }
+      }
+
+   > You would require the selector in your media query for CSS Modules because it uses normal CSS syntax which always requires a selector.
+   > Whereas, in the styled-components does not require the selector because it processes the CSS code.
+
+------------------------------------------------------------------------------------
+Conclusion:
+------------------------------------------------------------------------------------
+   > It is ultimately up to you as the developer to choose the CSS styling approach you prefer between:
+      1. CSS Only
+      2. Style Components
+      3. CSS Modules
+   > There are different pros and cons between each method approach but ultimately it is your decision.
