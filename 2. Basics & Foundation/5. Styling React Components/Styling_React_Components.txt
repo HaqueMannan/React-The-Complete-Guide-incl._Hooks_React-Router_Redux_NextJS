@@ -4,6 +4,7 @@ Styling React Components - Summary:
 3. Introducing Styled-Components Package
 4. Styled Components & Dynamic Props
 5. Styled Components & Media Queries
+6. Using CSS Modules
 
 ------------------------------------------------------------------------------------
 1. Setting Dynamic Inline Styles:
@@ -235,3 +236,41 @@ Styling React Components - Summary:
          `;
 
    > In this example the button default width is 100%. However, the media query will change the width to auto whenever viewing the application on a phone. This will now dynamically display the button depending on the screen size of the device the application is being viewed on.
+
+------------------------------------------------------------------------------------
+6. Using CSS Modules:
+------------------------------------------------------------------------------------
+   > Some developers prefer the separation of CSS and JavaScript files because it allows for use of default CSS syntax and a much cleaner JavaScript file.
+   > You can stick to the global non-scoped styles for Component files but you as a developer have to ensure that you are not accidentally re-using class/id names which will spill over to other components.
+   > You can, however, take CSS to the next level by using CSS Modules.
+   > CSS Modules are only available in projects that are configured to support it because it needs a code transformation that is required to be done before your code runs in the browser.
+   > React projects created with create-react-app are already configured to support CSS Modules (https://create-react-app.dev/docs/adding-a-css-modules-stylesheet).
+
+   CSS Modules Example:
+      src/components/UI/Button/Button.module.css:
+         .button {
+            color: white;
+            background: #8b005d;
+            cursor: pointer;
+            ...
+         }
+
+      src/components/UI/Button/Button.js:
+         import React from 'react';
+         import styles from './Button.module.css';
+
+         const Button = (props) => {
+            return(
+               <button type={props.type} className={styles.button} onClick={props.onClick}>
+                  {props.children}
+               </button>
+            );
+         };
+
+   > The CSS file needs to be renamed to contain the extension of '.module.css' in order for React to carry out the code transformation. This signals the underlying compilation process to transform the code so that CSS modules works in the React Application.
+   > To import a CSS as a Module you need to use the 'import styles from' syntax followed by the path of the '.module.css' file you wish to import into the Component file.
+   > To use the styles from the CSS module, you would use className prop and use JSX dynamic expression passing in the imported styles object which contains all the style class identifiers from that '.module.css' file. Therefore, in the above example 'className={styles.button}' will apply the '.button' class to the element which will apply the relevant class styling.
+   > You should now see something interesting when you inspect the element. The class on the element will have a strange class name which is not the same as the class name created in styled-components but rather something that looks similar to the class you have defined but with more information added to the class name. It basically adds a class name comprised of the Component name followed by an underscore and the CSS class name and then a double underscore with some unique hash.
+   > The build process takes the CSS class identifiers from the '.modules.css' file and changes the class names to be unique for every Component file. This ensures the styles are scoped to the file the '.module.css' file is imported into.
+   > You would need to work with CSS class identifiers in order work work with CSS Modules and set className attributes to the style class. This is how you create the connection between the dynamically generated class names (which you as the developer will not know in advance) and the Components.
+   > This is how you can use CSS Modules to get the best of two worlds i.e. you have your styles setup in your CSS files but they are still scoped to the Components you are using them.
