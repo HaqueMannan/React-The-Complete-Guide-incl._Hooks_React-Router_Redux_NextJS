@@ -3,6 +3,7 @@ Styling React Components - Summary:
 2. Setting CSS Classes Dynamically
 3. Introducing Styled-Components Package
 4. Styled Components & Dynamic Props
+5. Styled Components & Media Queries
 
 ------------------------------------------------------------------------------------
 1. Setting Dynamic Inline Styles:
@@ -212,3 +213,25 @@ Styling React Components - Summary:
    > In this example there is no need for the '&.invalid input' and '&.invalid label' CSS styles within the styled-component.
    > The behaviour of the component should remain the same as before but now using 'Dynamic Props' to dynamically Style your styled-components.
    > This concept can sometimes be hard to understand but it is a really useful way of working with Components and styles.
+
+------------------------------------------------------------------------------------
+5. Styled Components & Media Queries:
+------------------------------------------------------------------------------------
+   > Media Queries is a technique introduced in CSS3 using the '@media' keyword to change the style of HTML elements based on the screen size the webpage is being viewed on. This allows the content of the application to dynamically change based on the screen size whether being viewed on a PC, Tablet or Phone.
+   > The Media Queries works exactly the same as you would use in normal CSS styling.
+
+   Media Query on Styled-Components Example:
+      src/components/UI/Button/Button.js:
+         import styled from 'styled-components';
+         const Button = styled.button `
+            width: 100%;
+            border: 1px solid #8b005d;
+            color: white;
+            background: #8b005d;
+            ...
+            @media(min-width: 768px) {
+               width: auto;
+            }
+         `;
+
+   > In this example the button default width is 100%. However, the media query will change the width to auto whenever viewing the application on a phone. This will now dynamically display the button depending on the screen size of the device the application is being viewed on.
