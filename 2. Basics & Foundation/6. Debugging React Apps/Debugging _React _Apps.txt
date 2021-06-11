@@ -1,0 +1,55 @@
+Debugging React Apps - Summary:
+1. Understanding React Error Messages
+
+------------------------------------------------------------------------------------
+1. Understanding React Error Messages:
+------------------------------------------------------------------------------------
+   > Sometimes when you write your React App code you will come across errors.
+   > The React/React Development process catches these errors and will throw them at you within the console or the browser development environment.
+
+   Error Message Example:
+      src/App.js:
+         const App() => {
+            ...
+            return (
+               <section id="goal-form">
+                  <CourseInput onAddGoal={addGoalHandler} />
+               </section>
+               <section id="goals">
+                  {content}
+               </section>
+            );
+         };
+
+   Node Console:
+      $: Adjacent JSX elements must be wrapped in an enclosing tag. Did you want a JSX fragment <>...</>?(41:6)
+
+   > In the above example (ignoring JSC fragment as we have not come across that topic), you should be able to understand this error.
+   > The error message will provide the file that has thrown the error, the (line number: character number) where the error has occurred and also sometimes display a snippet of the code that contains the error.
+   > Your IDE may also be able to detect some errors (but not all) and show it via a squiggly red underline.
+   > This error is telling you that JSX requires neighbouring errors to be wrapped in an enclosing tag i.e. you need to wrap neighbouring child elements under one root elements when returning JSX code.
+
+   Error Message Example:
+      src/App.js
+         const App() => {
+            const addGoalHandler = enteredText => { ...}; 
+            return (
+               <div>
+                  <section id="goal-form">
+                     <CourseInput onAddGoal={addGoalsHandler} />
+                  </section>
+                  <section id="goals">
+                     {content}
+                  </section>
+               <div>
+            );
+         };
+
+      React Browser Developer Tool:
+         ReferenceError: addGoalsHandler is not defined
+         App
+         src/App.js:40
+
+   > In this example we see the function 'addGoalsHandler' is not defined as the error. This is a very clear error message like the previous example.
+   > Some variable/function is trying to be used which is not found by React. When you go to the file to check the code, you will notice why the function was not found i.e. a typo or you forgot to define such a variable/function altogether. In the above example it was a typo.
+   > Therefore, read the error message, have a look at the line that is causing the error message and the code snippet displayed in the error message, connect the errors together to the snippet being pointed at and you should be able to find and solve most error messages you come across.
