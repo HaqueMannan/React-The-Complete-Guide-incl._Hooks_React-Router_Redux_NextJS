@@ -1,5 +1,6 @@
 Debugging React Apps - Summary:
 1. Understanding React Error Messages
+2. Analysing Code Flow & Warnings
 
 ------------------------------------------------------------------------------------
 1. Understanding React Error Messages:
@@ -53,3 +54,99 @@ Debugging React Apps - Summary:
    > In this example we see the function 'addGoalsHandler' is not defined as the error. This is a very clear error message like the previous example.
    > Some variable/function is trying to be used which is not found by React. When you go to the file to check the code, you will notice why the function was not found i.e. a typo or you forgot to define such a variable/function altogether. In the above example it was a typo.
    > Therefore, read the error message, have a look at the line that is causing the error message and the code snippet displayed in the error message, connect the errors together to the snippet being pointed at and you should be able to find and solve most error messages you come across.
+
+------------------------------------------------------------------------------------
+2. Analysing Code Flow & Warnings:
+------------------------------------------------------------------------------------
+   > You may come across errors that do not throw a compilation error in your terminal console and which will not show up on the main browser development environment screen.
+   > For example, you may have a component which is used to add to a list. When you try to delete the item from the list the wrong element is deleted.
+   > There are a couple of ways you can resolve this error...
+
+   Code Flow & Warning Error:
+   src/components/CourseGoalList/CourseGoalList.js:
+      ...
+      const CourseGoalList = (props) => {
+         return (
+            <ul className="goal-list">
+               {props.items.map((goal) => (
+                  <CourseGoalItem id={goal.id} key={goal.id} onDelete={props.onDeleteItem}>
+                     {goal.text}
+                  </CourseGoalItem>
+               ))}
+            </ul>
+         );
+      };
+
+   src/components/CourseGoalList/CourseGoalItem.js:
+      ...
+      const CourseGoalItem = (props) => {
+         const deleteHandler = () => {
+            props.onDelete(props.id);
+         };
+         return (
+            <li className="goal-item" onClick={deleteHandler}>
+               {props.children}
+            </li>
+         );
+      };
+
+   src/App.js:
+      ...
+      const App = () => {
+         ...
+         const addGoalHandler = enteredText => {
+            setCourseGoals((prevGoals) => {
+               const updatedGoals = [...prevGoals];
+               updatedGoals.unshift({ text: enteredText, id: 'goal1' });
+               return updatedGoals;
+            });
+         };
+         const deleteItemHandler = (goalId) => {
+            setCourseGoals((prevGoals) => {
+               const updatedGoals = prevGoals.filter(goal => goal.id !== goalId);
+               return updatedGoals;
+            });
+         };
+         ...
+         if(courseGoals.length > 0) {
+            content = (
+               <CourseGoalList items={courseGoals} onDeleteItem={deleteItemHandler} />
+            );
+         };
+         return (
+            <div>
+               <section id="goal-form">
+                  <CourseInput onAddGoal={addGoalHandler} />
+               </section>
+               <section id="goals">
+                  {content}
+               </section>
+            </div>
+         );
+      };
+
+   Method 1 - Trace the error through your code:
+   > You can try to trace backwards from the place where you have the deletion logic. In this example, you would start with the CourseGoalList Component file where we have the 'onDelete' prop which takes in a 'props.onDeleteItem' function. There is no issues here, so you would go to the Component that will receive the 'onDeleteItem' function prop i.e. the '<CourseGoalItem onDelete={props.onDeleteItem} />'.
+   > The CourseGoalItem Component has a 'onClick' event which calls the 'deleteHandler' method. Looking at the 'deleteHandler' method there does not seem to be any problems here with the code. The method receives a parameter 'props.onDelete(props.id)' so we will need to look at the 'id' parameter being received by this Component.
+   > There are no issues with the both CourseGoalList and CourseGoalItem Components which should direct you to look at the App.js file where the CourseGoalList Component would ultimately be rendered. You should notice that the 'CourseGoalList items={courseGoals} onDeleteItem={deleteItemHandler} />' Component has a 'deleteItemHandler' method which receives a goalID parameter. The 'deleteItemHandler' is the method that is responsible for deletions.
+   > On investigation of the 'deleteItemHandler' method, you would know that the deletion logic in general seems to work but the wrong item is deleted and this could be due to the goalID being wrong. Therefore, this should trigger you to look at the place in your code where the id's are being generated and assigned. This would be in the 'addGoalHandler' method.
+   > In the 'addGoalHandler' method you would notice that the id is set to a hardcoded string value 'id: 'goal1'. Therefore, you have introduced a logical error here i.e. assigning the same id value to every new item added. Therefore, the item are not distinguishable by the id and this causes the issue whereby when you click to delete an item, the first item found with that id within the array gets deleted which is not the desired result.
+   > This is the logical mistake that causes the first item added to the array to be deleted (i.e. in the UI new items appear at the top of the list while older items appear towards the bottom. Thus, the first item in the array would be the bottom element that gets removed which is what you would see visually in the browser).
+   > This is one method to narrow down the error by going down the chain of events i.e. you checked each steps to narrow down the problem.
+
+   Method 2 - Browser's Developer Tools, JavaScript Console:
+   > An alternative method is to open the browser's JavaScript console (View > Developer > JavaScript Console).
+   > Here you would see an error message of: 
+
+   JavaScript Console Example:
+      (x)> index.js:1 Warning: Encountered two children with the same key, `goal1`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+         at ul
+         at CourseGoalList (http://localhost:3000/static/js/main.chunk.js:765:21)
+         at section
+         at div
+         at App (http://localhost:3000/static/js/main.chunk.js:266:95)
+   
+   > You would have got this warning message as soon as you added the second Goal Item.
+   > The warning message will implicitly let you know what the issue is in relation to i.e. the List 'Keys' prop must be unique. It also tells you where it is located i.e. from CourseGoalList, section, div, App. This should lead you back to the App.js file which contains the logical error.
+   > Ensure in your Chrome browser JavaScript Console that you turn on "Enable JavaScript source maps" option so that the error message will point to your development files and not the compiled file. You should see the Settings Cog within the developer tool to turn on the settings under the 'Preferences' Tab under 'Source' Section.
+   > Important Note: This solution above might not work and has to do with the React application setup with Webpack (hence the exmaple JavaScript Console is showing the error in the compiled code and not the source code).
