@@ -1,6 +1,7 @@
 Debugging React Apps - Summary:
 1. Understanding React Error Messages
 2. Analysing Code Flow & Warnings
+3. Working with Break Points
 
 ------------------------------------------------------------------------------------
 1. Understanding React Error Messages:
@@ -149,4 +150,20 @@ Debugging React Apps - Summary:
    > You would have got this warning message as soon as you added the second Goal Item.
    > The warning message will implicitly let you know what the issue is in relation to i.e. the List 'Keys' prop must be unique. It also tells you where it is located i.e. from CourseGoalList, section, div, App. This should lead you back to the App.js file which contains the logical error.
    > Ensure in your Chrome browser JavaScript Console that you turn on "Enable JavaScript source maps" option so that the error message will point to your development files and not the compiled file. You should see the Settings Cog within the developer tool to turn on the settings under the 'Preferences' Tab under 'Source' Section.
-   > Important Note: This solution above might not work and has to do with the React application setup with Webpack (hence the exmaple JavaScript Console is showing the error in the compiled code and not the source code).
+   > Important Note: This solution above might not work and has to do with the React application setup with Webpack (hence the example JavaScript Console is showing the error in the compiled code and not the source code).
+
+------------------------------------------------------------------------------------
+3. Working with Break Points:
+------------------------------------------------------------------------------------
+   > Another approach to debugging is by going on the sources tab within the browser's developer tool. This contains the source files being used to display your application.
+   > The React development process provides a bridge between the code that runs in the browser and the code you wrote.
+   > Within the Sources > Page tab you should see a folder starting with 'Users/...' and if you expand this folder and then the 'src' folder you will find your React files (the same ones within your IDE).
+   > You can dive dive into the different parts of your source code and by clicking on the numbered line within a file you can add a breakpoint at that line.
+   > Adding breakpoint allows you to pause the execution of the code and strep through the code step by step so that you can find the problem.
+   > The code will pause at the place where you placed a breakpoint only when you execute the code that has the breakpoint.
+   > The browser will display a Paused in debugger message and you can see various pieces of information related to your code at the paused state within the developer tools i.e. Scope variables, Call Stack, etc.
+   > You can step through the code step by step by pressing the 'step into next function call' button, 'step over next function call' button or 'step' button within the developer debugger tools.
+   > You can hover over variables to see the current value or alternatively look at the Scope region to see the currently stored values within the variables.
+   > This should help you debug your code by visually stepping through the code logic and viewing the functions and variable values to detect where in your code the issues lies. Once identified you can go back into your IDE and update the source code to correct the error.
+   > This is how you can use breakpoint to help debug your React code.
+   > Important Note: each browser has its own set of developer tools for debugging code within the browser. You are not limited to developing and testing within the Chrome browser only.
