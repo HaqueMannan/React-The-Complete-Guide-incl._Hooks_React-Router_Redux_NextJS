@@ -2,6 +2,7 @@ Debugging React Apps - Summary:
 1. Understanding React Error Messages
 2. Analysing Code Flow & Warnings
 3. Working with Break Points
+4. Using React DevTools
 
 ------------------------------------------------------------------------------------
 1. Understanding React Error Messages:
@@ -167,3 +168,16 @@ Debugging React Apps - Summary:
    > This should help you debug your code by visually stepping through the code logic and viewing the functions and variable values to detect where in your code the issues lies. Once identified you can go back into your IDE and update the source code to correct the error.
    > This is how you can use breakpoint to help debug your React code.
    > Important Note: each browser has its own set of developer tools for debugging code within the browser. You are not limited to developing and testing within the Chrome browser only.
+
+------------------------------------------------------------------------------------
+4. Using React DevTools:
+------------------------------------------------------------------------------------
+   > FInally, there is a dedicated tool available for React development which can help with React specific problems and understanding your React application.
+   > React Developer Tools is an extension you can use on your browser. Google Chrome (https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en) and Mozilla Fire Fox (https://addons.mozilla.org/en-GB/firefox/addon/react-devtools/) have it as an extension you can download for the browser.
+   > The extension is totally free to install to the browser. After installing, restart your browser.
+   > Within the developer tool of the browser there should be two new tools tabs called "Components" and "Profiler".
+   > The 'Components' tab tool displays a Component Tree of the React App. This displays only actual React Components and the Component Structure that is responsible for the UI output.
+   > Hovering over the component will highlight the component on the browser screen.
+   > You can click on the Component to retrieve more information about the Component i.e. all the props for that Component and the set values it is receiving, the hooks that are being used by the Component e.g. useState hook,  which Component is responsible for rendering the selected Component, how close they are to each other and also the source code and the line that rendered the selected Component.
+   > This is another great tool to directly play with your Components, Interface, State, etc. visually within the browser. This will provide you a greater understanding of how everything is connected and also being able to unit test out different use cases and scenarios.
+   > This is the final tool at your disposal for analysing and understanding your React application.
