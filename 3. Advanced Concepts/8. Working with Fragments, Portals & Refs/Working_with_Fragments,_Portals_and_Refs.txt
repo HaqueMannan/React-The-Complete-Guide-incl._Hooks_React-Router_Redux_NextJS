@@ -1,0 +1,72 @@
+Working with Fragments, Portals & Refs - Summary:
+1. JSX Limitations and Workarounds
+
+------------------------------------------------------------------------------------
+1. JSX Limitations and Workarounds:
+------------------------------------------------------------------------------------
+   > JSX is the code that you return from your Components which in the end will be rendered to the real DOM via React.
+   > JSX has certain limitations. Once specific limitation we have already come across is with adjacent root level JSX elements.
+
+   JSX Limitation Example:
+      return(
+         <h2>Hello World</h2>
+         <p>This does not work</p>
+      );
+
+   > The above will throw an error whenever we use two elements side by side without wrapping it within a single root element. In JSX you cannot return more than one "root" JSX element (and you cannot store more than one "root" JSX element in a variable).
+   > In JSX, the "root" JSX element may have more children which can be adjacent to one another.
+
+   React Converted JSX Code to Regular JavaScript Example:
+      return(
+         React.createElement('h2', {}, 'Hello World');
+         React.createElement('p', {}, 'This does not work');
+      );
+
+   > The above provides the example JavaScript code that React would convert the JSX code into. JavaScript cannot return more than one thing and in the above where there are adjacent "root" element this is the error we are generating with our JSX code.
+   > In JavaScript you can only return one thing whether its is a string, number, boolean value, etc. You could return an array which can have multiple data but an array is already a new value which is just an object and therefore are only returning one object and not two arrays at the same time.
+   > Any nested JSX elements within that one 'root' element is allowed because only one React.createElement() is returned with the other child JSX React.createElement() nested within.
+   > How can we get around this natural JavaScript limitation?
+   > One way is to wrap the adjacent elements with a <div> element.
+
+   JSX Limitation Workaround Solution:
+      return(
+         <div>
+            <h2>Hello World</h2>
+            <p>This does not work</p>
+         </div>
+      );
+
+   > The above returns one item similar to returning three numbers within a single array.
+   > Important Note: it does not have to be a <div> element but it can be any element that wraps around the adjacent elements.
+
+   JSX Limitation Workaround Alternative Solution:
+      return(
+         [
+            error && (<ErrorModal key="error-modal" title={error.title} message={error.message} onConfirm={errorHandler} />),
+            <Card key="add-user-card" className={classes.input}>
+               <form onSubmit={addUserHandler}>
+                  <label htmlFor="username">Username</label>
+                  <input id="username" type="text" value={enteredUsername} onChange={usernameChangeHandler} />
+               </form>
+            </Card>
+         ]
+      );
+
+   > Another workaround is to use the native JavaScript array.
+   > React is able to work with arrays of JSX elements. However, whenever you work with an array of JSX elements, React would want a 'key' prop on every element to distinguish a list of elements. This is true whether you dynamically generate the list of elements or hardcode the list of elements.
+   > You can also hardcode the 'key' prop values and your application will continue to work.
+   > Typically, you would not use this solution because wrapping in an array and adding those keys is a little bit cumbersome. It is more simple to use the first solution of wrapping within a single 'root' element.
+   > The problem with the first solution is that it will lead to a new problem of '<div> soup' as demonstrated below.
+
+   <div> Soup Example:
+      <div>
+         <div>
+            <div>
+               <h2>Some content</h2>
+            </div>
+         </div>
+      </div>
+
+   > This can really happen where the DOM has rendered many nested React Components and all those Components for various reasons needs wrapping <div> or wrapping Components. This causes all these unnecessary <div> or wrapper elements being rendered to the real DOM even though they are only there because of the workaround solution to the limitations of JSX.
+   > In bigger apps, you can easily end up with tons of unnecessary <div> (or other elements) which add no semantic meaning or structure to the page but are only there because of React/JSX's requirement.
+   > Rendering unnecessary content is generally never a good practice in programming because it can make your application slower because React would need to render all those elements and check some/all those elements if content needs to change. Hence, this wrapping element solution is OK but not ideal.
