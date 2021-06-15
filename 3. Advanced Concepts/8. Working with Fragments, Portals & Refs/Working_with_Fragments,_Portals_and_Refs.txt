@@ -1,5 +1,6 @@
 Working with Fragments, Portals & Refs - Summary:
 1. JSX Limitations and Workarounds
+2. Creating a Wrapper Helper Component
 
 ------------------------------------------------------------------------------------
 1. JSX Limitations and Workarounds:
@@ -70,3 +71,41 @@ Working with Fragments, Portals & Refs - Summary:
    > This can really happen where the DOM has rendered many nested React Components and all those Components for various reasons needs wrapping <div> or wrapping Components. This causes all these unnecessary <div> or wrapper elements being rendered to the real DOM even though they are only there because of the workaround solution to the limitations of JSX.
    > In bigger apps, you can easily end up with tons of unnecessary <div> (or other elements) which add no semantic meaning or structure to the page but are only there because of React/JSX's requirement.
    > Rendering unnecessary content is generally never a good practice in programming because it can make your application slower because React would need to render all those elements and check some/all those elements if content needs to change. Hence, this wrapping element solution is OK but not ideal.
+
+------------------------------------------------------------------------------------
+2. Creating a Wrapper Helper Component:
+------------------------------------------------------------------------------------
+   > Another trick within React to solve the previous problem with adjacent Components is to create a Wrapper Component.
+   > Within the src/components directory you can create a sub-folder called 'Helpers'. This best describes what kind of Component will live in this sub-folder.
+
+   Wrapper Helper Component Example:
+      src/components/Helpers/Wrapper.js:
+         const Wrapper = (props) => {
+            return props.children;
+         };
+         export default Wrapper;
+
+      src/components/Users/AddUser.js:
+         import Wrapper from '../Helpers/Wrapper';
+         const AddUser = (props) => {
+            ...
+            return(
+               <Wrapper>
+                  {error && (<ErrorModal title={error.title} message={error.message} onConfirm={errorHandler} />)}
+                  <Card className={classes.input}>
+                     <form onSubmit={addUserHandler}>
+                        <label htmlFor="username">Username</label>
+                        <input id="username" type="text" value={enteredUsername} onChange={usernameChangeHandler} />
+                        <Button type="submit">Add User</Button>
+                     </form>
+                  </Card>
+               </Wrapper>
+            );
+         };
+
+   > The Wrapper Component simply returns the 'props.children' as a value.
+   > The '.children' prop holds all the content that is passed between the opening and closing tag of your custom Component. This is valid code.
+   > You can now use the Wrapper Helper Component in any other files. Simply import the Wrapper Component and use it as a regular React Component.
+   > The <Wrapper /> Component has no other meaning than fulfilling the JSX requirement. The Wrapper is an empty component and all that it does is return everything in-between the opening ans closing tags of the <Wrapper> Component. The application will continue to work as normal.
+   > While the Wrapper will not render anything to the DOM; however, the JSX requirement is not that there must be one root component being rendered to the DOM but rather a requirement that there must be one root element that is returned or stored in a variable.
+   > This is a technical requirement which works around JavaScript requirement of the return statement should return only one thing. The adjacent nested content will not be a problem because you never directly return them in your JSX code which is why this solution would work. The benefit of this approach is that you no longer have the problem of unnecessary rendering <div> (or other elements) as wrapper elements i.e. avoiding the '<div> soup' problem.
