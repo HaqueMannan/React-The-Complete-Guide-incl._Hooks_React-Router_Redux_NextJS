@@ -1,6 +1,7 @@
 Working with Fragments, Portals & Refs - Summary:
 1. JSX Limitations and Workarounds
 2. Creating a Wrapper Helper Component
+3. React Fragments
 
 ------------------------------------------------------------------------------------
 1. JSX Limitations and Workarounds:
@@ -108,4 +109,57 @@ Working with Fragments, Portals & Refs - Summary:
    > You can now use the Wrapper Helper Component in any other files. Simply import the Wrapper Component and use it as a regular React Component.
    > The <Wrapper /> Component has no other meaning than fulfilling the JSX requirement. The Wrapper is an empty component and all that it does is return everything in-between the opening ans closing tags of the <Wrapper> Component. The application will continue to work as normal.
    > While the Wrapper will not render anything to the DOM; however, the JSX requirement is not that there must be one root component being rendered to the DOM but rather a requirement that there must be one root element that is returned or stored in a variable.
-   > This is a technical requirement which works around JavaScript requirement of the return statement should return only one thing. The adjacent nested content will not be a problem because you never directly return them in your JSX code which is why this solution would work. The benefit of this approach is that you no longer have the problem of unnecessary rendering <div> (or other elements) as wrapper elements i.e. avoiding the '<div> soup' problem.
+   > This is a technical requirement which works around JavaScript requirement of the return statement should return only one thing. The adjacent nested content will not be a problem because you never directly return them in your JSX code which is why this solution would work. The benefit of this approach is that you no longer have the problem of unnecessary rendering <div> (or other elements) as wrapper elements i.e. avoiding the "<div> soup" problem.
+
+------------------------------------------------------------------------------------
+3. React Fragments:
+------------------------------------------------------------------------------------
+   > With the custom Wrapper Helper Component, you can now use a trick to fulfil the JSX limitation requirement without ending up with "<div> soup".
+   > Since this solution is so convenient and obvious (once seen in action) the Wrapper Component is not a component you would need to create on your own. Instead, it comes built-in with react. The previous section was to demonstrate how the React.Fragment wrapper Component works.
+
+   React Fragment Syntax Example:
+      return(
+         <React.Fragment>
+            <h2>Hello World</h2>
+            <p>This does not work</p>
+         </React.Fragment>
+      );
+
+   or
+
+      return(
+         <>
+            <h2>Hello World</h2>
+            <p>This does not work</p>
+         </>
+      );
+
+   > The <React.Fragment /> Component is the Component you would import from React. Alternatively, you can use the empty element syntax shortcut but this will depend on your project setup because the build process would need to support this shortcut syntax.
+   > This creates an empty wrapper Component which does not render any real HTML element to the DOM but it fulfils React/JSX's requirement.
+   > If you create your React app using Create-React-App terminal tool then it is configured to use the shorthand syntax.
+
+   Importing React Fragment Syntax Example:
+      import React from 'react';
+      const Component = () => {
+         return(
+            <React.Fragment>
+               <h2>Hello World</h2>
+               <p>This does not work</p>
+            </React.Fragment>
+         );
+      };
+
+   or
+
+      import React, { Fragment } from 'react';
+      const Component = () => {
+         return(
+            <Fragment>
+               <h2>Hello World</h2>
+               <p>This does not work</p>
+            </Fragment>
+         );
+      };
+
+   > If you use the <React.Fragment /> Component, you need to ensure that you import React from 'react' in your Component file.
+   > Alternatively, you can import Fragment as a named import which will allow you to use the <Fragment /> Component syntax.
