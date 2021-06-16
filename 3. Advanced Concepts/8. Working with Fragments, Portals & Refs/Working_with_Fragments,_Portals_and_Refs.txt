@@ -3,6 +3,7 @@ Working with Fragments, Portals & Refs - Summary:
 2. Creating a Wrapper Helper Component
 3. React Fragments
 4. Introducing React Portals & Working with Portals
+5. Working with Refs
 
 ------------------------------------------------------------------------------------
 1. JSX Limitations and Workarounds:
@@ -165,7 +166,6 @@ Working with Fragments, Portals & Refs - Summary:
    > If you use the <React.Fragment /> Component, you need to ensure that you import React from 'react' in your Component file.
    > Alternatively, you can import Fragment as a named import which will allow you to use the <Fragment /> Component syntax.
 
-
 ------------------------------------------------------------------------------------
 4. Introducing React Portals & Working with Portals:
 ------------------------------------------------------------------------------------
@@ -278,3 +278,65 @@ Working with Fragments, Portals & Refs - Summary:
    > The rendered HTML content is now moved somewhere else using the React Portals concept but you continue to use your <ErrorModal /> as you normally would within your JSX code. This now creates a semantically better HTML code.
    > Important Note: The ReactDOM.createPortal() can be used anywhere where you would otherwise use JSX code. Hence wrapping it in curly brackets because you are calling JavaScript code.
    > You would continue to work with your JSX Components as you would normally. However, you would use the ReactDOM.createPortal() method to portal/move the Components HTML content somewhere else, only within the Actual/Real DOM that is being rendered.
+
+------------------------------------------------------------------------------------
+5. Working with Refs:
+------------------------------------------------------------------------------------
+   > 'Refs' are a shortform for References within React.
+   > In the most basic form, 'refs' allows us to get access to other DOM elements and work with them.
+   > 'Refs' are a very powerful tool within Reacts and you will come to learn that you would end up working with them a lot in React development.
+   > An example where 'refs' can be used to make our React code better is with inputs. You can manage what a user inputs into an <input/> element by simply keeping track of it i.e. you have a state and with every key stroke you update that state. You feedback the state into the <input/> field and then use that state later on to reset the input and also to the place where you need the data. This is a perfectly fine way of managing this. However, updating the state on every key stroke when you only need it when you submit the form sounds a bit redundant. This is a scenario where 'refs' can be used to help you ('refs' are not limited to this scenario only).
+   > 'Refs' allows you to setup a connection between a HTML element which is being rendered and your other JavaScript code.
+
+   Refs Example:
+      src/component/Users/AddUser.js:
+         import React, { useState, useRef } from 'react';
+         const AddUser = (props) => {
+            const nameInputRef = useRef();
+            addUserHandler = (event) => {
+               const enteredName = nameInputRef.current.value;
+               if(enteredName.trim().length === 0 || enteredUserAge.trim().length === 0) {
+                  setError({
+                     title: 'Invalid Input',
+                     message: 'Please enter a valid name and age (non-empty values).'
+                  });
+                  return;
+               };
+               props.onAddUser(enteredName, enteredUserAge);
+               nameInputRef.current.value = '';
+            };
+            ...
+               return(
+                  <Wrapper>
+                     {error && (<ErrorModal title={error.title} message={error.message} onConfirm={errorHandler} />)}
+                     <Card className={classes.input}>
+                        <form onSubmit={addUserHandler}>
+                           <label htmlFor="username">Username</label>
+                           <input id="username" ref={nameInputRef} type="text" />
+                           ...
+                        </form>
+                     </Card>
+                  </Wrapper>
+               );
+         };
+
+   > To create a 'Ref' you need to import a named import (i.e. another React Hook) from the 'react' library called 'useRef'. This allows you to call the useRef() as a method within your functional Component.
+   > Just like with all other React Hooks, the useRef Hook is only useable inside of a functional Components.
+   > The useRef Hook takes in a default value that you want to initialise it to. The useRef Hook returns a value which allows you to work with that reference later i.e. it allows you to work with the element to which you are going to connect with.
+   > The return value can be named as anything you would want it to be called. In the example above 'nameInputRef' was used to describe the useRef Hook will be used with the <input id="username" /> element.
+   > The ref's are then initialise to undefined because that is the default for useRef Hooks where no initial value is passed in as a argument/parameter.
+   > To let React know that it should connect the useRef Hook to an element, you would go to that element and add a special prop called 'ref'.
+   > Just like with the 'key' prop, it is a built-in prop that can be added to any HTML element. This is because you can connect any HTML elements to your references.
+   > A connection will be established. The first time React reaches and renders the return JSX code, it will set the value stored in the 'nameInputRef' reference to the native DOM element that is rendered based on the <input/> element. This is really important because what would end up inside of the 'nameInputRef' in the end would be a real DOM element later.
+   > The useRef Hook that is being generated will always be an object that always has a 'current' property. This 'current' property holds the actual element value that it is connected with. Therefore, in the above example this would be the input (with an id of username) element that is being stored as a value in the current property (i.e. the actual input#username DOM Node).
+   > You can now manipulate and do all kinds of things to the actual Real DOM Node. It is recommended that you DO NOT manipulate the real DOM Node. The DOM should only be manipulated by React i.e. you use React to do all the heavy lifting.
+   > Reading data from the input does not sound too bad because you are not changing anything to the Real DOM Node element because you are only reading data.
+   > The '.current' is the reference to the connected element and every <input> element has a 'value' property we can access, hence, 'nameInputRef.current.value' allows you to read the input element value.
+   > You can now get access to the current value stored within the element without having to log every keystroke. Therefore, you no longer need State to read the user's input.
+   > You can store the current value within an element such as an input element within a variable.
+   > This will shorten your code significantly as you do not need State and the Handler methods to reset the state on submissions.
+   > Removing the State will lose the functionality of resetting the form on submission. You could use the State based solution to bring this back functionality; however, you can do something that you should rarely do but is OK for this scenario of a input field value you wish to reset i.e. reset the actual DOM Node element without React (e.g. nameInputRef.current.value = '';).
+   > Rarely use 'Refs' to manipulate the DOM. In the input scenario you are not really manipulating the DOM (i.e. not adding a new DOM element or changing a CSS class) but rather changing what the user has entered which is OK for the scenario of resetting an input element after a form submission.
+   > You could always use the State based solution.
+   > Neither the State based solution or the Refs based solutions are better than each other. This will all depend on your use case scenario; for example, if you only want to read a value then you do not need State. Using State as a keylogger is not a great solution because you will have to write a lot of unnecessary code and therefore Refs is better to use in that case scenario.
+   > This is an introduction to 'refs' and a use case where you can use 'refs' but you will learn more other use cases as you progress with your learning of more advanced topics.
