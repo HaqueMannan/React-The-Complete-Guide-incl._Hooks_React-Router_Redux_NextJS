@@ -2,6 +2,7 @@ Working with Fragments, Portals & Refs - Summary:
 1. JSX Limitations and Workarounds
 2. Creating a Wrapper Helper Component
 3. React Fragments
+4. Introducing React Portals & Working with Portals
 
 ------------------------------------------------------------------------------------
 1. JSX Limitations and Workarounds:
@@ -163,3 +164,117 @@ Working with Fragments, Portals & Refs - Summary:
 
    > If you use the <React.Fragment /> Component, you need to ensure that you import React from 'react' in your Component file.
    > Alternatively, you can import Fragment as a named import which will allow you to use the <Fragment /> Component syntax.
+
+
+------------------------------------------------------------------------------------
+4. Introducing React Portals & Working with Portals:
+------------------------------------------------------------------------------------
+   > React Portals, another useful feature and similar to Fractals, allows you to write cleaner code.
+
+   Fractal Example:
+      return(
+         <React.Fractal>
+            <My Modal />
+            <MyInputForm />
+         </React.Fractal>
+      );
+
+   Rendered Real DOM:
+      <section>
+         <h2>Some other content... </h2>
+         <div class="my-modal">
+            <h2>A Modal Title!</h2>
+         </div>
+         <form>
+            <label>Username</label>
+            <input type="text" />
+         </form>
+      </section>
+
+   > Technically, the above Rendered Real DOM is perfectly fine. However, the modal would not be ideal because semantically and from a "clean HTML structure" perspective, have this nested modal is not ideal. It is an overlay to the entire page after all (this is similar for side-drawers, other dialogue, etc.).
+   > This is not a good structure which could lead to some real problems such as with styling and accessibility if you have such nested overlay content. For example, if a screen reader has to interpret your HTML code which is being rendered, it might not see the modal as a general overlay. This is because the CSS styling would not matter too much to a reader and also from a semantic perspective the modal is deeply structured in other HTML code.
+   > Therefore, it is not obvious the modal should be an overlay to all the content on the page.
+   > This is similar to the problem if you style a <div> element like a <button> and adding an event listener to it. It will work technically but is not a good practice i.e. it is bad for accessibility and not good for other developers who are working on the project.
+   > React Portals is another React concept to get over this problem with overlay content which should not be deeply nested within the HTML rendered code.
+   > Portals will allow you to keep the syntax structure we have seen above in the JSX code but React will render the real DOM different as seen below:
+
+   Rendered Real DOM with Portals:
+         <div class="my-modal">
+            <h2>A Modal Title!</h2>
+         </div>
+         <section>
+         <h2>Some other content... </h2>
+         <form>
+            <label>Username</label>
+            <input type="text" />
+         </form>
+      </section>
+
+   > The modal HTML will live somewhere else than where it would normally go to when being rendered to the DOM when you use this Portal concept. Therefore, the JSX does not need to change but the rendered HTML would be rendered slightly differently to overcome this semantic limitation problem.
+
+   > Portals require two things: a place where you want to port the Component to and then you need to let the Component know that it should have a portal to that place.
+   > To mark the place place, it is common that you would go into the index.html file within the public directory to create a <div> element with an id which you can then use to identify/mark the place later.
+
+   Marking a Portal Example:
+      public/index.html:
+         <!DOCTYPE html>
+         <html lang="en">
+            <head>...</head>
+            <body>
+               <noscript>You need to enable JavaScript to run this app.</noscript>
+               <div id="backdrop-root"></div>
+               <div id="overlay-root"></div>
+               <div id="root"></div>
+            </body>
+         </html>
+
+   > You could create multiple such roots for different kinds of Components which should be portal to. In the example above there is one portal for the backdrop and another for all other kinds of overlays.
+   > You can now go back to the Component e.g. the ErrorModal and tell React that the Component should be portal somewhere.
+
+   Adding a Portal to a Component Example:
+      import React from 'react';
+      import ReactDOM from 'react-dom';
+      const Backdrop = (props) => {
+         return(<div className={classes.backdrop} onClick={props.onConfirm} />);
+      };
+      const ModalOverlay = (props) => {
+         return(
+            <Card className={classes.modal}>
+               <header className={classes.header}>
+                  <h2>{props.title}</h2>
+               </header>
+               <div className={classes.content}>
+                  <p>{props.message}</p>
+               </div>
+               <footer className={classes.actions}>
+                  <Button onClick={props.onConfirm}>OK</Button>
+               </footer>
+            </Card>
+         );
+      };
+      const ErrorModal = (props) => {
+         return(
+            <React.Fragment>
+               {ReactDOM.createPortal(
+                  <Backdrop onConfirm={props.onConfirm}/>,
+                  document.getElementById('backdrop-root')
+               )}
+               {ReactDOM.createPortal(
+                  <ModalOverlay title={props.title} message={props.message} onConfirm={props.onConfirm}/>,
+                  document.getElementById('overlay-root')
+               )}
+            </React.Fragment>
+         );
+      };
+
+   > In the above example the Modal has been split into two separate Components within a single Component file which is allowed within React.
+   > The 'react-dom' package is the adaptor for the 'react' package for the Browser. Therefore, you need to import something from 'react-dom' package in the Component file. In the above example we called this ReactDOM but could have been called anything you would have liked.
+   > You can now use the JSX expression to use the ReactDOM JavaScript code.
+   > On the ReactDOM imported object you can now call on the .createPortal() method. This method takes in two arguments, the first is the React Node that should be rendered i.e. the Component (written in JSX) and the second is a pointer to that container within the Real DOM where this React Node element should be rendered to.
+   > The DOM API is used to select the element where the Component should be rendered to i.e. documents.getElementById('') or documents.getElementByClassName('') depending on how you have identified the portal location. This must be a Real DOM element that you are selecting as the second element using the DOM API provided by the browser.
+   > No matter where you would use your ErrorModal Component within your JSX code the portal will allow the backdrop and overlay (e.g. Modal) Component to be rendered at the portal location no matter how where you use your ErrorModal in your JSX code, no matter how deeply nested it is within other elements.
+   > Using JSX you would set the new Backdrop 'onConfirm' prop to 'props.onConfirm' so that it can forward the function you get from the 'onClick' to the Backdrop component copy. This is to ensure everything continues to work since you are looking for 'props.confirm' function inside of the Backdrop Component.
+   > Similarly using JSX you pass the props required for the new ModalOverlay copy i.e. title, message and onConfirm.
+   > The rendered HTML content is now moved somewhere else using the React Portals concept but you continue to use your <ErrorModal /> as you normally would within your JSX code. This now creates a semantically better HTML code.
+   > Important Note: The ReactDOM.createPortal() can be used anywhere where you would otherwise use JSX code. Hence wrapping it in curly brackets because you are calling JavaScript code.
+   > You would continue to work with your JSX Components as you would normally. However, you would use the ReactDOM.createPortal() method to portal/move the Components HTML content somewhere else, only within the Actual/Real DOM that is being rendered.
