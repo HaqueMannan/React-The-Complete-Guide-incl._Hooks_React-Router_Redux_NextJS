@@ -1,0 +1,31 @@
+Handling Side Effects, Using Reducers & Using the Context API - Summary:
+1. What are 'Side Effects' & Introducing useEffect
+
+------------------------------------------------------------------------------------
+1. What are 'Side Effects' & Introducing useEffect:
+------------------------------------------------------------------------------------
+   > Effects are sometimes refferred to as 'Side Effects' and the terms can be used interchangeably.
+   > The React Library, Components and the React application as a whole has one main job which is to render the UI and react to user inputs.
+   > We can say React is used to manage the following:
+      - Evaluates and renders JSX
+      - Manage State and Props
+      - React to (User) Events & Input
+      - Re-evaluate Component upon State & Prop Changes
+   > All the above are "baked into" React via the "tools" and features that we have analysed within the Basic & Foundations Sections (i.e. useState(), Hooks, Props, etc.)
+   > Side Effects are anything else that may be occuring within your application (other than those mentioned above).
+   > For example: storing data in Browser Storage, sending HTTP Requests to the Backend Servers, Setting and Managing Timers, etc.
+   > All these tasks are not related to bringing something onto the screen (at least not directly).
+   > React does not care about Side Effect and is not what React was built for i.e. React only cares about drawing domething directly to the screen (front-end).
+   > Tasks that must happen outside of the normal Component evalution and render cycle (especially since they might block/delay rendering e.g. HTTP requests) are known as Side Effects (back-end).
+   > Side Effects should not go directly into a Component function because it would most likely create bugs, infinate loops or simply send too many HTTP requests to the server.
+   > For example: You have an App Component which is re-executed by React automatically whenever e.g. the State within the Component function changes e.g. a isLoggedIn state. When the Component re-executes, React will check what the new result of the function execution should look like and compares with the Real DOM to make the changes rendered onto the screen. If you would send a HTTP request directly within the Component, this request would be sent whenever the function re-runs i.e. re-evaluates. This might sometimes be what you would want but not necessarily always. However, this could also create an infinate loop i.e. you send a request whenever the function re-runs and in response to the request you change some state which triggers the function re-evaluation. Therefore, such 'Side Effects' should not go directly into the Component function for the issues mentioned in the point above.
+   > The useEffect() Hook is another built-in Hook i.e. function that you can use inside of your Component function that would do something special.
+
+   The useEffect() Hook Example:
+      useEffect(() => {...}, [dependencies]);
+
+   > The useEffect() Hook function is called with two arguments/parameters. 
+   > The first argument is a function that should be executed AFTER every Component evaluation IF the specified dependencies change.
+   > The second argument is the specified dependencies that you would pass in. This is an array full of dependencies and whenever such a dependency changes, the first function argument will re-run.
+   > Therefore, the side effect code/function goes in as the first argument of the useEffect() Hook. You would specify your dependencies of your side effect function as the second argument. Therefore, the first argument will only execute when your second argument dependencies changes.
+   > This prevents any infinate loops from occuring.
