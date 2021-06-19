@@ -4,6 +4,7 @@ Working with Fragments, Portals & Refs - Summary:
 3. React Fragments
 4. Introducing React Portals & Working with Portals
 5. Working with Refs
+6. Controlled vs Uncontrolled Components
 
 ------------------------------------------------------------------------------------
 1. JSX Limitations and Workarounds:
@@ -340,3 +341,14 @@ Working with Fragments, Portals & Refs - Summary:
    > You could always use the State based solution.
    > Neither the State based solution or the Refs based solutions are better than each other. This will all depend on your use case scenario; for example, if you only want to read a value then you do not need State. Using State as a keylogger is not a great solution because you will have to write a lot of unnecessary code and therefore Refs is better to use in that case scenario.
    > This is an introduction to 'refs' and a use case where you can use 'refs' but you will learn more other use cases as you progress with your learning of more advanced topics.
+
+------------------------------------------------------------------------------------
+6. Controlled vs Uncontrolled Components:
+------------------------------------------------------------------------------------
+   > Using the useRef() approach of interacting with DOM elements (specifically with input elements) has a special name. This is known as Uncontrolled Components if accessing values using a ref.
+   > The input components would be Uncontrolled Components because the internal State (i.e. values within the Component) is not controlled by React. You rely on the default behaviour of the input element i.e. the user is able to enter a value and that entered value is reflected on screen. You are simply fetching the data using a React Refs feature but you do not feed back into the input.
+   > When you reset the fields input values, this is not using React but rather manipulating the real DOM element using the DOM API.
+   > For the reasons mentioned above this is the reason behind why a Component using Refs are known as Uncontrolled Components.
+   > When a Component is managed using the useState() approach of reading and updating an element value i.e. where you also feed back into the input state, this is known as Controlled Components.
+   > The internal state is controlled by React and therefore the Component is controlled.
+   > Controlled and Uncontrolled Components are important terms that you should keep in mind for potential interviews or discussions with other React developers because they are typical terms you hear within the React development world.
