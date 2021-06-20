@@ -1,11 +1,12 @@
 Handling Side Effects, Using Reducers & Using the Context API - Summary:
 1. What are 'Side Effects' & Introducing useEffect
 2. Using the useEffect() Hook
+3. useEffect and Dependencies
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
 ------------------------------------------------------------------------------------
-   > Effects are sometimes refferred to as 'Side Effects' and the terms can be used interchangeably.
+   > Effects are sometimes referred to as 'Side Effects' and the terms can be used interchangeably.
    > The React Library, Components and the React application as a whole has one main job which is to render the UI and react to user inputs.
    > We can say React is used to manage the following:
       - Evaluates and renders JSX
@@ -29,7 +30,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > The first argument is a function that should be executed AFTER every Component evaluation IF the specified dependencies change.
    > The second argument is the specified dependencies that you would pass in. This is an array full of dependencies and whenever such a dependency changes, the first function argument will re-run.
    > Therefore, the side effect code/function goes in as the first argument of the useEffect() Hook. You would specify your dependencies of your side effect function as the second argument. Therefore, the first argument will only execute when your second argument dependencies changes.
-   > This prevents any infinate loops from occuring.
+   > This prevents any infinite loops from occurring.
 
 ------------------------------------------------------------------------------------
 2. Using the useEffect() Hook:
@@ -39,29 +40,92 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > This is one such scenario where you would use the useEffect() Hook.
    > The browser has multiple storages you can use such as cookies or local storage which are built into the browser and independent from React (Note: typically you would use some sort of database to store data).
 
-   Login useEffect() Hook Example:
-      import React, { useState, useEffect } from 'react';
-      function App() {
-         const [isLoggedIn, setIsLoggedIn] = useState(false);
-         useEffect(() => {
-            const storedUserLoggedInInformation = localStorage.getItem('isLoggedIn');
-            if(storedUserLoggedInInformation === '1') {
+   useEffect() Hook without Dependencies Example:
+      src/App.js:
+         import React, { useState, useEffect } from 'react';
+         function App() {
+            const [isLoggedIn, setIsLoggedIn] = useState(false);
+            useEffect(() => {
+               const storedUserLoggedInInformation = localStorage.getItem('isLoggedIn');
+               if(storedUserLoggedInInformation === '1') {
+                  setIsLoggedIn(true);
+               };
+            }, []);
+            const loginHandler = (email, password) => {
+               localStorage.setItem('isLoggedIn', '1');
                setIsLoggedIn(true);
             };
-         }, []);
-         return(...);
-         const loginHandler = (email, password) => {
-            localStorage.setItem('isLoggedIn', '1');
-            setIsLoggedIn(true);
+            const logoutHandler = () => {
+               localStorage.removeItem('isLoggedIn');
+               setIsLoggedIn(false);
+            };
+            return(...);
          };
-         const logoutHandler = () => {
-            localStorage.removeItem('isLoggedIn');
-            setIsLoggedIn(false);
-         };
-      };
 
    > To use the useEffect Hook you would need to import it from the 'react' library as a named import.
    > The function within the useEffect() Hook is executed by React after every Component re-evaluation and only if a change has occurred to the dependencies array.
    > Therefore, when the application runs for the first time the useEffect() Hook anonymous function will run for the first time because it is considered that the dependencies have changed i.e. no dependencies to some dependencies. However, after the first initial execution, the effectHook() will no longer run again (even on a Component re-evaluation) until a dependency has been detected to have changed.
    > This is the exact behaviour you would want to avoid any infinite loop.
    > The data-fetching is a side effect and is not directly related to the UI (although the result of fetching the data would be related to the UI).
+
+------------------------------------------------------------------------------------
+3. useEffect and Dependencies:
+------------------------------------------------------------------------------------
+   > In the previous section we seen an example of using the useEffect() Hook without any dependencies. However, often you would need dependencies because you do not want to run the anonymous useEffect() function once when the application first starts up but after every Component re-evaluation if a dependency has changed.
+
+   Original ChangeHandler Functions without useEffect() Hooks:
+      const emailChangeHandler = (event) => {
+         setEnteredEmail(event.target.value);
+         setFormIsValid(
+            event.target.value.includes('@') && enteredPassword.trim().length > 6
+         );
+      };
+      const passwordChangeHandler = (event) => {
+         setEnteredPassword(event.target.value);
+         setFormIsValid(
+            event.target.value.trim().length > 6 && enteredEmail.includes('@')
+         );
+      };
+
+   useEffect() Hook with Dependencies Example:
+      src/components/Login/Login.js:
+         import React, { useState, useEffect } from 'react';
+         const Login = (props) => {
+            const [enteredEmail, setEnteredEmail] = useState('');
+            const [enteredPassword, setEnteredPassword] = useState('');
+            const [formIsValid, setFormIsValid] = useState(false);
+            ...
+            useEffect(() => {
+               setFormIsValid(
+                  enteredEmail.includes('@') && enteredPassword.trim().length > 6
+               );
+            }, [setFormIsValid, enteredEmail, enteredPassword]);
+            const emailChangeHandler = (event) => {
+               setEnteredEmail(event.target.value);
+            };
+            const passwordChangeHandler = (event) => {
+               setEnteredPassword(event.target.value);
+            };
+            ...
+            render(...);
+         };
+
+   > In the above example, the useEffect() Hook with dependencies is used to control a setFormIsValid logic which are used by two separate functions (i.e. emailChangeHandler and passwordChangeHandler). Previously, the setFormIsValid would have been in both functions but with slight variations to the logic. Using the useEffect() Hook allows you to create one area for the logic and only trigger this function when the dependency changes.
+   > There is a simple rule that you add as dependencies what is being used within your side effect anonymous function. In the above example you are using setFormIsValid function, enteredEmail state and enteredPassword state.
+   > Not that when you reference a function as a dependency that you reference the pointer to the function and do not execute it using the round brackets at the end of the function name. If you executed the function (e.g. setFormIsValid()) then this would add the result of the function execution as the dependencies.
+   > This tells React that after every Login Component function execution to re-run the useEffect() function only if either the setFormIsValid, enteredEmail or enteredPassword has changed since the last Component re-render cycle. If neither changed then the useEffect() function will not re-run.
+   > Important Note: you could actually omit the setFormIsValid as a dependencies because the State updating functions by default are ensured by React to never change. Therefore, these State set functions are always going to be the same across re-render cycles, hence, you can omit them as a dependencies as seen below:
+
+      useEffect(() => {
+         setFormIsValid(
+            enteredEmail.includes('@') && enteredPassword.trim().length > 6
+         );
+      }, [enteredEmail, enteredPassword]);
+
+   > This demonstrates another use case where the useEffect() Hook shines. You can have one code in one place which re-runs whenever one of the dependencies change.
+   > This is one such example where you would use the useEffect() Hook and it is not only for when a Component was created for the first time. It is equally common to use this feature to re-run logic when certain data (typically some State or Props) has changed.
+   > One aspect of the above example that can be confusing here is that in this useEffect example you are not working with localStorage, sending HTTP request, setting a timer, etc. Instead, you are updating the React State. This can be contradictory to what was mentioned in 1. What are 'Side Effects' & Introducing useEffect.
+   > To clear this confusion, you must not forget that it is called useEffect and it has one main job which is to handle side effects. Often side effects are HTTP requests, setting a timer, etc.
+   > But it is a side effect if you listen to every keystroke and save that entered data which you then you would want to trigger another action in response to that. Thus, checking and updating the form validity in response to a keystroke within a field is also something you can call a side effect i.e. it is a side effect of the user entering data.
+   > Using this logic should not confuse you when you use sideEffect as seen in the above example.
+   > The useEffect() Hook in general is a very useful Hook that helps you with code that should be executed in response to something (and that something could be a Component being loaded, input fields updated, etc. - i.e. it could be anything whenever you have an action that should be executed in response to some other action then that is a side effect).
