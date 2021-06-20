@@ -2,6 +2,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
 1. What are 'Side Effects' & Introducing useEffect
 2. Using the useEffect() Hook
 3. useEffect and Dependencies
+4. What to Add and Not to Add as Dependencies
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
@@ -129,3 +130,35 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > But it is a side effect if you listen to every keystroke and save that entered data which you then you would want to trigger another action in response to that. Thus, checking and updating the form validity in response to a keystroke within a field is also something you can call a side effect i.e. it is a side effect of the user entering data.
    > Using this logic should not confuse you when you use sideEffect as seen in the above example.
    > The useEffect() Hook in general is a very useful Hook that helps you with code that should be executed in response to something (and that something could be a Component being loaded, input fields updated, etc. - i.e. it could be anything whenever you have an action that should be executed in response to some other action then that is a side effect).
+
+------------------------------------------------------------------------------------
+4. What to Add and Not to Add as Dependencies:
+------------------------------------------------------------------------------------
+   > You learned, that you should add "everything" you use in the effect function as a dependency - i.e. all state variables and functions you use in there.
+   > There are a few exceptions you should be aware of:
+      - You do not need to add state updating functions because React guarantees that those functions never change; hence, you do not need to add them as dependencies (although you could without any issues).
+      - You also do not need to add "built-in" APIs or functions like fetch(), localStorage etc (functions and features built-into the browser and hence available globally). These browser APIs / global functions are not related to the React component render cycle and they also never change.
+      - You also do not need to add variables or functions you might have defined outside of your components (e.g. if you create a new helper function in a separate file). Such functions or variables are also not created inside of a Component function; hence, changing them would not affect your Components (the Components would not be re-evaluated if such variables or functions change and vice-versa).
+   > To conclude, you must add all "things" you use in your effect function if those "things" could change because your Component (or some parent component) re-rendered. That is why Variables or State defined in Component functions, Props or Functions defined in Component Functions have to be added as dependencies.
+
+   Dependencies Rules Demonstration Example:
+      import { useEffect, useState } from 'react';
+      let myTimer;
+      const MyComponent = (props) => {
+         const [timerIsActive, setTimerIsActive] = useState(false);
+         const { timerDuration } = props; // using destructuring to pull out specific props values
+         useEffect(() => {
+            if (!timerIsActive) {
+               setTimerIsActive(true);
+               myTimer = setTimeout(() => {
+               setTimerIsActive(false);
+               }, timerDuration);
+            };
+         }, [timerIsActive, timerDuration]);
+      };
+
+   > The timerIsActive is added as a dependency because it is a Component State that may change when the Component changes (e.g. because the state was updated).
+   > The timerDuration is added as a dependency because it is a Prop value of that Component. So it may change if a parent Component changes that value (causing the MyComponent Component to re-render as well).
+   > The setTimerIsActive is not added as a dependency because it is one of the exception rule. The State updating functions could be added but does not need to be added since React guarantees that the functions themselves never change.
+   > The myTimer is not added as a dependency because it is not a Component-internal variable (i.e. not some State or a Prop value). It is defined outside of the Component and changing it (no matter where) would not cause the Component to be re-evaluated.
+   > The setTimeout is not added as a dependency because it is a built-in API (built-into the browser). Thus, it is independent from React and your Components and does not change.
