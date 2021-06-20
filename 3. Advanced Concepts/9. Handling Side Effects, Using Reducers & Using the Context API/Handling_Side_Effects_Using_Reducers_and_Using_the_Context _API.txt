@@ -1,5 +1,6 @@
 Handling Side Effects, Using Reducers & Using the Context API - Summary:
 1. What are 'Side Effects' & Introducing useEffect
+2. Using the useEffect() Hook
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
@@ -29,3 +30,38 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > The second argument is the specified dependencies that you would pass in. This is an array full of dependencies and whenever such a dependency changes, the first function argument will re-run.
    > Therefore, the side effect code/function goes in as the first argument of the useEffect() Hook. You would specify your dependencies of your side effect function as the second argument. Therefore, the first argument will only execute when your second argument dependencies changes.
    > This prevents any infinate loops from occuring.
+
+------------------------------------------------------------------------------------
+2. Using the useEffect() Hook:
+------------------------------------------------------------------------------------
+   > When using State a variable is being managed by React behind the scenes. The nature of this means that when you reload the application the entire script restarts and all variables from the last execution are lost. This is how the web and scripts within the browser works and is nothing React specific.
+   > It would be nice to store certain information somewhere where that data persists the reload for example a login details so that the user does not have to re-log back in when the page refreshes (provided the login details has persisted).
+   > This is one such scenario where you would use the useEffect() Hook.
+   > The browser has multiple storages you can use such as cookies or local storage which are built into the browser and independent from React (Note: typically you would use some sort of database to store data).
+
+   Login useEffect() Hook Example:
+      import React, { useState, useEffect } from 'react';
+      function App() {
+         const [isLoggedIn, setIsLoggedIn] = useState(false);
+         useEffect(() => {
+            const storedUserLoggedInInformation = localStorage.getItem('isLoggedIn');
+            if(storedUserLoggedInInformation === '1') {
+               setIsLoggedIn(true);
+            };
+         }, []);
+         return(...);
+         const loginHandler = (email, password) => {
+            localStorage.setItem('isLoggedIn', '1');
+            setIsLoggedIn(true);
+         };
+         const logoutHandler = () => {
+            localStorage.removeItem('isLoggedIn');
+            setIsLoggedIn(false);
+         };
+      };
+
+   > To use the useEffect Hook you would need to import it from the 'react' library as a named import.
+   > The function within the useEffect() Hook is executed by React after every Component re-evaluation and only if a change has occurred to the dependencies array.
+   > Therefore, when the application runs for the first time the useEffect() Hook anonymous function will run for the first time because it is considered that the dependencies have changed i.e. no dependencies to some dependencies. However, after the first initial execution, the effectHook() will no longer run again (even on a Component re-evaluation) until a dependency has been detected to have changed.
+   > This is the exact behaviour you would want to avoid any infinite loop.
+   > The data-fetching is a side effect and is not directly related to the UI (although the result of fetching the data would be related to the UI).
