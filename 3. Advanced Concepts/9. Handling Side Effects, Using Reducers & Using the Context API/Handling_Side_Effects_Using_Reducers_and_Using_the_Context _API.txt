@@ -2,7 +2,8 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
 1. What are 'Side Effects' & Introducing useEffect
 2. Using the useEffect() Hook
 3. useEffect and Dependencies
-4. What to Add and Not to Add as Dependencies
+4. Dependencies Rules and Exceptions
+5. Using the useEffect Cleanup Function 
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
@@ -116,7 +117,6 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > Not that when you reference a function as a dependency that you reference the pointer to the function and do not execute it using the round brackets at the end of the function name. If you executed the function (e.g. setFormIsValid()) then this would add the result of the function execution as the dependencies.
    > This tells React that after every Login Component function execution to re-run the useEffect() function only if either the setFormIsValid, enteredEmail or enteredPassword has changed since the last Component re-render cycle. If neither changed then the useEffect() function will not re-run.
    > Important Note: you could actually omit the setFormIsValid as a dependencies because the State updating functions by default are ensured by React to never change. Therefore, these State set functions are always going to be the same across re-render cycles, hence, you can omit them as a dependencies as seen below:
-
       useEffect(() => {
          setFormIsValid(
             enteredEmail.includes('@') && enteredPassword.trim().length > 6
@@ -132,7 +132,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > The useEffect() Hook in general is a very useful Hook that helps you with code that should be executed in response to something (and that something could be a Component being loaded, input fields updated, etc. - i.e. it could be anything whenever you have an action that should be executed in response to some other action then that is a side effect).
 
 ------------------------------------------------------------------------------------
-4. What to Add and Not to Add as Dependencies:
+4. Dependencies Rules and Exceptions:
 ------------------------------------------------------------------------------------
    > You learned, that you should add "everything" you use in the effect function as a dependency - i.e. all state variables and functions you use in there.
    > There are a few exceptions you should be aware of:
@@ -162,3 +162,35 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > The setTimerIsActive is not added as a dependency because it is one of the exception rule. The State updating functions could be added but does not need to be added since React guarantees that the functions themselves never change.
    > The myTimer is not added as a dependency because it is not a Component-internal variable (i.e. not some State or a Prop value). It is defined outside of the Component and changing it (no matter where) would not cause the Component to be re-evaluated.
    > The setTimeout is not added as a dependency because it is a built-in API (built-into the browser). Thus, it is independent from React and your Components and does not change.
+
+------------------------------------------------------------------------------------
+5. Using the useEffect Cleanup Function:
+------------------------------------------------------------------------------------
+   > Sometimes you may need a side effect to perform some cleanup work.
+   > For example, you may need to send a HTTP request to some backend where you check if a username is already in use. If you had a useEffect() that runs on every keystroke this would end up sending unnecessary HTTP requests (network traffic) to your backend. This is something you would want to avoid.
+   > Alternatively, you may not want to listen to every keystroke to check the validation of an input field. Instead, you might want to collect a certain amount of keystrokes or simply wait for a pause of a certain time duration after a keystroke and only if the pause is long enough then you would perform the operation/function. This is technique is known as debouncing.
+   > You would want to debounce a user input and ensure that you are doing something on every keystroke. This can be achieved with the inbuilt browser setTimeout() function.
+
+   Debouncing Example:
+      useEffect(() => {
+         const identifier = setTimeout(() => {
+            console.log('Checking for Validity');
+            setFormIsValid(
+               enteredEmail.includes('@') && enteredPassword.trim().length > 6
+            );
+         }, 500);
+
+         return () => {
+            console.log('CLEANUP');
+            clearTimeout(identifier);
+         };
+      }, [enteredEmail, enteredPassword]);
+   
+   > The above would not do much other than delay the side effects validation output by 500 milliseconds.
+   > The trick is to save the timer and for the next keystroke you would clear it so that you only have one ongoing timer at a time. Therefore, only the last timer would complete. Therefore, as long as the user keeps typing you would always clear other timers leaving just the one timer to complete after 500 milliseconds.
+   > Within the useEffect() Hook, the first argument/parameters passed in can return something. This must be one specific thing i.e. a function itself.
+   > This can be a named or anonymous function.
+   > Returning an anonymous function (as seen in the above) which is known as a cleanup function. This cleanup function will run as a cleanup process before the useEffect() Hook executes the function next time.
+   > In the above example, the useEffect() Hook for the first time will run the setTimeout function. On every re-evaluation of the Component file, the anonymous cleanup function will run before the execution of the side effect function. Additionally, the anonymous cleanup function would run whenever the Component, that specifies the effect within, unmounts from the DOM.
+   > Remember: setTimeout and clearTimeout are both browser functions and has nothing to do with React.
+   > You will notice that the 'CLEANUP' console log will be printed before the 'Checking for Validity' console log message (after the first execution the useEffect() Hook) which clearly demonstrates that the cleanup function runs before the actual side effect function after the first initial execution.
