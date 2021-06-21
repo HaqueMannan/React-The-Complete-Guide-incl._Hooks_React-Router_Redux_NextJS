@@ -4,6 +4,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
 3. useEffect and Dependencies
 4. Dependencies Rules and Exceptions
 5. Using the useEffect Cleanup Function 
+6. Introducing useReducer() Hook and Reducers in General
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
@@ -194,3 +195,46 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > In the above example, the useEffect() Hook for the first time will run the setTimeout function. On every re-evaluation of the Component file, the anonymous cleanup function will run before the execution of the side effect function. Additionally, the anonymous cleanup function would run whenever the Component, that specifies the effect within, unmounts from the DOM.
    > Remember: setTimeout and clearTimeout are both browser functions and has nothing to do with React.
    > You will notice that the 'CLEANUP' console log will be printed before the 'Checking for Validity' console log message (after the first execution the useEffect() Hook) which clearly demonstrates that the cleanup function runs before the actual side effect function after the first initial execution.
+
+------------------------------------------------------------------------------------
+6. Introducing useReducer() Hook and Reducers in General:
+------------------------------------------------------------------------------------
+   > The useReducer() Hook is another built-in Hook which helps with State Management.
+   > This is similar to the useState() Hook but with more capabilities and is especially useful for more complex State (e.g. multiple states, multiple ways of changing the state or dependencies to other states).
+   > The useState() then often becomes hard or error-prone to use and manage. It then becomes easy to write bad, inefficient or buggy code in such complex state scenarios.
+   > The useReducer() is an alternative i.e a replacement for useState() if you need a "more powerful state management".
+   > This does not mean that you should always use useReducer() over useState(). This is because the useReducer() while powerful is also more complex to use and setup and may not be suitable for certain simple state cases.
+   > Below is an example of when the useReducer() Hook is a better fit for the scenario:
+
+   const Login = (props) => {
+      const [enteredEmail, setEnteredEmail] = useState('');
+      const [emailIsValid, setEmailIsValid] = useState();
+      const [enteredPassword, setEnteredPassword] = useState('');
+      const [passwordIsValid, setPasswordIsValid] = useState();
+      const [formIsValid, setFormIsValid] = useState(false);
+      ...
+   };
+
+   > In the above you can see that a lot of state snapshot are being managed in one Component. Furthermore, there are some related states such as the entered value and the validity of the entered value and finally the overall form validity. Thus, it can be argued overall the above is one big state that describes the overall form state.
+   > Alternatively, you would treat each form input as one single entity and one state which simply has two aspects of value and validity of that input.
+   > It becomes clear in this example that you have some work to do and there are some redundancy if you consider the fact that you are setting the overall form validity by checking the validity of each input but also checking validity on the input handlers.
+
+   Original ChangeHandler Functions without useEffect() Hooks:
+      const emailChangeHandler = (event) => {
+         setEnteredEmail(event.target.value);
+         setFormIsValid(
+            event.target.value.includes('@') && enteredPassword.trim().length > 6
+         );
+      };
+      const passwordChangeHandler = (event) => {
+         setEnteredPassword(event.target.value);
+         setFormIsValid(
+            event.target.value.trim().length > 6 && enteredEmail.includes('@')
+         );
+      };
+
+   > Using the original version to handle the change event not only causes redundancy in repeat code; however, it can cause another problem where the setFormIsValid state relies on a snapshot of two other states.
+   > We have previously learned that when you want to update some state on some older state that you should use the function form. However, this can only work if your next state update depends on the previous state snapshot of the same state. However, in the above example, it relies on two other snapshots of different state i.e. enteredEmail and enteredPassword and not the last snapshot of setFormIsValid.
+   > In the above example, it is doing something that you should not do because of the way React schedules State updates. This could lead to a bug in a rare scenario where the setEmailIsValid function runs before the setEnteredEmail or setEnteredPassword was processed.
+   > This is a good example of a scenario when you can use useReducer() Hook for managing state that belong together and/or if you have state updates that depends on other state.
+   > It is always a good choice to use useReducer() Hook where you update a state which depends on another state. But note that it can also be managed without a useReducer() Hook by managing both the input and validity within one useState() rather than two separate states.
