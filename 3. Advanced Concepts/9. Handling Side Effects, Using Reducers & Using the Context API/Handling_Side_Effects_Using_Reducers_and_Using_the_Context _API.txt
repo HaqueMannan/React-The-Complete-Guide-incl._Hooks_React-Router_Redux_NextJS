@@ -5,6 +5,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
 4. Dependencies Rules and Exceptions
 5. Using the useEffect Cleanup Function 
 6. Introducing useReducer() Hook and Reducers in General
+7. Using the useReducer() Hook
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
@@ -238,3 +239,70 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > In the above example, it is doing something that you should not do because of the way React schedules State updates. This could lead to a bug in a rare scenario where the setEmailIsValid function runs before the setEnteredEmail or setEnteredPassword was processed.
    > This is a good example of a scenario when you can use useReducer() Hook for managing state that belong together and/or if you have state updates that depends on other state.
    > It is always a good choice to use useReducer() Hook where you update a state which depends on another state. But note that it can also be managed without a useReducer() Hook by managing both the input and validity within one useState() rather than two separate states.
+
+------------------------------------------------------------------------------------
+7. Using the useReducer() Hook:
+------------------------------------------------------------------------------------
+   useReducer() Hook Example:
+      const [state, dispatchFn] = useReducer(reducerFn, initialState, initFn);
+
+   > The useReducer() Hook always returns an array with exactly two values (i.e. the same as the useState() Hook). Thus, you can use array destructuring to pull out these values and store them in variables.
+   > The first value extracted is the latest 'state' snapshot used in the component re-render/re-evaluation cycle.
+   > The second value extracted is a function that can be used to dispatch a new action (i.e. trigger an update of the state) also known as the dispatch function.
+   > The second value acts slightly differently to useState(). Instead of setting a new state value, you would dispatch an action and that action would be consumed by the first argument passed into the useReducer() Hook.
+   > The first argument/parameter you pass to the useReducer() Hook is a reducer function. The reducer function is a function that is triggered automatically once an action is dispatched via the dispatch function (i.e. 'dispatchFn')). It receives the latest state snapshot and should return a new updated state.
+   > We could say that this is similar to the function form of the useState() Hook; however, it is an extended version that uses dispatched actions.
+   > The second argument/parameter passed to the useReducer() Hook is an initial state.
+   > Finally, the last argument/parameter passed to the useReducer() Hook is an initial function that you want to run to set the initial state programmatically (in the event the initial state is a little more complex e.g. as a result of a HTTP request).
+
+   Using useReducer() Hook Example:
+      src/components/Login/Login.js:
+         import { useReduce } from 'react';
+         const emailReducer = (state, action) => {
+            if(action.type === 'USER_INPUT') {
+               return {value: action.val, isValid: action.val.includes('@')};
+            };
+            if(action.type === 'INPUT_BLUR') {
+               return {value: state.value, isValid: state.value.includes('@')};
+            };
+            return {value: '', isValid: false};
+         };
+         const Login = (props) => {
+            const [emailState, dispatchEmail] = useReducer(emailReducer, {value: '', isValid: null});
+            const emailChangeHandler = (event) => {
+               dispatchEmail({type: 'USER_INPUT', val: event.target.value})
+               setFormIsValid(
+                  event.target.value.includes('@') && enteredPassword.trim().length > 6
+               );
+            };
+            const passwordChangeHandler = (event) => {
+               setEnteredPassword(event.target.value);
+               setFormIsValid(
+                  emailState.isValid && event.target.value.trim().length > 6
+               );
+            };
+            const validateEmailHandler = () => {
+               dispatchEmail({type: 'INPUT_BLUR'});
+            };
+            ...
+            render(...)
+         };
+
+   > First you need to import useReducer from the 'react' library as a named import.
+   > Use destructuring to extract the state and the dispatch function (e.g. emailState and dispatchEmail) into variables. The name is entirely up to you as a developer.
+   > The useReducer() Hook takes in a function as the first argument. This can be either a named function or an anonymous function.In the above example the named function approach is used to make it easier to read the code.
+   > Notice that the named function is created outside of the Component function. This is because the reducer function does not need any data created inside of the function. Hence, it can be created outside of the scope of the Component function because it does not need to interact with anything defined inside of the Component function. All the data which will required and used inside of the reducer function will be passed into the function when it is executed by React automatically.
+   > The reducer function receives two arguments/parameters: the last state snapshot and the action that was dispatched.
+   > The reducer function should return a new state.
+   > The useReducer() Hook second argument is the initial state i.e. the initial state snapshot for the extracted 'emailState' const variable.
+   > The destructed 'emailState' values can be used within your Component code (e.g. emailState.value or emailState.isValid which are the two keys/state stored within the emailState).
+   > The dispatchEmail dispatch function requires an action to be passed to it as an argument/parameter. The action is totally up to you as the developer such as a string identifier, number identifier or an object.
+   > In the above example, the action dispatched is an object. This object has a 'type' key which stores an string. The string is in upper case letters but is not necessary as it is only a naming convention for actions. You can add extra payloads to the action if you use an object as your dispatched action. Again, it is totally up to you what the dispatched action is at the end of the day.
+   > The extra payload in the above example is the input value which is captured by the 'event.target.value'.
+   > The 'dispatchEmail' dispatch function will trigger the 'emailReducer' function because this was the function passed in as the first argument to the useReducer() function.
+   > You can handle the 'emailReducer' function using an if statement to check the 'action' type which is passed/received to the 'emailReducer' function automatically by React. The action is whatever was passed as the action within the 'dispatchEmail' dispatch function (in the above example it is an object).
+   > You can now check for the action type and decide what to return i.e. instead of an empty state snapshot you can now return a snapshot of the new state value.
+   > Both the 'value' and 'isValid' states for the email input are now being updated using the useReducer() Hook whenever it receives the 'USER_INPUT' action. For any other action that might reach the 'emailReducer' function then the default state would be returned.
+   > Important Note: Dispatched Actions should always be consistent within your code.
+   > The 'state' argument within the 'emailReducer' function is always the last state snapshot. React guarantees to automatically pass the last state snapshot. Therefore, for the 'INPUT_BLUR' action uses the last snapshot value when setting the new snapshot to return from the reducer function.
+   > The form now works as you would expect but using the useReducer() Hook to control the multiple state values as one larger state all managed in one place.
