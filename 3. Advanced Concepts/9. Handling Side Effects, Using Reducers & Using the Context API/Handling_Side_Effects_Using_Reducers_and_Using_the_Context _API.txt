@@ -6,6 +6,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
 5. Using the useEffect Cleanup Function 
 6. Introducing useReducer() Hook and Reducers in General
 7. Using the useReducer() Hook
+8. useReducer() and useEffect() Hooks and Object Destructuring Optimisation
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
@@ -306,3 +307,45 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > Important Note: Dispatched Actions should always be consistent within your code.
    > The 'state' argument within the 'emailReducer' function is always the last state snapshot. React guarantees to automatically pass the last state snapshot. Therefore, for the 'INPUT_BLUR' action uses the last snapshot value when setting the new snapshot to return from the reducer function.
    > The form now works as you would expect but using the useReducer() Hook to control the multiple state values as one larger state all managed in one place.
+
+------------------------------------------------------------------------------------
+8. useReducer() and useEffect() Hooks and Object Destructuring Optimisation:
+------------------------------------------------------------------------------------
+   > You can use both the useReducer and useEffect Hooks together. However, the problem you would run into is the useEffect() Hook will run too often. For example, the useEffect() Hook will run whenever the emailStat or passwordState changes. This will include where only the value state changes but not the isValid state and you are only interested in the isValid state (e.g. another character is added but the validity has not changed).
+   > This would cause the side effect to run unnecessarily and something you would want to avoid with your useEffect() Hook dependencies that are useReducers state.
+   > To avoid this issue you should use a technique called object destructuring.
+
+   Object Destructuring Example:
+      src/components/Login/Login.js:
+         import { useReduce } from 'react';
+         const emailReducer = (state, action) => {...}
+         const passwordReducer = (state, action) => {...}
+         const Login = (props) => {
+            const [formIsValid, setFormIsValid] = useState(false);
+            const [emailState, dispatchEmail] = useReducer(emailReducer, {value: '', isValid: null});
+            const [passwordState, dispatchPassword] = useReducer(passwordReducer, {value: '', isValid: null});
+            const { isValid: emailIsValid } = emailState;
+            const { isValid: passwordIsValid } = passwordState;
+            useEffect(() => {
+               const identifier = setTimeout(() => {
+                  console.log('Checking for Validity');
+                  setFormIsValid(
+                     emailIsValid && passwordIsValid
+                  );
+               }, 500);
+
+               return () => {
+                  console.log('CLEANUP');
+                  clearTimeout(identifier);
+               };
+            }, [emailIsValid, passwordIsValid]);
+            render(...);
+         };
+
+   > In the above example, the isValid object properties are being destructed and stored in a constant (this can be in the same name using the following syntax 'const { isValid } = emailState;').
+   > Since there is already a isValid const extracted you cannot use the same variable name within the same scope. Therefore, using a colon (:) after the property allows you to provide an alias for the destructed object property to avoid any variable conflicts.
+   > Therefore, the syntax 'const { isValid: emailIsValid } = emailState;' is extracting the 'isValid' property from the 'emailState' object but storing it within a const variable that has an alias of 'emailIsValid'. This is known as alias assignment and not a value assignment because it is part of the object destructuring syntax (i.e. when you use the curly brackets ob the left side of the equal operator).
+   > You can now use the destructed object properties as dependencies for the useEffect() Hook to target changes to the 'isValid' property only of your useReducer() Hook state object.
+   > Whenever only the value changes and the validity does not change the useEffect will no longer re-run which is much better code on performance because the useEffect no longer re-runs unnecessarily.
+   > This is Important concept to understand to further optimise using the useEffect() with useReducer() Hooks and avoid any unnecessary useEffect() Hook execution.
+   > This concept can also be used even if you do not use the useReducer() Hook. For example, if you have 'Props' as a dependencies for your useEffect() Hook. You do not want to re-run the side effect when the 'props' change but only when some 'props' change - object destructuring will help you for useEffect() Hook execution optimisation.
