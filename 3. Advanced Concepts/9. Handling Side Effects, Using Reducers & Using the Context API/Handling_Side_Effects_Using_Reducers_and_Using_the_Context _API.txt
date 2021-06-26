@@ -12,6 +12,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
 11. Using the React Context API (Provider and Consumer Pattern)
 12. Using the React Context API (useContext() Hook)
 13. Making Context Dynamic
+14. Building and Using a Custom Context Provider Component
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
@@ -695,6 +696,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
       };
 
    src/components/Home/Home.js:
+      ...
       const Home = (props) => {
          return (
             <Card className={classes.home}>
@@ -712,3 +714,122 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > Only, when you have something you would forward through a lot of Components and you are forwarding it to a Component that does something very specific (e.g. Navigation button will always log a user out) then in such cases you would want to consider using "context" instead.
    > With more experience it will become clearer and more natural when to use "props" over "context" within a Component file for a given case.
    > You can always rely on prop chains (if you prefer that approach) but context allows you to write more concise code and it often makes managing such app-wide state much easier.
+
+------------------------------------------------------------------------------------
+14. Building and Using a Custom Context Provider Component:
+------------------------------------------------------------------------------------
+   > As a general note: it is a good idea to add function such as the 'onLogout' to the default context file. You can store a dummy function which does nothing as the value to the property. This allows for better IDE auto-completion. If you do not have this then when you go to the Component that uses the context, it will not have the function (such as the onLogout) as an auto-complete option.
+
+   Context IDE Auto-Completion Optimisation Example:
+      src/store/auth-context.js:
+         import React from 'react;
+         const AuthContext = React.createContext({
+            isLoggedIn: false,
+            onLogout: () => {}
+         });
+         export default AuthContext;
+
+   > The IDE will look at the auth-context.js exported AuthContext object to see what properties are available on the object to help with the auto-completion.
+   > Another thing you might want to consider is depending on your application structure and how you are managing your data, you might want to pull more logic out of the a Component (e.g. the App Component) and create a separate Context Management Component. How would this look?
+
+   AuthContextProvider Context Management Component Example:
+      src/store/auth-context.js:
+         import React, { useState, useEffect } from 'react;
+         const AuthContext = React.createContext({
+            isLoggedIn: false,
+            onLogout: () => {},
+            onLogin: (email, password) => {}
+         });
+         export const AuthContextProvider = (props) => {
+            const [isLoggedIn, setIsLoggedIn] = useState(false);
+            useEffect(() => {
+               const storedUserLoggedInInformation = localStorage.getItem('isLoggedIn');
+               if(storedUserLoggedInInformation === '1') {
+                  setIsLoggedIn(true);
+               };
+            }, []);
+            const loginHandler = () => {
+               localStorage.setItem('isLoggedIn', '1');
+               setIsLoggedIn(true);
+            };
+            const logoutHandler = () => {
+               localStorage.removeItem('isLoggedIn');
+               setIsLoggedIn(false);
+            };
+            return (
+               <AuthContext.Provider value={{isLoggedIn: isLoggedIn, onLogout: logoutHandler, onLogin: loginHandler}}>
+                  {props.children}
+               </AuthContext.Provider>
+            );
+         };
+         export default AuthContext;
+
+      src/App.js:
+         import React, { useContext } from 'react';
+         import AuthContext from './store/auth-context';
+         ...
+         function App() {
+            const ctx = useContext(AuthContext);
+            return (
+               <React.Fragment>
+                  <MainHeader />
+                  <main>
+                     {!ctx.isLoggedIn && <Login />}
+                     {ctx.isLoggedIn && <Home />}
+                  </main>
+               </React.Fragment>
+            );
+         };
+
+      src/index.js:
+         ...
+         import { AuthContextProvider } from './store/auth-context';
+         ReactDOM.render(
+            <React.StrictMode><App/></React.StrictMode>,
+            document.getElementById('root')
+         );
+
+   > The 'AuthContextProvider' is a Component that returns a Provider. This Component accepts a props argument which you can pass whatever you get from 'props.children' between the opening and closing tags.
+   > You would export this 'AuthContextProvider' Component as a named export in addition to the default export.
+   > The isState() Hook can be imported to manage a state data within the 'AuthContextProvider' Component. In the above example the 'isLoggedIn' state is added to the 'AuthContextProvider' Component along with the loginHandler and logoutHandler functions. The entire authentication state is now managed in this separate Custom Context Provider Component.
+   > The <AuthContext.Provider> JSX can now have a 'value' prop where its value can be set to an object containing a 'isLoggedIn' property which points to the 'isLoggedIn' state, a 'onLogout' property pointing to the logoutHandler function and a onLogin property pointing to the loginHandler function.
+   > Remember to define the functions from the Custom Context Provider Component as properties to the default context for IDE auto-completion. In the above example the 'onLogin' prop found in the 'AuthContextProvider' is added to the default context i.e.'AuthContext'. This is setup as a dummy function which has been defined to receive an email and password argument/parameter to help the IDE auto-completion when using the Custom Context Provider Component and Context exports.
+   > This now creates a standalone file which manages the entire "login" state inside of the 'AuthContextProvider' Component and also setup all the context.
+   > This approach could be considered as an advantage (depending on your preference, file size and use case) because all the logic can be stripped out of the App Component.
+   > The <App/> Component within the index.js file can now be wrapped using the 'AuthContextProvider' Component. This creates one central place for the Auth State Management (i.e. a dedicated auth-context.js file that contains the 'AuthContextProvider' Component and the 'AuthContext' default State).
+   > This might be a structure you may prefer because it is more focused and provides a leaner <App/> Component which is not concerned with app-wide/component-wide State Management. The <App/> Component can now focus on rendering something onto the screen.
+   > The <App/> Component can import the useContext() Hook to listen/consume the 'AuthContext' i.e. default context of the auth-context file. This allows the <App/> Component to reference the context properties within the JSX code e.g. '{ctx.isLoggedIn && <Home onLogout={ctx.logoutHandler} />}'.
+   > The <Login/> and <Home/> Components does not need the 'onLogin={loginHandler}' and 'onLogout={logoutHandler}' function "props" to be passed across from the App Component. This is because the Component that require to consume the AuthContext can import the useContext() Hook to tap into the Global State as seen in the below example:
+
+   src/components/Login/Login.js:
+      import React, { useContext } from 'react';
+      import AuthContext from '../../store/auth-context';
+      ...
+      const Login = () => {
+         ...
+         const authCtx = useContext(AuthContext);
+         const submitHandler = (event) => {
+            event.preventDefault();
+            authCtx.onLogin(emailState.value, passwordState.value);
+         };
+         return (
+            ...
+         );
+      };
+
+   src/components/Home/Home.js:
+      import React, { useContext } from 'react';
+      import AuthContext from '../../store/auth-context';
+      ...
+      const Home = (props) => {
+         const authCtx = useContext(AuthContext);
+         return (
+            <Card className={classes.home}>
+               <h1>Welcome back!</h1>
+               <Button onClick={authCtx.onLogout}>Logout</Button>
+            </Card>
+         );
+      };
+
+   > This approach is totally optional and the advantage is that you now have a leaner App Component that focuses on returning JSX and rendering something onto the screen and the actual Auth State Management and Auth-Context Management all within one file. This more focused and separated files approach where each Component file has one job (and not multiple jobs) is preferred by some developers.
+   > Important Note: This methodology/practice is not the de facto (i.e the only or correct) way of doing things within React development. However, you may see this pattern used in React projects and therefore you should look into and know this pattern to turn yourself into a real React Developer.
