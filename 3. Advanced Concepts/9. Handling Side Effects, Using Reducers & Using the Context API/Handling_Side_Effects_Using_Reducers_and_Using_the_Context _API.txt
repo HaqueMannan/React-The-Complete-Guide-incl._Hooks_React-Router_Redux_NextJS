@@ -8,6 +8,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
 7. Using the useReducer() Hook
 8. useReducer() and useEffect() Hooks and Object Destructuring Optimisation
 9. useReducer() vs useState() for State Management
+10. Introducing React Context (Context API)
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
@@ -371,3 +372,76 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > The useReducer() Hook can be helpful if you have a more complex state updates.
    > There are no hard rule when to use either Hooks for State Management and is purely up to you as the developer to choose which to implement for your scenario.
    > You should not always use the useReducer() Hook because often it will be an overkill for example if you have a simple state that switches between two different values.
+
+------------------------------------------------------------------------------------
+10. Introducing React Context (Context API):
+------------------------------------------------------------------------------------
+   > A common problem that occurs in larger React projects is where a lot of data are being passed through a lot of components via "props".
+   > For example, a login state and function would be managed in the App.js Component because the state needs to be lifted up to that Component because the state and update function is needed everywhere within the application.
+   > Passing the state to multiple different Components in a small project is not a problem. It is quite common to pass data to Components through props but it is always a problem if you forward state through multiple Components (i.e. leveraging "props" to forward the data to another Component).
+
+   Forwarding Props through Component Example:
+      src/App.js
+         ...
+         function App() {
+            ...
+            return (
+               <React.Fragment>
+                  <MainHeader isAuthenticated={isLoggedIn} onLogout={logoutHandler} />
+                  <main>
+                     {!isLoggedIn && <Login onLogin={loginHandler} />}
+                     {isLoggedIn && <Home onLogout={logoutHandler} />}
+                  </main>
+               </React.Fragment>
+            );
+         };
+
+      src/components/MainHeader/MainHeader.js:
+         ...
+         const MainHeader = (props) => {
+            return (
+               <header className={classes['main-header']}>
+                  <h1>A Typical Page</h1>
+                  <Navigation isLoggedIn={props.isAuthenticated} onLogout={props.onLogout} />
+               </header>
+            );
+         };
+
+      src/components/MainHeader/Navigation.js:
+         ...
+         const Navigation = (props) => {
+            return (
+               <nav className={classes.nav}>
+                  <ul>
+                     {props.isLoggedIn && (<li><a href="/">Users</a></li>)}
+                     {props.isLoggedIn && (<li><a href="/">Admin</a></li>)}
+                     {props.isLoggedIn && (<li><button onClick={props.onLogout}>Logout</button></li>)}
+                  </ul>
+               </nav>
+            );
+         };
+
+   > Within the App Component file the 'isLoggedIn' state is being passed through the 'isAuthenticated' prop to the <MainHeader/> Component and the same is true for the 'logoutHandler' function pointer via the 'onLogout' prop.
+   > Within the MainHeader Component file, neither the 'isLoggedIn' or 'logoutHandler' props are being used by the Component. Instead, the props are only being used to forward them again onto the <Navigation /> Component.
+   > It is the Navigation Component at the end of the day that requires the 'isLoggedIn' or 'logoutHandler' props to render the different navigation links.
+   > This is not necessarily a problem but with larger application that chain of forwarding may become longer and longer.
+
+   Fictitious Application Example:
+         ------------------<App/> ------------------
+         |                    |                    |
+      <Auth/>              <Shop/>              <Cart/>
+         |                    |
+      <LoginForm/>         <Products/>
+      [Login]                 |
+                           <Products/>
+                              |
+                           <Product/>
+                           [Add to Cart]
+
+   > In this example, the LoginForm has a Login event where the user fills out and submits the form which will validate the data and finds the data is now logged in. The logged in status data might be needed in different parts of the application e.g. the <Shop /> and <Cart/> Components. You may have something similar to when adding a product to the Cart which you need that information to show the product in the <Cart/> Component.
+   > Since the <LoginForm> is a direct child of <Auth/> which is a child of <App/> and similarly the <Product/> is a direct child of <Products/> which is a child of <Shop/> which is a child of <App/>, there are no direct connections to the other Components where the data might be needed.
+   > If the user clicks a button in the <Product/> Component to add a product to the <Cart/> Component, the information needs to reach the <Cart/> Component but there are no direct connections between the <Product/> and <Cart/> Components (and similar for the Login scenario). Consequently, you would typically use Props and Functions passed via "props" through the chain.
+   > This behaviour leads to forwarding data through different Components. This would mean the prop/function would be managed in the <App/> Component because the state has been lifted up to the level that has access to both Components that require the data (i.e. like creating a middleman even though the middleman does not need the prop/function but to solely forward them on to the Components that do need them).
+   > In larger apps this could easily lead to building large "prop" chains which are used to forward data through Components to update other Components. This is something you can do and is not necessarily bad but the larger your application becomes the more inconvenient it becomes to pass props through the chain.
+   > Instead, it would be nicer if you could use "props" in a Component to only receive the data that the Component really needs from it's Parent and not to forward other data through the Parent which the Parent neither manages nor needs the data itself.
+   > React provides out of the box a Component-wide "behind the scenes" State Storage solution. The concept is called React Context which will allow you to trigger an action in the Component-wide State Storage and directly pass that to the Component that is interested without building such a long "prop" chain. This solution allows you to solve your problem in a more elegant way.

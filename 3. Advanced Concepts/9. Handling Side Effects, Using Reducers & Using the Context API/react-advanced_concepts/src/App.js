@@ -33,7 +33,7 @@ function App() {
             {isLoggedIn && <Home onLogout={logoutHandler} />}
          </main>
       </React.Fragment>
-      );
-   };
+   );
+};
 
 export default App;
