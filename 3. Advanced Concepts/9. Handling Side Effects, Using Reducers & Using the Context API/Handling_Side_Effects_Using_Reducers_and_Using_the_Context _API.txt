@@ -13,6 +13,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
 12. Using the React Context API (useContext() Hook)
 13. Making Context Dynamic
 14. Building and Using a Custom Context Provider Component
+15. React Context API Limitation
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
@@ -833,3 +834,12 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
 
    > This approach is totally optional and the advantage is that you now have a leaner App Component that focuses on returning JSX and rendering something onto the screen and the actual Auth State Management and Auth-Context Management all within one file. This more focused and separated files approach where each Component file has one job (and not multiple jobs) is preferred by some developers.
    > Important Note: This methodology/practice is not the de facto (i.e the only or correct) way of doing things within React development. However, you may see this pattern used in React projects and therefore you should look into and know this pattern to turn yourself into a real React Developer.
+
+------------------------------------------------------------------------------------
+15. React Context Limitation:
+------------------------------------------------------------------------------------
+   > React Context API can be great for app-wide or component-wide State. So essentially States that affects multiple Components. However, it is not a replacement for Component configuration.
+   > For example, the Button Component should be re-useable Component. Using Context State would not allow the Button be flexible in what function should be triggered on the 'onClick' prop event e.g. 'loginHandler' or 'logoutHandler'. Therefore, in this scenario "props" would be considered better in this scenario to configure the button behaviour.
+   > Therefore, props should be used for configuration while context should be used for State Management across Components or the entire application.
+   > React Context is not optimised for high frequency changes. For example, if you have state changes every second or multiple times per second. This limitations was stated by an official React team member. (Note: We will explore a better tool called Redux which is another advanced topic that overcomes this limitations of the Reacts Context API).
+   > React Context API should not be used to place ALL Component communications and props. Components should still be configurable via "props" and short "prop chains" might not need any replacement.
