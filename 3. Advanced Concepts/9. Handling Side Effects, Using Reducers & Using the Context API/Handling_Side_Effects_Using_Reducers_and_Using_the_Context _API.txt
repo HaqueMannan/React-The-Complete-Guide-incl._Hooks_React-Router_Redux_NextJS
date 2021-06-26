@@ -10,6 +10,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
 9. useReducer() vs useState() for State Management
 10. Introducing React Context (Context API)
 11. Using the React Context API (Provider and Consumer Pattern)
+12. Using the React Context API (useContext() Hook)
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
@@ -601,3 +602,32 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > The difference here is that you no longer require to pass a "prop" to forward the state. It is set on the Provider and then in every child Components can listen to that state change. Therefore, the MainHeader no longer needs to pass the 'isAuthenticated' state and within the MainHeader Component stop forwarding the 'isAuthenticated' to the Navigation Component. The Navigation Component can now use the 'ctx.isLoggedIn' context everywhere that it is needed. The final code would look like the above using the React Context API's Provider/Consumer pattern.
    > The isLoggedIn prop is no longer needed to be passed through Component as it is now captured within the AuthContext Context API and the Provider will always provide the updated state value while all Consumers can listen to the context state and React to the changes within the Components file that needs the context. This breaks the "props" chaining solution leveraging Reacts Context API instead.
    > This is one syntax patten that you can use to implement the REACT Context API. The second and possible more elegant method is to use Reacts useContext() Hook.
+
+------------------------------------------------------------------------------------
+12. Using the React Context API (useContext() Hook):
+------------------------------------------------------------------------------------
+   > Setting up the Context JavaScript file and Providing th Context Object remain the same as before.
+   > To consume the context using the useContext() Hook is demonstrated below:
+
+   Consuming React Context API with useContext() Hook Example:
+      src/components/MainHeader/Navigation.js:
+         import React, { useContext } from 'react';
+         import AuthContext from '../../store/auth-context';
+         ...
+         const Navigation = (props) => {
+            const ctx = useContext(AuthContext);
+            return (
+               <nav className={classes.nav}>
+                  <ul>
+                     {ctx.isLoggedIn && (<li><a href="/">Users</a></li>)}
+                     {ctx.isLoggedIn && (<li><a href="/">Admin</a></li>)}
+                     {ctx.isLoggedIn && (<li><button onClick={props.onLogout}>Logout</button></li>)}
+                  </ul>
+               </nav>
+            );
+         };
+
+   > To use the useContext() Hook, you would need to import the named export from the 'react' library.
+   > Call on the useContext() Hook within the React Component function and pass in a pointer to the context you want to use to it. You should import the exported Context Object.
+   > The useContext() Hook returns the context value which you can store in a variable to use i.e. in the above example it is stored in a 'ctx' variable (you could have named this anything you would like).
+   > The code would now work as it did before. This is a more elegant method of consuming the Context API compared to the Provider/Consumer method.
