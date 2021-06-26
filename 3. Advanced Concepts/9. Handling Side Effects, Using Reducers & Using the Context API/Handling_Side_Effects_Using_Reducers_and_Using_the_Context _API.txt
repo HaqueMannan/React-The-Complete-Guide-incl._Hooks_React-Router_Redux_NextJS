@@ -9,6 +9,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
 8. useReducer() and useEffect() Hooks and Object Destructuring Optimisation
 9. useReducer() vs useState() for State Management
 10. Introducing React Context (Context API)
+11. Using the React Context API (Provider and Consumer Pattern)
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
@@ -335,7 +336,6 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
                      emailIsValid && passwordIsValid
                   );
                }, 500);
-
                return () => {
                   console.log('CLEANUP');
                   clearTimeout(identifier);
@@ -445,3 +445,159 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > In larger apps this could easily lead to building large "prop" chains which are used to forward data through Components to update other Components. This is something you can do and is not necessarily bad but the larger your application becomes the more inconvenient it becomes to pass props through the chain.
    > Instead, it would be nicer if you could use "props" in a Component to only receive the data that the Component really needs from it's Parent and not to forward other data through the Parent which the Parent neither manages nor needs the data itself.
    > React provides out of the box a Component-wide "behind the scenes" State Storage solution. The concept is called React Context which will allow you to trigger an action in the Component-wide State Storage and directly pass that to the Component that is interested without building such a long "prop" chain. This solution allows you to solve your problem in a more elegant way.
+
+------------------------------------------------------------------------------------
+11. Using the React Context API (Provider and Consumer Pattern):
+------------------------------------------------------------------------------------
+   > Create a new folder called "Context" (or whatever you would like to call it e.g. state, store, etc.) within the "src" directory.
+   > Create a JavaScript file within this folder the name is entirely up to you as a developer e.g. auth-context.js (you could use Pascal casing like AuthContext; however, this may imply that you are going to store a Component within the file which is not what you are intending to do).
+   > You can have multiple context files for multiple global states within your application or you could use one large context for larger applications - it is entirely up to you how you design your application state.
+   > import React as you would normally would do but you would call the .createContext() method on the 'React' import object.
+
+   React Context Example:
+      src/store/auth-context.js:
+         import React from 'react;
+         const AuthContext = React.createContext({
+            isLoggedIn: false
+         });
+         export default AuthContext;
+
+   > The .createContext() method creates a "context" object. This method takes in a default context. The "context" here is really just your App or Component-wide State. This can be a simple string but often it would be an object managing multiple state properties.
+   > What is returned by the .createContext() method is a Component (or an Object that contains Components) which you can store in a variable to reference the object.
+   > In the above example, we named it "AuthContext" similar to how you would name a Component. While AuthContext itself is not a Component, it is an object that will contain a Component.
+   > You can now export this variable to make the Context Object available within other files.
+   > To user the context within your application you need to do two things. First you need to provide the context (i.e. to let React know about the context) and secondly you need to consume the context (i.e. listen/hook into the Context).
+   > Providing the context is always the first step and it means that you wrap in JSX code all the Components that should be able to tap into (i.e. listen) to that context. Any Components that are not wrapped cannot listen to the context.
+
+   Providing the Context Example:
+      src/App.js:
+         import AuthContext from './store/auth-context';
+         function App() {
+            ...
+            return (
+               <AuthContext.Provider>
+                  <MainHeader isAuthenticated={isLoggedIn} onLogout={logoutHandler} />
+                  <main>
+                     {!isLoggedIn && <Login onLogin={loginHandler} />}
+                     {isLoggedIn && <Home onLogout={logoutHandler} />}
+                  </main>
+               </AuthContext.Provider>
+            );
+         };
+
+   > To wrap Component that needs to listen to the context you first need to import the Context Object and within the return JSX code use the context as a wrapper.
+   > In the above example the AuthContext is needed by every Components within the application hence it was imported in the App.js file and wraps everything within the return statement.
+   > The "AuthContext" object is not a Component itself (in JSX you require a Component) but the object has a property that contains a Component called 'Provider'.
+   > All Components wrapped in the wrapper and their descendant Components will now have access to the Context. In the above example MainHeader, Login, Home and all their children Components such as Navigation will have access to the Context.
+   > There are two ways to consume (listen) to the Context API. You can listen by using AuthContext Consumer or by using a React Hook.
+
+   Consuming the Context via Consumer Example:
+      src/components/MainHeader/Navigation.js:
+         ...
+         import AuthContext from '../../store/auth-context';
+         const Navigation = (props) => {
+            return (
+               <AuthContext.Consumer>
+                  {(ctx) => {
+                    return(
+                        <nav className={classes.nav}>
+                           <ul>
+                              {ctx.isLoggedIn && (<li><a href="/">Users</a></li>)}
+                              {ctx.isLoggedIn && (<li><a href="/">Admin</a></li>)}
+                              {ctx.isLoggedIn && (<li><button onClick={props.onLogout}>Logout</button></li>)}
+                           </ul>
+                        </nav>
+                    )
+                  }}
+               </AuthContext.Consumer>
+            );
+         };
+
+   > With the AuthContext Consumer method you would import the AuthContext object and then within the return JSX code you would wrap the entire Component with the AuthContext.Consumer property Component.
+   > The consumer works a little differently to the Provider property i.e. it takes in a child which should be a function between curly brackets. This function will receive the context data as a argument/parameter (i.e. the exported object defined in the auth-context.js file). Within this function you should then "return" your JSX code which should now be able to consume and have access to the data.
+   > The app would crash if saved. This is because the auth-context.js context API object has a default value for isLoggedIn. This default value will actually only be used if you would consume without having a Provider. Therefore, technically, the <AuthContext.Provider> wrapper is not needed in such a case where you have a default value.
+   > However, you should memorise this pattern where you would need the <AuthContext.Provider> because you would typically have a context where the value can change and is only possible with having the <AuthContext.Provider> wrapper pattern implemented.
+   > To make sure the above does not crash you could add a "value" prop (and has to be named value) to the <AuthContext.Provider>. You can then pass the object setup from the context file as demonstrated below:
+
+   Providing the Context Static Object State Example:
+      src/App.js:
+         import AuthContext from './store/auth-context';
+         function App() {
+            ...
+            return (
+               <AuthContext.Provider value={
+                  {isLoggedIn: false}
+               }>
+                  <MainHeader isAuthenticated={isLoggedIn} onLogout={logoutHandler} />
+                  <main>
+                     {!isLoggedIn && <Login onLogin={loginHandler} />}
+                     {isLoggedIn && <Home onLogout={logoutHandler} />}
+                  </main>
+               </AuthContext.Provider>
+            );
+         };
+
+   > This now allows you to change that Object (e.g. through state in the App Component) and whenever it changes the new value will be passed down to all consuming Components (i.e. those wrapped by the <AuthContext.Consumer>).
+   > The application will now be able to load without any problems because the Provider no longer receives a static context state object and the state object can now be changed by other components and this context state can be consumed by the Consumer.
+
+   Final Provider/Consumer Context API Pattern Code Example:
+      src/store/auth-context.js:
+         import React from 'react;
+         const AuthContext = React.createContext({
+            isLoggedIn: false
+         });
+         export default AuthContext;
+
+      src/App.js:
+         import AuthContext from './store/auth-context';
+         function App() {
+            ...
+            return (
+               <AuthContext.Provider value={
+                  {isLoggedIn: isLoggedIn}
+               }>
+                  <MainHeader onLogout={logoutHandler} />
+                  <main>
+                     {!isLoggedIn && <Login onLogin={loginHandler} />}
+                     {isLoggedIn && <Home onLogout={logoutHandler} />}
+                  </main>
+               </AuthContext.Provider>
+            );
+         };
+
+      src/components/MainHeader/MainHeader.js:
+         ...
+         const MainHeader = (props) => {
+            return (
+               <header className={classes['main-header']}>
+                  <h1>A Typical Page</h1>
+                  <Navigation onLogout={props.onLogout} />
+               </header>
+            );
+         };
+
+      src/components/MainHeader/Navigation.js:
+         ...
+         import AuthContext from '../../store/auth-context';
+         const Navigation = (props) => {
+            return (
+               <AuthContext.Consumer>
+                  {(ctx) => {
+                     return(
+                        <nav className={classes.nav}>
+                           <ul>
+                              {ctx.isLoggedIn && (<li><a href="/">Users</a></li>)}
+                              {ctx.isLoggedIn && (<li><a href="/">Admin</a></li>)}
+                              {ctx.isLoggedIn && (<li><button onClick={props.onLogout}>Logout</button></li>)}
+                           </ul>
+                        </nav>
+                     )
+                  }}
+               </AuthContext.Consumer>
+            );
+         };
+
+   > The isLoggedIn does not need to have a hardcoded value. It can have a dynamic value from the Component file. In the above example {isLoggedIn: false} has been updated to be {isLoggedIn: isLoggedIn}. Therefore, this property will be updated by React whenever isLoggedIn has changed. That new Provider context object will be passed down to all listening Components that consumes the context.
+   > The difference here is that you no longer require to pass a "prop" to forward the state. It is set on the Provider and then in every child Components can listen to that state change. Therefore, the MainHeader no longer needs to pass the 'isAuthenticated' state and within the MainHeader Component stop forwarding the 'isAuthenticated' to the Navigation Component. The Navigation Component can now use the 'ctx.isLoggedIn' context everywhere that it is needed. The final code would look like the above using the React Context API's Provider/Consumer pattern.
+   > The isLoggedIn prop is no longer needed to be passed through Component as it is now captured within the AuthContext Context API and the Provider will always provide the updated state value while all Consumers can listen to the context state and React to the changes within the Components file that needs the context. This breaks the "props" chaining solution leveraging Reacts Context API instead.
+   > This is one syntax patten that you can use to implement the REACT Context API. The second and possible more elegant method is to use Reacts useContext() Hook.
