@@ -7,6 +7,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
 6. Introducing useReducer() Hook and Reducers in General
 7. Using the useReducer() Hook
 8. useReducer() and useEffect() Hooks and Object Destructuring Optimisation
+9. useReducer() vs useState() for State Management
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
@@ -349,3 +350,24 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > Whenever only the value changes and the validity does not change the useEffect will no longer re-run which is much better code on performance because the useEffect no longer re-runs unnecessarily.
    > This is Important concept to understand to further optimise using the useEffect() with useReducer() Hooks and avoid any unnecessary useEffect() Hook execution.
    > This concept can also be used even if you do not use the useReducer() Hook. For example, if you have 'Props' as a dependencies for your useEffect() Hook. You do not want to re-run the side effect when the 'props' change but only when some 'props' change - object destructuring will help you for useEffect() Hook execution optimisation.
+
+   Important Note:
+   > You could use nested properties as dependencies to useEffect. The below example works the same way:
+      useEffect(() => {
+         // code that only uses someProperty ...
+      }, [someObject.someProperty]);
+
+   > The key thing is not that you use destructuring but that you pass specific properties instead of the entire object as a dependency. This is to avoid the side effect function re-running whenever any properties of 'someObject' changes and not just the one property ('someProperty' in the above example) or some specific properties that your side effect might depend on.
+
+------------------------------------------------------------------------------------
+9. useReducer() vs useState() for State Management:
+------------------------------------------------------------------------------------
+   > Generally, you will know when you need to use useReducer() for example when using useState() becomes cumbersome or you are getting a lot of bugs/unintended behaviours.
+   > The useState() Hook is your main state management "tool".
+   > The useState() Hook is great for independent pieces of state/data.
+   > The useState() Hook is great if state updates are easy and limited to few kinds of updates.
+   > The useReducer() Hook is great if you need "more power" (i.e. write reducer function that can take in a more complex state update logic where you are guaranteed to always work with the latest snapshot and where you can move that complex logic out of the Component function body into a separate reducer function).
+   > The useReducer() Hook should be considered if you have related pieces of state/data.
+   > The useReducer() Hook can be helpful if you have a more complex state updates.
+   > There are no hard rule when to use either Hooks for State Management and is purely up to you as the developer to choose which to implement for your scenario.
+   > You should not always use the useReducer() Hook because often it will be an overkill for example if you have a simple state that switches between two different values.
