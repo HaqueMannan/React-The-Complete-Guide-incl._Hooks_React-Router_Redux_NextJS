@@ -15,6 +15,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
 14. Building and Using a Custom Context Provider Component
 15. React Context API Limitation
 16. Learning the "Rules of Hooks"
+17. Forward Refs using useImperativeHandle() Hook and .forwardRef() Method
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
@@ -881,3 +882,72 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
       > Therefore, all data from inside of your Component function in which you are using within the useEffect needs to go into the dependency array.
 
    > These are the three rules you should remember when using React Hooks within your application.
+
+------------------------------------------------------------------------------------
+17. Forward Refs using useImperativeHandle() Hook and .forwardRef() Method:
+------------------------------------------------------------------------------------
+   > The useImperativeHandle() Hook allows you to use functions within a Component imperatively which means not through the regular state/props management (i.e. not controlling the Component through state in the parent Component) but instead by directly calling or manipulating something in a Component programmatically.
+   > This is something you want to rarely use and should not use this technique/hook very often in you projects (you should try to find an alternative).
+   > The useImperativeHandle() Hook takes two arguments.
+      - The first parameter is a "ref". All Component functions in React receive a 'props' argument but also a second argument called 'ref'. In 99.9% of the time you would only need the "props" parameter but you should be aware that there is also a second parameter called "ref". This ref parameter is a reference should a ref be set from outside. This will establish a connection and allow a binding.
+      - The second parameter is a function that should return an object. That object will contain all the data you would be able to use from outside the Component but it's value points to an internal variable/function/etc. that should be accessible from outside through that named property.
+   > To enable the second argument of "ref" within the Component function, you need to export the Component Function in a special way. The react library provides a .forwardRef() method which you pass your Component function.
+   > The .forwardRef() method returns a React Component but a React Component that is capable of being bound to a ref.
+   > This will allow the Component to take in a 'ref' prop that is controllable/useable with refs from outside the Component file. You would only be able to use things that are exposed through the useImperativeHandle() Hook.
+   > Below is a real use case of when you would want to use this method with focusing on form inputs.
+
+   Forward Refs Input Component Example:
+      src/components/Login/Login.js:
+         import React, { useRef } from 'react';
+         ...
+         const Login = () => {
+            ...
+            const emailInputRef = useRef();
+            const passwordInputRef = useRef();
+            ...
+            const submitHandler = (event) => {
+               event.preventDefault();
+               if(formIsValid) {
+                  authCtx.onLogin(emailState.value, passwordState.value);
+               } else if(!emailIsValid) {
+                  emailInputRef.current.focus();
+               } else {
+                  passwordInputRef.current.focus();
+               };
+            };
+            return (
+               ...
+               <Input ref={emailInputRef} />
+               <Input ref={passwordInputRef} />
+               ...
+            );
+         };
+
+      src/components/UI/Input/Input.js:
+         import React, { useRef, useImperativeHandle } from 'react';
+         const Input = React.forwardRef((props, ref) => {
+            const inputRef = useRef();
+            const activate = () => {
+               inputRef.current.focus(); 
+            };
+            useImperativeHandle(ref, () => {
+               return {
+                  focus: activate
+               };
+            });
+            return(
+               ...
+               <input ref={inputRef} />
+               ...
+            );
+         });
+
+   > The useImperativeHandle() hook must be imported from the 'react' library as a named import.
+   > The useImperativeHandle() second argument is an object which has a properties that can point to the variables/functions you wish to expose to the outside using the property name. In the above example the focus property allows outside Parent Components to access the exposed value e.g. activate function from the <Input/> Component.
+   > The "ref" available as a second argument in 'Input = (props, ref)' allows reference to pass to the Component should the ref be set from the outside. Therefore, if the Component uses the ref prop and binds something to it, that would be forwarded to the ref parameter to that Component file.
+   > To establish the connection to allow this binding of the ref parameter it requires the Component to be exported using a special wrapper. This wrapper is the 'React.forwardRef()' function. The Component function is the first and only argument to the .forwardRef() method. This returns a React Component i.e. the Input Component continues to be a React Component but is now capable of being bound to a ref.
+   > The <Input/> component is now able to take in a "ref" prop and it will expose a "ref" which is controllable/useable with the "refs" prop. The "focus" property has been exposed by the useImperativeHandle() Hook which points at the "activate" function inside of the Input Component file.
+   > In the Login Component file we can call now call 'emailInputRef.current.focus()' and 'passwordInputRef.current.focus()' because the 'ref' has been bound/exposed by the .forwardRef() method and useImperativeHandle() Hook from the Input Component file.
+   > This provides the functionality whereby the if statement within the Login Parent Component can check and focus on the first invalid input field programmatically using a function exposed from the Input Component function via forwarding refs.
+
+   > Important Note: The useImperativeHandle() Hook and .forwardRef() technique allows you to expose functionality from a React Component to its Parent Component to then use that Component in the Parent Component through refs and trigger certain functionality (and is not limited to functions but it can also expose values through refs). This is something you can do but not something you would need all the time and you should avoid this technique at all costs because it is not a typical React pattern you want. However, this technique can be helpful in some situations such as focusing, scrolling, etc. where it can be useful to trigger something like this programmatically.
