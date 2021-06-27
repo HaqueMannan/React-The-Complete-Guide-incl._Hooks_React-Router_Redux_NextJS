@@ -14,6 +14,7 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
 13. Making Context Dynamic
 14. Building and Using a Custom Context Provider Component
 15. React Context API Limitation
+16. Learning the "Rules of Hooks"
 
 ------------------------------------------------------------------------------------
 1. What are 'Side Effects' & Introducing useEffect:
@@ -843,3 +844,40 @@ Handling Side Effects, Using Reducers & Using the Context API - Summary:
    > Therefore, props should be used for configuration while context should be used for State Management across Components or the entire application.
    > React Context is not optimised for high frequency changes. For example, if you have state changes every second or multiple times per second. This limitations was stated by an official React team member. (Note: We will explore a better tool called Redux which is another advanced topic that overcomes this limitations of the Reacts Context API).
    > React Context API should not be used to place ALL Component communications and props. Components should still be configurable via "props" and short "prop chains" might not need any replacement.
+
+------------------------------------------------------------------------------------
+16. Learning the "Rules of Hooks":
+------------------------------------------------------------------------------------
+   > React provides a bunch of React Hooks (such as useState(), useEffect(), useReducer(), useContext() and more).
+   > There are some rules you need to learn when using React Hooks.
+   > There are two main rules you have to follow when working with React Hooks (i.e functions provided by the React library that start with the word "use"):
+      1. Only call React Hooks in React Functions i.e. React Component functions or Custom Hook functions(will be covered later as a separate advanced topic).
+         - A React Component is identified as a function that returns JSX. Most modern IDE such as VS Code will inform you of this error.
+      2. Only call React Hooks at the Top Level of your React Component/Custom Hook functions.
+         - Do not call them within nested functions. For Example:
+            useEffect() = {
+               useContext();
+               ...
+            };
+            > The useContext() Hook is incorrectly being called within another function (nested) and is no longer within the Top Level of the Component function.
+         - Do not call them within any block statements. For Example:
+            if(true) {
+               useContext();
+            };
+            > Calling a hook within a block statement (e.g an if statement) will violate this rule but also violate the nesting rule because the Hook is nested and not at the Top Level of the Component function.
+
+   > There is a third unofficial rule which is not directly related to all Hooks but rather to one specific Hook: the useEffect() Hook. Always add everything you refer to inside of useEffect() as a dependency (unless there is a good reason not to). For Example:
+      useEffect(() => {
+         const identifier = setTimeout(() => {
+            console.log('Checking for Validity');
+            setFormIsValid(
+               emailIsValid && passwordIsValid
+            );
+         }, 500);
+         return () => {...};
+      }, [emailIsValid, passwordIsValid]);
+       > The data from the surrounding component state should be added as a dependency for example the emailIsValid and passwordIsValid. The setTimeout() is a browser API function and therefore does not need to be added as a dependency.
+      > Technically, you should also add the setFormIsValid function because it is not a browser API but this is one exception to the rule because React guarantees State updating functions exposed by useState() or useReducer() to never change. Therefore, you do not need to add state updating functions as dependencies because they never change and would be a redundant dependency. You could add this and it will not be wrong but you are also allowed to omit it. In modern IDE such as VS Code you should get a warning for this error.
+      > Therefore, all data from inside of your Component function in which you are using within the useEffect needs to go into the dependency array.
+
+   > These are the three rules you should remember when using React Hooks within your application.
