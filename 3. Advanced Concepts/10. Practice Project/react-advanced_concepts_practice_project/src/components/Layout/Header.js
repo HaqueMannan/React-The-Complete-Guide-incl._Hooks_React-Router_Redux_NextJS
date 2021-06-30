@@ -5,7 +5,6 @@ import mealsImage from '../../assets/meals.jpeg';
 
 import HeaderCartButton from './HeaderCartButton';
 
-
 const Header = (props) => {
    return(
       <Fragment>
