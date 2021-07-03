@@ -1,5 +1,6 @@
 A Look Behind the Scenes of React & Optimisation Techniques - Summary:
 1. How React Really Works
+2. A Look at Component Updates in Actions
 
 ------------------------------------------------------------------------------------
 1. How React Really Works:
@@ -30,6 +31,42 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
 
    > React will determine the difference between both snapshots is the paragraph element.
    > React will report this change to ReactDOM (i.e. the '<p>This paragraph is new!</p>' should be inserted to the DOM and the rest should stay unchanged).
-   > ReactDOM will update the real DOM and insert this paragraph element. It will not re-render the whole entire DOM i.e. it will not touch the existing <div/> and <h1/> elements but instead insert the <p/> element after the <h1/> element insid of the <div/> element.
+   > ReactDOM will update the real DOM and insert this paragraph element. It will not re-render the whole entire DOM i.e. it will not touch the existing <div/> and <h1/> elements but instead insert the <p/> element after the <h1/> element inside of the <div/> element.
    > This is how React works behind the scenes in a nutshell.
    > It is very crucial that you understand how all of this behind the scenes actually behaves to extend your knowledge about how React works with ReactDOM which will make you a better developer and help you to identify and resolve bugs within a React project code much faster and easily.
+
+------------------------------------------------------------------------------------
+2. A Look at Component Updates in Actions:
+------------------------------------------------------------------------------------
+   > To illustrate and view the Component Update in action we will use the below code as a demonstration to render a new paragraph to a Component.
+   > React will only re-run the Component function and re-evaluate what is on the screen if the 'props', 'state' or 'context' changes.
+   > Remember: Ultimately, it all comes down to 'State' changes. Even context internally will use some state that might change the value which is then distributed through context. If we also think about props being passed from a parent to a child, how could the value passed through 'props' change? Again, only if 'state' in a parent changed. Hence, it all comes down to 'State' changes in the end if you think about it.
+
+   Component Update Example:
+      import React, { useState } from 'react';
+      import Button from './components/UI/Button/Button';
+      function App() {
+         const [showParagraph, setShowParagraph] = useState(false);
+         const toggleParagraphHandler = () => {
+            setShowParagraph((prevShowParagraph) => !prevShowParagraph);
+         };
+         return (
+            <div className="app">
+               <h1>Hello World!</h1>
+               {showParagraph && <p>This paragraph is new!</p>}
+               <Button onClick={toggleParagraphHandler}>Toggle Paragraph</Button>
+            </div>
+         );
+      };
+
+   > The toggleParagraphHandler function could have been written shorter using 'setShowParagraph(!showParagraph);' syntax (i.e. set the showParagraph value to be the opposite of the old value). However, since you rely on the previous State snapshot you would want to use the function form for the state update. We will revisit and explain why you would do this in a later section. But note that the above example is the cleaner way for updating state that relies on the previous state snapshot.
+   > The Component has the logic to conditionally show a paragraph when you click the button.
+
+   Analysing the Component Updates in Actions:
+      > If you add a 'console.log('APP RUNNING');' code before the 'const toggleParagraphHandler = () => {...}' line, you should see "APP RUNNING" in the browser's console whenever you click the button. This should demonstrate that the Component function is re-evaluated whenever there is a 'prop', 'state' or 'context' change within a Component.
+      > Therefore, when the application runs for the first time and runs the Component function for the first time you should see the "APP RUNNING" within the browser's console.
+      > On the first execution (render cycle) React found out that it wants a <div>, <h1> and a <Button> (actual HTML will be <button>) element and no <p> element because it is not shown. It checks this with the last output it saved. Since this rendered the Component for the first time, there is essentially no previous output/snapshot and therefore the difference comparison in the end resulted in the <div>, <h1> and <button> to be rendered. This information is sent off to ReactDOM library which renders real HTML elements to the actual DOM (i.e. to the browser screen).
+      > If you click on the the "Toggle Paragraph" button you should see "APP RUNNING" printed again in the browser's console. This proves the point that for every 'State' change, the entire Component in which the state changed is re-executed and re-evaluated.
+      > How is the real DOM affected? If you go to the "Elements" tab within the browser's developer tools and expand the "<div class="app">" element you will notice that things that are changed within the real DOM will be flashed on screen in the "Elements" developer tool which shows where the real DOM was re-rendered or updated.
+      > You will notice when you click the "Toggle Paragraph" button to add the paragraph, only the <p> element would flash and nothing else. If you click the "Toggle Paragraph" button again to remove the paragraph then only the parent "<div class="app">" element will flash because the <p> element was removed from that parent element. The <h1> and <button> elements will not flash again because they are  not re-rendered again by the real DOM.
+      > This should visually demonstrate that only the differences between those virtual snapshots was considered for the updates made to the real DOM. This is really crucial to understand. 
