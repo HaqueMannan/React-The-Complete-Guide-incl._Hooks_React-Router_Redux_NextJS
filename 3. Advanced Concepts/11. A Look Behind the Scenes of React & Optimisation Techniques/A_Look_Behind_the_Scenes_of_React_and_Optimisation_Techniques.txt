@@ -1,0 +1,35 @@
+A Look Behind the Scenes of React & Optimisation Techniques - Summary:
+1. How React Really Works
+
+------------------------------------------------------------------------------------
+1. How React Really Works:
+------------------------------------------------------------------------------------
+   > React is a JavaScript library for building user interfaces.
+   > React is all about building Components (i.e. it embraces this concept of Components).
+   > ReactDOM is the interface to the web.
+   > ReactJS (i.e. React) itself does not know nothing about the web. It only knows how to work with Components. It does not care whether those Components contains HTML elements or totally fictional elements.
+   > ReactDOM at the end cares about HTML elements and bringing in real HTML elements to the screen.
+   > React is a library that manages Components, Props, Context, State, and different Component States. React hands over all the information regarding what changed and what should be visible on the screen off to the interface it is working with i.e. ReactDOM. ReactDOM is then responsible for working with the real DOM (which is part of the browser) and therefore ReactDOM is actually responsible for what is rendered to the real DOM and what the user actually sees on their screen.
+   > 'Props' are Data from Parent Component, 'State' is the internal data inside of a Component and 'Context' is the Component-wide data.
+   > Whenever 'props', 'state' or 'context' changes the Components that use these concepts are updated by React and React checks whether the Component wants to draw something new onto the screen and if that should be the case then React will let ReactDOM know about that so that it can bring that new render/output to the screen.
+   > The question is how does the Components to Real DOM communication actually work?
+   > React uses a concept called the 'Virtual DOM'. React determines how the current Component tree (which the app is building in the end and every Component itself has a sub tree that the JSX code returned by that Component) looks like and what it should look like for example, after a state update. That informaton is handed off to ReactDOM which now knows about the differences and which then knows how it should manipulate the real DOM to match that virtual DOM.
+   > There is one important thing to note: whenever a 'prop', 'state' or 'context' of a Component changes, that Component function is re-executed (i.e. that Component is re-evaluated by React). However, re-evaluating a Component is not the same as re-rendering the DOM. Therefore, just because a Component function is re-executed by React does not mean that the respective part of the actual real DOM is re-rendered or re-evaluated.
+   > We have to differentiate between our Component/React part and the real DOM.
+   > The real DOM is only updated in the places where it needs to be changed based on that difference React derived between the previous state of a Component and its tree and the current state after the prop/state/context change.
+   > Therefore, the real DOM is not changed all the time and it is changed rarely and only when need (i.e. only made for differences in evaluation). This is important for performance because making a virtual comparison between the previous state and the current state is cheap and easy to do because it only occurs in memory. Reaching out to the real DOM that is rendered to the Browser is expensive from a performance perspective (i.e. working with the real DOM is a performance intensive task).
+   > If you make tiny changes in a lot of places all the time then the page might become slow because you end up working with the real DOM too much. This is the reason for why React has this structure of doing virtual comparisons with the virtual DOM and then only passing the changes between the last and current snapshot to the real DOM.
+   > This is how React works ie. by doing this 'Virtual DOM Diffing' - finding the differences between two snapshots. Below is an Example:
+
+   Virtual DOM Diffing Illustration Example:
+      Previous Evaluation Result:            Current Evaluation Result:
+         <div>                               <div>
+            <h1>Hello World!</h1>               <h1>Hello World!</h1>
+         </div>                                 <p>This paragraph is new!</p>
+                                             </div>
+
+   > React will determine the difference between both snapshots is the paragraph element.
+   > React will report this change to ReactDOM (i.e. the '<p>This paragraph is new!</p>' should be inserted to the DOM and the rest should stay unchanged).
+   > ReactDOM will update the real DOM and insert this paragraph element. It will not re-render the whole entire DOM i.e. it will not touch the existing <div/> and <h1/> elements but instead insert the <p/> element after the <h1/> element insid of the <div/> element.
+   > This is how React works behind the scenes in a nutshell.
+   > It is very crucial that you understand how all of this behind the scenes actually behaves to extend your knowledge about how React works with ReactDOM which will make you a better developer and help you to identify and resolve bugs within a React project code much faster and easily.
