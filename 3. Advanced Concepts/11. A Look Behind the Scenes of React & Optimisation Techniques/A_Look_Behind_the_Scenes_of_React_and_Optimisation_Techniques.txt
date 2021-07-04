@@ -1,6 +1,7 @@
 A Look Behind the Scenes of React & Optimisation Techniques - Summary:
 1. How React Really Works
-2. A Look at Component Updates in Actions
+2. A Close Look at Component Updates in Action
+3. A Closer Look at Child Component Re-Evaluation
 
 ------------------------------------------------------------------------------------
 1. How React Really Works:
@@ -36,7 +37,7 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
    > It is very crucial that you understand how all of this behind the scenes actually behaves to extend your knowledge about how React works with ReactDOM which will make you a better developer and help you to identify and resolve bugs within a React project code much faster and easily.
 
 ------------------------------------------------------------------------------------
-2. A Look at Component Updates in Actions:
+2. A Close Look at Component Updates in Action:
 ------------------------------------------------------------------------------------
    > To illustrate and view the Component Update in action we will use the below code as a demonstration to render a new paragraph to a Component.
    > React will only re-run the Component function and re-evaluate what is on the screen if the 'props', 'state' or 'context' changes.
@@ -62,7 +63,7 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
    > The toggleParagraphHandler function could have been written shorter using 'setShowParagraph(!showParagraph);' syntax (i.e. set the showParagraph value to be the opposite of the old value). However, since you rely on the previous State snapshot you would want to use the function form for the state update. We will revisit and explain why you would do this in a later section. But note that the above example is the cleaner way for updating state that relies on the previous state snapshot.
    > The Component has the logic to conditionally show a paragraph when you click the button.
 
-   Analysing the Component Updates in Actions:
+   Analysing the Component Updates in Action:
       > If you add a 'console.log('APP RUNNING');' code before the 'const toggleParagraphHandler = () => {...}' line, you should see "APP RUNNING" in the browser's console whenever you click the button. This should demonstrate that the Component function is re-evaluated whenever there is a 'prop', 'state' or 'context' change within a Component.
       > Therefore, when the application runs for the first time and runs the Component function for the first time you should see the "APP RUNNING" within the browser's console.
       > On the first execution (render cycle) React found out that it wants a <div>, <h1> and a <Button> (actual HTML will be <button>) element and no <p> element because it is not shown. It checks this with the last output it saved. Since this rendered the Component for the first time, there is essentially no previous output/snapshot and therefore the difference comparison in the end resulted in the <div>, <h1> and <button> to be rendered. This information is sent off to ReactDOM library which renders real HTML elements to the actual DOM (i.e. to the browser screen).
@@ -70,3 +71,91 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
       > How is the real DOM affected? If you go to the "Elements" tab within the browser's developer tools and expand the "<div class="app">" element you will notice that things that are changed within the real DOM will be flashed on screen in the "Elements" developer tool which shows where the real DOM was re-rendered or updated.
       > You will notice when you click the "Toggle Paragraph" button to add the paragraph, only the <p> element would flash and nothing else. If you click the "Toggle Paragraph" button again to remove the paragraph then only the parent "<div class="app">" element will flash because the <p> element was removed from that parent element. The <h1> and <button> elements will not flash again because they are  not re-rendered again by the real DOM.
       > This should visually demonstrate that only the differences between those virtual snapshots was considered for the updates made to the real DOM. This is really crucial to understand. 
+
+------------------------------------------------------------------------------------
+3. A Closer Look at Child Component Re-Evaluation:
+------------------------------------------------------------------------------------
+   > The below example code will provide a closer look at how a Child Component Re-Evaluates in React.
+   > To demonstrate this, the Child Component will receive a prop from the Parent Component to conditionally render the text within the paragraph.
+
+   Child Component Re-Evaluation Example:
+      App (Parent) Component:
+         import React, { useState } from 'react';
+         import Button from './components/UI/Button/Button';
+         import DemoOutput from './components/Demo/DemoOutput';
+         function App() {
+            const [showParagraph, setShowParagraph] = useState(false);
+            const toggleParagraphHandler = () => { setShowParagraph((prevShowParagraph) => !prevShowParagraph)};
+            return (
+               <div className="app">
+                  <h1>Hello World!</h1>
+                  <DemoOutput show={showParagraph} />
+                  <Button onClick={toggleParagraphHandler}>Toggle Paragraph</Button>
+               </div>
+            );
+         };
+
+      Button (Child) Component:
+         const Button = (props) => {
+            console.log('Button RUNNING');
+            return (
+               <button type={props.type || 'button'} onClick={props.onClick} disabled={props.disabled}>
+                  {props.children}
+               </button>
+            );
+         };
+
+      DemoOutput (Child) Component:
+         const DemoOutput = (props) => {
+            console.log('DemoOutput RUNNING');
+            return(
+               <p>{props.show ? 'This paragraph is new!' : ''}</p>
+            );
+         };
+
+   > The paragraph element in the DemoOutput Component is always rendered; however, only the text will change based on the 'show' prop value which comes from the Parent Component via 'props'.
+   > The show prop is set to the showParagraph state which will result in a true or false value based on the "Toggle Paragraph" button.
+   > This logic will dynamically change what is displayed in the Child Component's paragraph element. The behaviour of the app is the same as before but now using a Child Component to control the paragraph element.
+
+   Analysing the Child Component Re-Evaluation in Action:
+      > If you go to the "Elements" tab within the browser's developer tools you will notice the <p> element is already rendered to the screen after the first execution and always appears. However, when you click the button to toggle between displaying a text you will see the <p> element flashing. This is treated as a change for the entire paragraph element, which is why the <p>> flashes on real DOM changes and not just the text.
+      > The <h1> and <button> elements do not change/flash. The fact that you use a custom Component/element does not change this. The updating mechanism should always work by comparing differences.
+      > You will also notice in the browser's developer tool console that the "APP RUNNING" is being printed every time we click the button. The actual change occurs in the DemoOutput Component but the App Component runs again as well because that is where we manage the state.
+      > The Component where you manage 'State' or have 'Props' or 'Context' and that state/prop/context changes then that Component will be re-evaluated and re-executed. Therefore, just because the change visually affects the paragraph in another Component does not mean that the Parent Component which manages the state/prop/context is not re-evaluated.
+      > This is also what was meant earlier with 'Props' and 'Context' in the end always come down to 'State' changes.
+      > You will also notice the "DemoOutput RUNNING" also printing everytime the "Toggle Paragraph" button is clicked (including when the Child Component initially renders).
+
+      > The above example is simple to understand the logic. Taking the above example, if we were to change the 'show' prop in the Parent App Component to be a hard coded value (i.e. "<DemoOutput show={false}" />) and therefore the paragraph will never show. The showParagraph state will change on the "Toggle Paragraph" button click but we are no longer using the value for the 'show' prop.
+      > If we were to now click the "Toggle Paragraph" button we will now see something more confusing: both the "APP RUNNING" and "DemoOutput RUNNING" are printed to the browser's console on every click even though the value to the show prop does not change. Why is this?
+         - We can understand "APP RUNNING" will continue to be printed on every button click because the 'showParagraph' state changed in that Component causing a re-evaluation.
+         - The props in the DemoOutput did not change (i.e. it is always false) but it was re-rendered which is interesting. Why was the DemoOutput re-evaluated?
+            - The App Component function is re-executed because the state changed. Part of the App function is the return statement which returns JSX code.
+            - All the JSX code within the return statement are like function calls to the respective Component functions. Therefore, we cal the function for the <DemoOutput/> and <Button/> Child Components.
+            - Hence, this is the reason for why the Child Components are also re-executed and re-evaluated just because the Parent Component has changed. The Child Component are part of the Parent Component function body.
+            - If the Parent Component function re-runs again, so does all the Child Components re-run again.
+            - The prop value does not matter for the Component to be executed again. It is just the fact that the Parent Component changed. Changes in props might lead to actual changes to the real DOM but for the Child Component function to be re-evaluated, it is enough for the Parent Component function was re-evaluated.
+            - The fact that the DemoOutput Component function runs again does not mean that the real DOM is touched. This is verified by the Elements tab whereby the <p> element does not flash or change.
+            - React re-evaluating a Component and re-running its Component function is not the same as re-rendering/manipulating the real DOM.
+            - You should also notice that the <Button/> Component will also re-run when the Parent App Component function is re-executed (and can see this if you add the console.log('Button RUNNING') within that function).
+      > This should bring up an important question: If the Child Components were to have their own Child Components, would they be re-evaluated? The answer would be yes. This can be seen if the above code was updated to the below example:
+
+         DemoOutput (Child Component):
+            import MyParagraph from './MyParagraph';
+            const DemoOutput = (props) => {
+               console.log('DemoOutput RUNNING');
+               return(
+                  <MyParagraph>{props.show ? 'This paragraph is new!' : ''}</MyParagraph>
+               );
+            };
+
+         MyParagraph (DemoOutput Child's Child) Component:
+            const MyParagraph = (props) => {
+               console.log('MyParagraph RUNNING');
+               return(
+                  <p>{props.children}</p>
+               );
+            };
+
+   > You should also see "MyParagraph RUNNING" in the console to demonstrate that the Child's Children Components will also re-execute for every "Toggle Paragraph" button click.
+   > Therefore the re-execution of Child Component will continue down the Component tree. This now brings up the next question of: is this bad because that leads to a lot of ongoing function executions and virtual comparisons that would certainly cost some performance?
+   > This will be bad because in the above example, there is no actual real reason for re-evaluating the <DemoOutput/> Component because it can never change (i.e. the only prop it has has a hard coded value and the same will be true if it had no props at all being passed down from the Parent Component). Therefore, re-executing <DemoOutput/> Component and all of it's child Components down the Component Tree will be a waste.
