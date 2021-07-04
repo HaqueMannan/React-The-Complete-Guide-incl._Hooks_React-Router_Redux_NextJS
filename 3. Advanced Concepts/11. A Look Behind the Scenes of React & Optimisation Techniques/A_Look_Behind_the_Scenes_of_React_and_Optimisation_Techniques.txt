@@ -2,6 +2,7 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
 1. How React Really Works
 2. A Close Look at Component Updates in Action
 3. A Closer Look at Child Component Re-Evaluation
+4. Preventing Unnecessary Re-Evaluations with React.memo()
 
 ------------------------------------------------------------------------------------
 1. How React Really Works:
@@ -89,7 +90,7 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
             return (
                <div className="app">
                   <h1>Hello World!</h1>
-                  <DemoOutput show={showParagraph} />
+                  <DemoOutput show={false} />
                   <Button onClick={toggleParagraphHandler}>Toggle Paragraph</Button>
                </div>
             );
@@ -159,3 +160,54 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
    > You should also see "MyParagraph RUNNING" in the console to demonstrate that the Child's Children Components will also re-execute for every "Toggle Paragraph" button click.
    > Therefore the re-execution of Child Component will continue down the Component tree. This now brings up the next question of: is this bad because that leads to a lot of ongoing function executions and virtual comparisons that would certainly cost some performance?
    > This will be bad because in the above example, there is no actual real reason for re-evaluating the <DemoOutput/> Component because it can never change (i.e. the only prop it has has a hard coded value and the same will be true if it had no props at all being passed down from the Parent Component). Therefore, re-executing <DemoOutput/> Component and all of it's child Components down the Component Tree will be a waste.
+
+------------------------------------------------------------------------------------
+4. Preventing Unnecessary Re-Evaluations with React.memo():
+------------------------------------------------------------------------------------
+   > Ongoing function executions and virtual comparisons does cost some performance. It is needless to say that React is highly optimised for those executions and comparisons. So in a lot of React Apps including simple apps like the previous example, the re-evaluation will not matter.
+   > Nonetheless, in larger apps you may wish to optimise it. Therefore, you as the developer can tell React that it should only re-execute a Child Component (e.g. the DemoOutput Child Component) under certain circumstances e.g. the props for that Component changed.
+   > How would you tell React that it should behave like this?
+      - You would need to go into the Component that you want to opt into the example "did the prop change check".
+      - Wrap the Component in the export line with React.memo() method.
+      - Important Note: The React.memo() wrapper method will only work with React Functional Components (and does not work for Class-Based Components).
+
+   Preventing Unnecessary Re-Evaluation with React.memo() Wrapper Method Example:
+      DemoOutput (Child Component):
+         import MyParagraph from './MyParagraph';
+         const DemoOutput = (props) => {
+            console.log('DemoOutput RUNNING');
+            return(
+               <MyParagraph>{props.show ? 'This paragraph is new!' : ''}</MyParagraph>
+            );
+         };
+         export default React.memo(DemoOutput);
+
+   Analysing the React.memo() method in Action:
+      > The .memo() method tells React that for the Component that it receives as an argument/parameter, React should look at the props that this Component receives and check the new value for all those props and compare it with the previous values those props got. Only when the value of a prop changed the Component should be re-executed and re-evaluated.
+      > Therefore, if the Parent Component changed but the prop values for the specified Component (i.e. <DemoOutput/>) did not change, then the Component execution will be skipped for that specified Component (and so will all of it's children down the Component Tree will be skipped).
+      > This can be seen in the console (after the initial Component Function execution) that the "DemoOutput RUNNING" and "MyParagraph RUNNING" will no longer be printed to the browser console on the "Toggle Paragraph" button clicks.
+      > This optimisation avoids unnecessary re-rendering. This would lead to the next question: why are we not using this optimisation on all components if it allows us to optimise them?
+         - The reason is because this optimisation comes at a cost. The .memo() method in the above example tells React that whenever the App Component has changed, it should go to the specified Component (e.g. <DemoOutput/>) and compare the new prop values to the previous prop values.
+         - Therefore, React will need to do two things: store the previous prop values and make that comparisons. This in itself has its own performance cost.
+         - Hence, it greatly depends on whether or not it is worth optimising the Component you are applying the .memo() optimisation to. This is because you are trading the performance cost of re-evaluating the Component for the performance cost of comparing props.
+         - It is impossible to say which cost is higher because this will depend on the number of props you have and the complexity of your Component and the number of Child Components the Component has.
+         - The React.memo() can be a great optimisation tool if you have a huge Component tree with a lot of Child Components and the Component in question is on a high level within the Component tree can help avoid unnecessary re-render cycles for the entire branch of the Component tree.
+         - If on the other hand you have a Component where you know it is going to change or its props values are going to change with pretty much every re-evaluation of the Parent Component anyway, then the React.memo() will not make sense in such scenario i.e. if the result is that the Component should re-render anyway then you can save that extra comparison of the props values overhead.
+         - Ultimately, it depends on the App size i.e. for small applications/Component trees it is not worth to add the optimisation. On the other hand, for larger applications, where you can cut off entire branches of unnecessary re-evaluations then it might be well worth the optimisation.
+         - To conclude, you do not want to wrap every Component with React.memo() optimisation but rather pick key Components within the Component tree which allows you to cut off an entire branch of Child Components which is way more effective than applying it on every Child Component.
+
+      > Now lets apply the .memo() optimisation to the Button Component (e.g. 'export default React.memo(Button);'). You will notice something rather strange.
+      > When you click the "Toggle Paragraph" button the "Button RUNNING" continues to print to the browser's console indicating the re-evaluation. Why is this?
+         - The reason you would continue to see the <Button/> Component re-evaluating is because its' props values did actually change.
+         - In the Parent App Component, the <Button/> Child Component receives an "onClick" prop which is set to the "toggleParagraphHandler" pointer function and a children prop (the contents between the Opening and closing <Button></Button> tags i.e. the text "Toggle Paragraph") which never change.
+         - This is a common gotcha with React. Keep in mind the App Component is a function in the end and it re-executes like a normal JavaScript function because it is a normal JavaScript function. The only magic is that the function is going to be called by React and not by you, but then it executes like a normal function. Therefore all the code gets executed again.
+         - This has one important implication, the 'toggleParagraphHandler' function which is passed to the <Button/> Component on the "onClick" prop is recreated. Therefore, the "toggleParagraphHandler" is a brand new function for every execution cycle of the App function.
+         - Thus, the function is not the same one passed all the time but it is a new function that does the same thing as the previous function. Technically to JavaScript the function is a brand new function for everytime the App function is being executed.
+         - This logic is also true for the "{false}" value being passed to the <DemoOutput/> Components "show" prop. Previously, we said the {false} value never changes but that technically was not correct. When the App Component is re-executed a new "false" value is created. This leads to the question: should <DemoOutput/> Component also be re-evaluated regardless of the .memo() optimisation?
+         - You need to keep in mind that false is a boolean value. Boolean like other data types such as strings and numbers are primitive values in JavaScript. With primitive values if you compare for example two Booleans you will get true or false whether or not they evaluate to be the same (e.g. false === false evaluates to true and 'hi' ==== 'hi' evaluates to true i.e. the values are the same).
+         - When comparing reference data types such as arrays, object or functions the evaluation would result to false. While the data type would look the same to a human, to JavaScript they are not the same (e.g. [1,2,3] === [1,2,3] will evaluate to false).
+         - For more information on reference vs primitive values refer to https://academind.com/tutorials/reference-vs-primitive-values/ - this is a core concept in JavaScript that you should understand.
+         - Functions are just objects in JavaScript. Two object, even if they have the same content are never equal with compared to each other in JavaScript.
+         - Therefore, the .memo() method when it compares reference type prop values, it will always evaluate to false and will consider the prop value has changed and re-evaluates the Component. 
+         - Understanding this information is crucial and to get right when using the .memo() optimisation.
+      > The next question: Does this mean that React.memo() is useless for Components that receive reference type values through their props? The short answer is no.
