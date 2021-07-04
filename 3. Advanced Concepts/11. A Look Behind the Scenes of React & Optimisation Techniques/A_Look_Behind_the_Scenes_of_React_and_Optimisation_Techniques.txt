@@ -3,6 +3,7 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
 2. A Close Look at Component Updates in Action
 3. A Closer Look at Child Component Re-Evaluation
 4. Preventing Unnecessary Re-Evaluations with React.memo()
+5. Preventing Function Re-Creation with useCallback() Hook
 
 ------------------------------------------------------------------------------------
 1. How React Really Works:
@@ -211,3 +212,35 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
          - Therefore, the .memo() method when it compares reference type prop values, it will always evaluate to false and will consider the prop value has changed and re-evaluates the Component. 
          - Understanding this information is crucial and to get right when using the .memo() optimisation.
       > The next question: Does this mean that React.memo() is useless for Components that receive reference type values through their props? The short answer is no.
+
+------------------------------------------------------------------------------------
+5. Preventing Function Re-Creation with useCallback() Hook:
+------------------------------------------------------------------------------------
+   > To make React.memo() optimisation to work with prop values that are objects (i.e. reference values) requires us to tweak the way we create and store those objects.
+   > React provides the useCallback() Hook. This Hook allows us to store a function across Component executions i.e. tell React to save a function and that this function should not be recreated with every execution. Therefore, one and the same function is stored in the same place in memory.
+   > This tweak allows the .method() to evaluate to true because the prop will point to the same function in memory and therefore the previous and new prop would be the same and the prop would not be considered to have changed.
+
+   Preventing Function Re-Creation with useCallback() Example:
+      import React, { useState, useCallback } from 'react';
+      ...
+      function App() {
+         ...
+         const toggleParagraphHandler = useCallback(() => {
+            setShowParagraph((prevShowParagraph) => !prevShowParagraph);
+         }, []);
+         return (...);
+      };
+
+   Analysing the .useCallback() Hook in Action:
+      > We know that in JavaScript obj = {} and object obj2 = {} will evaluate to false because obj1 === obj2 is false. However, if obj2 = obj1 i.e. it points to the same object in memory then obj1 === obj2 will evaluate to true.
+      > This is what the useCallback() Hook allows us to do. It will save the function of our choice somewhere in Reacts' internal storage and always re-use that same function object when the Component function re-executes.
+      > To use the .useCallback() Hook you would need to import it from the React library. Then wrap the function you want to save with the useCallback() Hook.
+         - The .useCallback() Hook takes a function as its first argument/parameter.
+         - In the example this is the function form (i.e. anonymous function) that calls the setShowParagraph function to toggle this state.
+      > Whenever the App Component function re-runs, React will look for that function that it stored for us and re-use that same function object.
+      > Thus, if you know that a function should never change then you should use the .useCallback() Hook to store the function.
+      > The .useCallback() Hook requires a array of dependencies (similar to the useEffect Hook). The dependencies are the same as they are for the .useEffect() Hook i.e. anything you use in the function which is coming from the surrounding Component (i.e. any 'State', 'Prop' or 'Context') should be specified here.
+         - In the above this is the "setShowParagraph" State. However, as an exception to this rule, you do not need to reference the State function because (with the help of .useCallback() React guarantees that the State function will never change and will be the same function object).
+         - Note that the '(prevShowParagraph) => !prevShowParagraph' line is a function that is passed to the setShowParagraph function as an argument and does not need to be referenced as a dependency because the function is totally contained inside of the .useCallback() Hook function.
+         - The above code tells React that the callback function which will be stored in "toggleParagraphHandler" will never change and has no dependencies and therefore always re-use the same function object whenever the App Component re-renders.
+      > The "Button RUNNING" will print to the browser's console when the <Button/> Component initialises for the first time but thereafter when you now click on the "Toggle Paragraph" button the "Button RUNNING" message will no longer appear because the React.memo() optimisation will now be able to do its job i.e. cut off any unnecessary re-evaluations on that Child Component tree branch if no props for the specified Component has not changed. This is because the "toggleParagraphHandler" is guaranteed to be the same function object in memory because of the .useCallback() Hook.
