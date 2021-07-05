@@ -5,6 +5,7 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
 4. Preventing Unnecessary Re-Evaluations with React.memo()
 5. Preventing Function Re-Creation with useCallback() Hook
 6. The useCallback() Hook and its Dependencies
+7. A Closer Look at State and Components
 
 ------------------------------------------------------------------------------------
 1. How React Really Works:
@@ -298,3 +299,38 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
 
       > The .useCallback() Hook will only recreate and store the new re-created function if the dependency changed on the re-execution of the App Component function. This will now fix the issue and the "Toggle Paragraph" button will start to work after you clicked the "Allow Toggling" button to change the "allowToggle" state from false to true.
       > This concept may seem confusing but this concept of closures has nothing to do with React but more to do with JavaScript. Therefore, you should make sure to understand JavaScript concepts of closures and primitive reference values. Once you understand these concepts then React would become very clear since it is all JavaScript code at the end of the day.
+
+------------------------------------------------------------------------------------
+7. A Closer Look at State and Components:
+------------------------------------------------------------------------------------
+   > Before we look at State and Component, a quick summary of what we have learnt thus far.
+   > In React Apps you work with Components typically with function Component in modern React. Those Components have one job which is to return JSX Code. This tells React what the output of that Component should be.
+   > In your React Components, you can work with 'State', 'Props' or 'Context' (although with 'props' and 'context' all come down to State changes at the end of the day) to make changes to a Component i.e. to its data which affects the Component itself or affects parts of your application.
+   > Whenever you change the state in a Component, that Component where the state changed is re-evaluated which simply means that Component function is executed again. When the code runs again the JSX code output could either be exactly the same output as before or something different. React takes the result of the latest evaluation and compares it to the previous evaluation's results. It does this for all affected Components.
+   > Any changes detected is handed off to ReactDOM (because ReactDOM.render() is being used to render the React App). ReactDOM will take only those changes and apply them to the real DOM in the browser.
+   > When React Re-evaluates a Component, it does not do this for just that Component. Since the JSX is also rerun within the Component function it will therefore also rerun all other Components that are within the JSX code.
+   > To avoid unnecessary re-executions of Child Components, React provides a .memo() method to tell React to only re-evaluates a Child Component if its props has actually changed.
+   > Re-evaluating a Component can have a strange effect if you are not aware of the fact that re-evaluation means that everything in the function runs again. Therefore, function created inside of the function Component and pass those functions through props to other Components, you will get a new function object which React.memo() method will not be able to help.
+   > Functions are objects in JavaScript which are a reference data type values. Comparing two reference values using the equality operator (===) will not work, which is what the React.memo() method uses under the hood. This is not a problem for primitive values.
+   > This is where the .useCallback() Hook comes in and can help this situation because the .useCallback() Hook tells React to store a function and not recreate it when the surrounding function reruns again as long as certain dependencies did not change.
+   > Now there are still a couple of open questions left, for instance: If the Component function runs again whenever the 'State' changes does this not mean that the state is reinitialised all the time because it is executed with "useState()" over and over again. Why does this not cause any problems in React?.
+
+   A .useState() Hook Example:
+      function App() {
+         const [showParagraph, setShowParagraph] = useState(false);
+         const [allowToggle, setAllowToggle] = useState(false);
+         ...
+         return (...);
+      };
+
+   Analysing the useState() Hook in Action:
+      > State is a crucial concept in React. Ultimately, everything comes down to 'State' when it comes to re-rendering Components and changing what is rendered on the screen.
+      > Therefore, Components and their interaction with 'State' is a core aspect of React. It is worth noting that both (Components and 'State') are managed by React. The Components concept comes from the React library and React also takes care of your 'State' that is attached to the Components by using useState() Hook (which is how the interaction between Component and 'State' are handled).
+      > One of the most common forms of managing state is to use the useState() Hook. This allows you to create a new piece of state which is automatically attached to the Component you called the useState() Hook. This attachment is done behind the scenes by React i.e. it creates a new state variable which it manages and ties it to the Component for you.
+      > Even though the useState() Hook is called everytime the App Component function runs again, we do not seem to lose or reinitialise the state all the time. The reason for this is simple, this is because it the useState() comes from React which React manages the state and connection for you. As part of the management process, React ensures the useState() and value(s) you pass as a default value essentially is only considered once.
+      > The first time a Component is rendered the useState() Hook when executed will create a new state variable which is handed off and managed by React. React then memorises to which Component the state variable belongs and uses the default value to initialise the state with that passed in argument/parameter value.
+      > For subsequent App Component function calls (i.e. re-evaluation of the App Component function), when the useState() Hook is being called again, no new state is being created. Instead, React recognises that it already has a state for the Component and instead simply updates that state as needed. 
+         - It will never re-initialise the state unless the Component was totally removed from the DOM (in the case of the App Component, this will never occur since it is our root Component).
+         - For Child Components being rendered conditionally the Component might be removed and in that case if the Component is later re-attached to the DOM then a new state would be initialised.
+         - As long as a Component stays attached to the DOM, state is only updated after that first initialisation.
+      > The same also applies for the useReducer() Hook.
