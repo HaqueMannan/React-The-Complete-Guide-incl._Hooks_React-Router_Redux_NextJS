@@ -4,6 +4,7 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
 3. A Closer Look at Child Component Re-Evaluation
 4. Preventing Unnecessary Re-Evaluations with React.memo()
 5. Preventing Function Re-Creation with useCallback() Hook
+6. The useCallback() Hook and its Dependencies
 
 ------------------------------------------------------------------------------------
 1. How React Really Works:
@@ -244,3 +245,56 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
          - Note that the '(prevShowParagraph) => !prevShowParagraph' line is a function that is passed to the setShowParagraph function as an argument and does not need to be referenced as a dependency because the function is totally contained inside of the .useCallback() Hook function.
          - The above code tells React that the callback function which will be stored in "toggleParagraphHandler" will never change and has no dependencies and therefore always re-use the same function object whenever the App Component re-renders.
       > The "Button RUNNING" will print to the browser's console when the <Button/> Component initialises for the first time but thereafter when you now click on the "Toggle Paragraph" button the "Button RUNNING" message will no longer appear because the React.memo() optimisation will now be able to do its job i.e. cut off any unnecessary re-evaluations on that Child Component tree branch if no props for the specified Component has not changed. This is because the "toggleParagraphHandler" is guaranteed to be the same function object in memory because of the .useCallback() Hook.
+
+------------------------------------------------------------------------------------
+6. The useCallback() Hook and its Dependencies:
+------------------------------------------------------------------------------------
+   > The useCallback allows you to save a function so that you can reuse it.
+   > You have to specify the dependencies array. initially you might think why would you need this for? The function always has the same logic across re-render cycles.
+   > Keep in mind that in JavaScript, functions are closures. This means that functions close over the values that are available in their environment. You can learn more about closures on the following web resource link:
+   https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures
+   > You would need to fully understand how closures work in order to understand how React works. Below is an example code:
+
+   Function Closure Example:
+      ...
+      function App() {
+         const [showParagraph, setShowParagraph] = useState(false);
+         const [allowToggle, setAllowToggle] = useState(false);
+         console.log('APP RUNNING');
+         const toggleParagraphHandler = useCallback(() => {
+            if(allowToggle) {
+               setShowParagraph((prevShowParagraph) => !prevShowParagraph);
+            };
+         }, []);
+         const allowToggleHandler = () => {
+            setAllowToggle(true);
+         };
+         return (
+            <div className="app">
+               <h1>Hello World!</h1>
+               <DemoOutput show={showParagraph} />
+               <Button onClick={allowToggleHandler}>Allow Toggling</Button>
+               <Button onClick={toggleParagraphHandler}>Toggle Paragraph</Button>
+            </div>
+         );
+      };
+
+   Analysing the .useCallback() Hook and its Dependencies in Action:
+      > In this example, we have a second button called "Allow Toggling". This buttons onClick is set to the allowToggleHandler function which will set the "allowToggle" state from false to true which should then allow the "Toggle Paragraph" button to start working and toggle the "showParagraph" (in theory).
+      > You will notice when you run the App for the first time, clicking the "Toggle Paragraph" button does nothing. If you click the "Allow Toggling" button, the "Toggle Paragraph" button should start to do something; however, it continues to do nothing.
+      > The reason for this unexpected behaviour is because functions are closures within JavaScript and also due to the fact that the above is not using .useCallback() properly (in your IDE you will notice a yellow squiggly line for the dependencies array).
+      > When a function is defined, which happens when the App Component function runs, JavaScript locks in all the variables that are defined outside of the function that are being used within the function. In the above example this is the "allowToggle" variable which is coming from outside the "toggleParagraphHandler" function. JavaScript closes over that const variable and stores that const variable for the function definition.
+      > Therefore, this means that when the next time the "toggleParagraphHandler" function is executed, the stored "allowToggle" variable within this function will be used. Therefore, the value of that variable would be the value at the time it was stored.
+      > This generally is perfect because it allows you to use variables from outside the function within the function and call that function at any point you want (which is what you would want for a function that you bind to a button). However, the problem with this and the .useCallback() Hook is that by using the .useCallback() Hook you are telling React to store that exact function somewhere in memory.
+      > When the App function is re-evaluated and re-executed, React will not recreate the function because you told it not to at all circumstances using the .useCallback() Hook. Therefore, the "allowToggle" value is still the old value from the first time the Component was executed and not the most recent one.
+      > This is a problem because there are cases where you would actually want to recreate the function because the values being used in that function that are coming from outside the function might have changed. Therefore, you would add "allowToggle" as a dependency within the useCallback() Hook's dependencies array.
+      > The dependencies array tells React that we generally want to store the function but whenever the value of a dependency changes and has a new value, we want to recreate that function and store the new re-created function. This ensures that we always used the latest variable value inside of the stored function (in the above example this would be the "allowToggle" dependency variable).
+
+         const toggleParagraphHandler = useCallback(() => {
+            if(allowToggle) {
+               setShowParagraph((prevShowParagraph) => !prevShowParagraph);
+            };
+         }, [allowToggle]);
+
+      > The .useCallback() Hook will only recreate and store the new re-created function if the dependency changed on the re-execution of the App Component function. This will now fix the issue and the "Toggle Paragraph" button will start to work after you clicked the "Allow Toggling" button to change the "allowToggle" state from false to true.
+      > This concept may seem confusing but this concept of closures has nothing to do with React but more to do with JavaScript. Therefore, you should make sure to understand JavaScript concepts of closures and primitive reference values. Once you understand these concepts then React would become very clear since it is all JavaScript code at the end of the day.
