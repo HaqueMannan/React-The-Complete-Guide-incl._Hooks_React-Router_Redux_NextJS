@@ -7,6 +7,7 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
 6. The useCallback() Hook and its Dependencies
 7. A Closer Look at State and Components
 8. Understanding State Scheduling & Batching
+9. Optimising with the useMemo() Hook
 
 ------------------------------------------------------------------------------------
 1. How React Really Works:
@@ -408,3 +409,96 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
       > Where you have two state updates in the same synchronous code snippet after each other (e.g. within the same function and not for example in a promise within different .then() blocks, where nothing will cause a time delay), in such cases, React will batch those state updates together in one long synchronous process.
       > React takes all the state updates produced by that function and will batch them together into one state update. This will therefore be one scheduled state update that changes two different states within one process. Therefore, the Component will only re-evaluate/re-execute once in such circumstances.
       > State Batching is another important concept you have to be aware of when working with React.
+
+------------------------------------------------------------------------------------
+9. Optimising with the useMemo() Hook:
+------------------------------------------------------------------------------------
+   > Sometimes in your Component's logic you might have logic that are more performance intensive (i.e. code that might take some time to resolve). Eventually the code will need to execute but you certainly do not want to run the code again everytime the Component function re-evaluated/re-executed.
+   > We learnt that to avoid any unnecessary re-evaluations, you can use React.memo() method. Take the below example:
+
+   App (Parent) Component:
+      import React, { useState, useCallback } from 'react';
+      import DemoList from './components/Demo/DemoList';
+      import Button from './components/UI/Button/Button';
+      function App() {
+         const [listTitle, setListTitle] = useState('My List');
+         const changeTitleHandler = useCallback(() => {
+            setListTitle('New Title');
+         }, []);
+         return (
+            <div className="app">
+               <DemoList title={listTitle} items={[5,3,1,10,9]} />
+               <Button onClick={changeTitleHandler}>Change List Title</Button>
+            </div>
+         );
+      };
+
+   DemoList (Child) Component:
+      import React from 'react';
+      const DemoList = (props) => {
+         const { items } = props;
+         const sortedList = return props.items.sort((a, b) => a - b);
+         console.log('DemoList RUNNING');
+         return (
+            <div className={classes.list}>
+               <h2>{props.title}</h2>
+               <ul>
+                  {sortedList.map((item) => (
+                     <li key={item}>{item}</li>
+                  ))}
+               </ul>
+            </div>
+         );
+      };
+      export default React.memo(DemoList);
+
+   > The DemoList component sorts a unordered list of numbers into an order list. While the list of numbers is small, this task cause become more process intensive with a larger unordered list. Therefore, logic such as this would not want to be re-run on the Component function re-evaluation.
+   > The React.memo() method wraps around the DemoList Component export which will prevent any unnecessary re-evaluation.
+   > We can see that this Component will not re-run unnecessarily with the 'console.log('DemoList RUNNING');' line of code for demonstration. You will notice that when you click the button to change the title the Component would rerun again because the prop.title value (one of its props) has changed. Therefore, the React.memo() method is not failing in this scenario because the Component would need to re-run in this case.
+   > As a side note, the <DemoList/> Component will also always rerun when the Parent Component re-renders because the array of "items" (i.e. items={[5,3,1,10,9]}) is re-created in the Parent Component whenever the Parent App Component reruns. Therefore, even if the title did not change and the Parent App Component was to rerun for some other reasons, the <DemoList/> Component will be re-executed because we are always generating a new items array.
+   > Like functions, arrays are Objects within JavaScript which are of Reference Value Types. Two arrays, even if they both contains exactly the same elements and order, will always evaluate as not being the same. This is because reference values occupy two different places in memory.
+   > Sometimes, the component has a valid reason to re-evaluate and rebuild the Component, however, you might not want to repeat every piece of work/logic within the Component function that was done in the past especially if the work/logic you would have to redo is more performance intensive. Sorting is one of the more performance intensive tasks you can do in your Components.
+   > The useCallback() Hook is used to store function objects and only re-build them when some input changed. There is something similar for all other kinds of data called the useMemo() Hook.
+
+   App (Parent) Component:
+      import React, { useState, useCallback, useMemo } from 'react';
+      ...
+      function App() {
+         ...
+         const listItems = useMemo(() => [5, 3, 1, 10, 9], []);
+         return (
+            <div className="app">
+               <DemoList title={listTitle} items={listItems} />
+               <Button onClick={changeTitleHandler}>Change List Title</Button>
+            </div>
+         );
+      };
+
+   DemoList (Child) Component:
+      import React, { useMemo } from 'react';
+      const DemoList = (props) => {
+         const { items } = props;
+         const sortedList = useMemo(() => {
+            console.log('Items sorted');
+            return items.sort((a, b) => a - b);
+         }, [items]); 
+         console.log('DemoList RUNNING');
+         return (...);
+      };
+      export default React.memo(DemoList);
+
+   Analysing the useMemo() Hook in Action:
+      > The useMemo() Hook needs to be imported from the React library.
+      > The useMemo() Hook allows you to memorise (i.e. to store) any kind of data which you want to store, similar to how useCallback() Hook does for functions.
+      > In the example above we use the useMemo() Hook to memoise the result of the sorting. The useMemo() Hook wants a function as its first argument/parameter. That function will not be memorised, instead it should return what you would want to store i.e. memoise (note that memoise and memorise are two different terms but mean similar things in this context).
+      > The useMemo() Hook also wants a second argument which is an array of dependencies (similar to the useCallback() Hook). This will ensure the stored value is updated whenever one of the value used in useMemo() Hook changes. Therefore, whenever the item array changes we would want to resort them and store that new sorted value.
+      > Instead of using props as a dependencies which will mean the entire props object will become the dependency and would essentially always re-calculate; a more elegant way is to destructuring to pull something out of the props object. In the above example this was to pull out the "items" array that is passed down through the props object.
+      > The "sortedList" will only be re-built if the items array passed down from the Parent Component actually changed.
+      > To ensure that we do not unnecessarily pass in a new array, we can also use the useMemo in the Parent App Component. This allows us to wrap the array with useMemo() Hook and pass an empty dependencies array as the second argument/parameter (e.g. 'useMemo(() => [5, 3, 1, 10, 9], [])'). In the above example, this is pulled out into its own variable called listItems which is then passed as a value to the "items" prop.
+      > You should now notice that the application no longer unnecessarily sorts the list again if the list values did not change - this can be seen in the browser's console whereby "Items sorted" is printed for the first initialisation but never again even if we were to click the Change List Title button. Note: that the <DemoList/> Component will (and should) rerun because the title prop changed.
+
+   > The useMemo() Hook is used far less often compared to the useCallback() Hook. This is because memorising functions is much more useful and needed more often than memorising data. You essentially want to memorise data if it would be performance intensive to re-calculate something based on it, otherwise it might not really be worth it.
+   > You need to keep in mind that if you store data with useMemo() it occupies some memory and also the stored function takes up some performance. Therefore, this is not something you want to use in every value you are using.
+   > However, if you have a scenario like the above (i.e. where you want to sort something) then it might be useful to take a look at using the useMemo() Hook because it will avoid unnecessary logic steps (such as sorting) in future Component updates.
+   > There is no clear right or wrong, but with experience you will know when to use what in different scenarios and circumstances.
+   > Being aware of all these optimisation tricks will help you to resolve issued whereby the application is either slow or you want to improve some parts of the application for better user experience.
