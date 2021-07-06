@@ -6,6 +6,7 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
 5. Preventing Function Re-Creation with useCallback() Hook
 6. The useCallback() Hook and its Dependencies
 7. A Closer Look at State and Components
+8. Understanding State Scheduling & Batching
 
 ------------------------------------------------------------------------------------
 1. How React Really Works:
@@ -19,7 +20,7 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
    > 'Props' are Data from Parent Component, 'State' is the internal data inside of a Component and 'Context' is the Component-wide data.
    > Whenever 'props', 'state' or 'context' changes the Components that use these concepts are updated by React and React checks whether the Component wants to draw something new onto the screen and if that should be the case then React will let ReactDOM know about that so that it can bring that new render/output to the screen.
    > The question is how does the Components to Real DOM communication actually work?
-   > React uses a concept called the 'Virtual DOM'. React determines how the current Component tree (which the app is building in the end and every Component itself has a sub tree that the JSX code returned by that Component) looks like and what it should look like for example, after a state update. That informaton is handed off to ReactDOM which now knows about the differences and which then knows how it should manipulate the real DOM to match that virtual DOM.
+   > React uses a concept called the 'Virtual DOM'. React determines how the current Component tree (which the app is building in the end and every Component itself has a sub tree that the JSX code returned by that Component) looks like and what it should look like for example, after a state update. That information is handed off to ReactDOM which now knows about the differences and which then knows how it should manipulate the real DOM to match that virtual DOM.
    > There is one important thing to note: whenever a 'prop', 'state' or 'context' of a Component changes, that Component function is re-executed (i.e. that Component is re-evaluated by React). However, re-evaluating a Component is not the same as re-rendering the DOM. Therefore, just because a Component function is re-executed by React does not mean that the respective part of the actual real DOM is re-rendered or re-evaluated.
    > We have to differentiate between our Component/React part and the real DOM.
    > The real DOM is only updated in the places where it needs to be changed based on that difference React derived between the previous state of a Component and its tree and the current state after the prop/state/context change.
@@ -334,3 +335,76 @@ A Look Behind the Scenes of React & Optimisation Techniques - Summary:
          - For Child Components being rendered conditionally the Component might be removed and in that case if the Component is later re-attached to the DOM then a new state would be initialised.
          - As long as a Component stays attached to the DOM, state is only updated after that first initialisation.
       > The same also applies for the useReducer() Hook.
+
+------------------------------------------------------------------------------------
+8. Understanding State Scheduling & Batching:
+------------------------------------------------------------------------------------
+   > Calling the State updating functions provided by the useState() Hook schedules a State update with the data passed in. It is important to note that this is a scheduled state change and not an instantaneous one.
+   > React is aware of the the state change and plans on processing the change but it is not done so immediately.
+   > In reality scheduled state changes will be processed very fast/instantly. Therefore, in reality the state change may feel instant.
+   > React reserves the right of actually postponing the state change for example because a lot of other performance intensive tasks are going on at the same moment (potentially tasks that React considers to have a higher priority). For example, if you have an input field where users are able to type something, reacting to that user input would have a higher priority than changing some text on the screen.
+   > For reasons as mentioned, React might postpone scheduled state changes.
+
+   State Scheduling Diagram Example:
+   [Application Code]                                    [React]
+   [<MyProduct/>] [setNewProduct('Book')]                [Current State: 'DVD']
+                           |
+      [Schedules a State Update with data 'Book']------->[Scheduled State Change]      Multiple updates can be scheduled
+      [Schedules a State Update with data 'Carpet']----->[Scheduled State Change]      at the same time!
+   [<MyProduct/>]<--------re-evaluate/re-execute---------[New State: 'Book']
+   [<MyProduct/>]<--------re-evaluate/re-execute---------[New State: 'Carpet']
+
+   > React guarantees the order of state changes for one in the same type of state is guaranteed.
+   > For example, if you used setNewProduct('Book') and then setNewProduct('Carpet'), etc. the state change would perform the functions the order it was requested i.e. 'Book' before 'Carpet' (preserving the order). However, the execution of the state functions are not necessarily executed immediately.
+   > Once the state change has been processed, React will re-evaluate the Component function.
+   > Because of this scheduling, where you can have multiple outstanding scheduled state changes at the same time, it is recommended to use the function form for updating your state if you depend on the previous state snapshot.
+
+   Analysing the State Scheduling in Action:
+      > Both example below demonstrate how to use the function form for the state changes; however, the second example uses the useCallback() Hook to ensure the outside dependencies changes can be taken into account on the Component function re-evaluation/re-execution.
+
+      Function Form State Changes Example:
+         const toggleParagraphHandler = () => { 
+            setShowParagraph((prevShowParagraph) => !prevShowParagraph)
+         };
+
+         const toggleParagraphHandler = useCallback(() => {
+            if(allowToggle) {
+               setShowParagraph((prevShowParagraph) => !prevShowParagraph);
+            };
+         }, [allowToggle]);
+
+      > In a lot of cases this will probably not matter because it is processed so quickly that you cannot even click fast enough to see a delay. However, because it theoretically can be postponed, the function form is a safe way of ensuring that state changes are processed in order and for every state change where you depend on the previous state you will get the latest state.
+      > Without using function form you may get the latest state when the Component function was executed last which is not necessarily the same state as if the state changes are executed in order.
+      > This is an important difference between when the Component was re-rendered and when a state change was scheduled.
+      > You can have multiple outstanding state changes from one and the same Component re-evaluation and should be the key takeaway here and why using the function form matters.
+      > The above example, we want a state update that depends on the same state but just a previous snapshot of that state.
+
+      Function Form State Changes in useEffect Hook Example:
+         useEffect(() => {
+            const identifier = setTimeout(() => {
+               console.log('Checking Form Validity');
+               setFormIsValid(emailIsValid && passwordIsValid);
+            }, 500)
+            return () => {
+               console.log('CLEANUP');
+               clearTimeout(identifier);
+            };
+         }, [emailIsValid, passwordIsValid])
+
+      > In this example, it was safe to actually update the form validity based on the emailIsValid and passwordIsValid states inside of the useEffect() Hook. This is because just like using the function form for updating a state based on a previous snapshot, the useEffect() Hook dependencies mechanism ensures to rerun the side effect every time a state or a value which is a dependency changed.
+      > Therefore, you cannot miss outstanding state changes because it will simply rerun the effect for every time the Component was re-executed. Hence, you are always guaranteed to get the latest state when using the above example pattern.
+      > It can be said that these are simply two different patterns for dealing with one and the same problem depending on what you are trying to achieve. In the useEffect() Hook pattern example, we want state updates that depend on some other state while in the "toggleParagraphHandler" example(s) we want a state update that depends on the same state but just the previous snapshot of that state.
+      > The State Scheduling mechanism is something you must keep in mind not because you actively need to do something about that (React manages those scheduled updates for you) but because you need to write your code accordingly to rule out any danger of potentially working with outdated data. This is mitigated by using the function form or useEffect pattern.
+
+      > There is another important thing you need to know about State in React. If you call two state updating functions one after other, you have just learned that just because you call such a function does not mean that it the very next line the state was updated. Instead, the update will be scheduled and eventually the entire Component will rerun and once the Component does rerun you will then have the latest state and not earlier.
+      > Take the below code as an example:
+
+         const navigateHandler = (navPath) => {
+            setCurrentNavPath(navPath);
+            setDrawerIsOpen(false);
+         };
+
+      > In this example, there are two state updates which means that two state changes will be scheduled. Does this mean that the Component will be re-executed/re-evaluated twice? The answer is no.
+      > Where you have two state updates in the same synchronous code snippet after each other (e.g. within the same function and not for example in a promise within different .then() blocks, where nothing will cause a time delay), in such cases, React will batch those state updates together in one long synchronous process.
+      > React takes all the state updates produced by that function and will batch them together into one state update. This will therefore be one scheduled state update that changes two different states within one process. Therefore, the Component will only re-evaluate/re-execute once in such circumstances.
+      > State Batching is another important concept you have to be aware of when working with React.
