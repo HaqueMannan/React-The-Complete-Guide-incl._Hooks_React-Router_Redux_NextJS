@@ -1,5 +1,6 @@
 An Alternative Way of Building Components: Class-based Components - Summary:
 1. What are Class-based Components and Why Would You Use Them?
+2. Creating a Class-based Component
 
 ------------------------------------------------------------------------------------
 1. What are Class-based Components and Why Would You Use Them?:
@@ -31,3 +32,52 @@ An Alternative Way of Building Components: Class-based Components - Summary:
    > Traditionally, prior to React 16.8, you could not change 'State' in Functional Components and could not also handle side effects as well. However, React 16.8 introduced a concept called React Hooks which has changed this for Functional Components. These Hooks, which are function for Functional Components, brought features to Functional Components which were previously reserved for Class-based Components.
    > It is important to note that Class-based Components cannot use React Hooks.
    > We will explore how to use Class-based Components, how to manage 'State' and how to translate useEffect, useContext and useReducer to the Class-based Component world for general knowledge.
+
+------------------------------------------------------------------------------------
+2. Creating a Class-based Component:
+------------------------------------------------------------------------------------
+   > Below will analyse how we can convert the Functional Component example into a Class-based Component.
+
+   Functional Component:
+      User.js:
+         const User = (props) => {
+            return <li className={classes.user}>{props.name}</li>;
+         };
+         export default User;
+
+   Class-based Component Example:
+      Users.js:
+         import { Component } from 'react';
+         class User extends Component {
+            render(){
+               return <li className={classes.user}>{this.props.name}</li>;
+            };
+         };
+         export default User;
+
+   Users.js Component:
+      ...
+      const Users = () => {
+         ...
+         const usersList = (
+            <ul>
+               {DUMMY_USERS.map((user) => (
+                  <User key={user.id} name={user.name} />
+               ))}
+            </ul>
+         );
+         render(...);
+      };
+
+   > To create a Class-based Component you would use the JavaScript's "class" keyword (which is built into JavaScript) followed by the class name and then followed by curly brackets.
+   > The class is then defined inside of the curly brackets. You can start adding methods to the class for example, the 'constructor()' method or a 'render()' method, etc. Theoretically, you can add as many methods as you want to the class and name them whatever you want.
+   > Note: 'render()' is a specific method expected by React in Class-based Components, which it will call when it finds a Component being used in JSX code. React will call the 'render()' method to find out what should be rendered to the screen for that Class-based Component. Therefore, the 'render()' method in a class is the equivalent to the 'return' statement in a Functional Component.
+   > Within the 'render()' method you would also need to return the result that should be rendered.
+   > In the Class-based Component, the render method does not automatically receive the props as a parameter (compared to the Functional Component). Instead, we would need to do something else, not only for the props but to make the Class-based Component work in general.
+   > You need to import 'Component' as a named import from the React library. This then allows you to 'extend' your JavaScript class object as a Component class. Extending a class (i.e. inheriting from another class) is a concept within modern JavaScript following Object Oriented Programming (OOP).
+   > You class object now inherits all the properties and methods from the Component class which is defined by React. This Component class adds important functionality to make your JavaScript class work as a Component and also adds a couple of important properties e.g. the props property which you can now access via 'this.props' (which is all possible by extending the 'Component' class).
+   > You now have a Class-based Component for "User" which is equivalent to the Functional Component.
+   > In comparison the Functional Component is much more leaner compared to the Class-based Component and is one of the main reasons for why Functional Components are more popular. But other than this difference both "User" Component are the same as each other.
+   > You would export the Class-based Component the same as how you would export a Functional Component.
+   > Important Note: Class-based Components can work together with Functional Components. In the above example: <Users/> is a Functional Component but it renders <User/> which is now a Class-based Component. This is not a problem. A Classed-based Component can also render a Functional Component which will also work.
+   > In reality you are most likely going to build a project by either sticking to just Functional Components or just to Class-based Components. You can mix and match but this will mostly matter if you are working on an existing application and you are adding new features and/or step-by-step migrate from Class-based to Functional Components.
