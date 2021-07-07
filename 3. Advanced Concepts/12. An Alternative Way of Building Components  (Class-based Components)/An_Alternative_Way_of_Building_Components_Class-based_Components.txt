@@ -1,0 +1,33 @@
+An Alternative Way of Building Components: Class-based Components - Summary:
+1. What are Class-based Components and Why Would You Use Them?
+
+------------------------------------------------------------------------------------
+1. What are Class-based Components and Why Would You Use Them?:
+------------------------------------------------------------------------------------
+   > Class-based Components are an alternative way of creating Components compared to the Functional Components.
+   > Functional Components are simply regular JavaScript functions which returns some render-able results, typically JSX code. This term exists because it is not the only way of building Components.
+
+   Function Component Example:
+      function Product(props) {
+         return(<h2>A Product</h2>);
+      };
+   or
+      const Product = (props) => {
+         return(<h2>A Product</h2>);
+      };
+
+   Class-based Component Example:
+      class Product extends Component{
+         render() {
+            return <h2>A Product</h2>;
+         };
+      };
+
+   > You can define a Component by creating a class (creating classes is a default JavaScript feature). You can define a class with a 'render()' method (note: render is a reserved name and must be named like this) and React will call that 'render()' method to evaluate what should be rendered to the screen.
+   > This alternative way of creating Component is referred to as class Component/Class-based Component.
+   > Important: Functional Component is now the default and most modern approach of building Components. Therefore, in most modern React projects you would typically work with Functional Components only. In modern React (with the exception of error boundaries) there is no reason to go back to Class-based Components except for personal preferences.
+   > You can build anything that you can build with Functional Components with Class-based Components as well. It requires you to have a different mental model in some aspects.
+   > Class-based Components exists because they were required in the past (i.e. prior to React 16.8) to "manage" State and dealing with "Side Effects".
+   > Traditionally, prior to React 16.8, you could not change 'State' in Functional Components and could not also handle side effects as well. However, React 16.8 introduced a concept called React Hooks which has changed this for Functional Components. These Hooks, which are function for Functional Components, brought features to Functional Components which were previously reserved for Class-based Components.
+   > It is important to note that Class-based Components cannot use React Hooks.
+   > We will explore how to use Class-based Components, how to manage 'State' and how to translate useEffect, useContext and useReducer to the Class-based Component world for general knowledge.
