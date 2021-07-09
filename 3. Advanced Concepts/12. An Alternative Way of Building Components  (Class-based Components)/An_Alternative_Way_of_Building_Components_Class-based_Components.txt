@@ -2,6 +2,7 @@ An Alternative Way of Building Components: Class-based Components - Summary:
 1. What are Class-based Components and Why Would You Use Them?
 2. Creating a Class-based Component
 3. Working with State & Events
+4. Component Lifecycle Methods
 
 ------------------------------------------------------------------------------------
 1. What are Class-based Components and Why Would You Use Them?:
@@ -175,3 +176,22 @@ An Alternative Way of Building Components: Class-based Components - Summary:
    > The bind() is a default JavaScript method which you can call on functions/methods. It allows you to bind 'this' inside of the “to-be-executed function/method” to any value of your choice (i.e. we would want to bind it to the constructor() method which will always have the state object that we wish the context of the 'this' keyword to refer to).
    > This is all related to how JavaScript works and has nothing to do with React.
    > As you can see, this is a completely different way of writing your Components.
+
+------------------------------------------------------------------------------------
+4. Component Lifecycle Methods:
+------------------------------------------------------------------------------------
+   > React Hooks do not work with Class-based Component, so how do you handle side effects in Class-based Components?
+   > Class-based Components have a concept called the the Component Lifecycle.
+   > Technically, every Component has a lifecycle i.e. it is rendered to the DOM or removed from the DOM. However, there are specific methods you can add to Class-based Components to run code at different points in that life cycle.
+   > The first most important lifecycle method you can add to a Class-based Component is the componentDidMount() method. Just like the render() method, the componentDidMount() lifecycle method is a built in method within Reacts Component class.
+   > Adding the componentDidMount() method will tell React to call this method for you when the Component was just mounted.
+   > Other Component lifecycle methods include: componentDidUpdate() and componentWillUnmount(). There are other less important lifecycle methods we will not look into. However, the three lifecycle methods mentioned thus far are by far the most important and common lifecycle methods used with Class-based Components.
+
+   Lifecycle method - Description:                                                                                      React Hook Equivalent:
+      > componentDidMount - called once the Component mounted (i.e. was evaluated & rendered)                              > useEffect(..., []);
+      > componentDidUpdate - called once the Component updated (i.e. was re-evaluated & re-rendered)                       > useEffect(..., [someValue]);
+      > componentWillUnmount - called right before the component is unmounted (i.e. removed from the DOM)                  > useEffect(() => { return () => {...} }, []);
+
+   > Adding the useEffect() Hook with an empty dependencies array in a Functional Component is basically the equivalent to componentDidMount() method for a Class-based Component.
+   > Adding the useEffect() Hook with dependency in the dependencies array in a Functional Component which causes a re-evaluation and re-rendering of the Component on a change to the dependency (e.g. a State update) is the equivalent to the componentDidUpdate() method for the Class-based Component.
+   > The clean-up function from the useEffect() Hook in a Functional Component is the equivalent to the componentWillUnmount() method for the Class-based Component. The clean-up function is called right before the useEffect() method is executed again and also when the Component is about to be removed from the DOM.
