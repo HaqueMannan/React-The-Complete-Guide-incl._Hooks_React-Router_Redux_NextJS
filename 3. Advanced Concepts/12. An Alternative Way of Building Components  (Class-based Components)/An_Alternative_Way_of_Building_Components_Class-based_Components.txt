@@ -1,6 +1,7 @@
 An Alternative Way of Building Components: Class-based Components - Summary:
 1. What are Class-based Components and Why Would You Use Them?
 2. Creating a Class-based Component
+3. Working with State & Events
 
 ------------------------------------------------------------------------------------
 1. What are Class-based Components and Why Would You Use Them?:
@@ -81,3 +82,96 @@ An Alternative Way of Building Components: Class-based Components - Summary:
    > You would export the Class-based Component the same as how you would export a Functional Component.
    > Important Note: Class-based Components can work together with Functional Components. In the above example: <Users/> is a Functional Component but it renders <User/> which is now a Class-based Component. This is not a problem. A Classed-based Component can also render a Functional Component which will also work.
    > In reality you are most likely going to build a project by either sticking to just Functional Components or just to Class-based Components. You can mix and match but this will mostly matter if you are working on an existing application and you are adding new features and/or step-by-step migrate from Class-based to Functional Components.
+
+------------------------------------------------------------------------------------
+3. Working with State & Events:
+------------------------------------------------------------------------------------
+   > In Class-based Components you do not add a function inside of the render() method - although possible this would not behave correctly. Instead, you group together functionality by grouping it all in the class i.e. you would add a method, in the above example we can see this with toggleUsersHandler(). Note: that this is the default way of defining methods inside of a JavaScript class (there are other alternative syntax).
+   > Managing State works completely different in Class-based Components. To define a state you need to do two things:
+      - Initialise and define the state using the constructor() method.
+      - Update the state when needed
+
+   Class-based Component with State and Events Example:
+      import { Component, useState } from 'react';
+      import User from './User';
+      const DUMMY_USERS = [{ id: 'u1', name: 'Alex' },{ id: 'u2', name: 'Beth' },{ id: 'u3', name: 'Charlie' },{ id: 'u4', name: 'Diane' },];
+      class Users extends Component {
+         super();
+         constructor() {
+            this.state = {
+               showUsers:  true
+            };
+         };
+         toggleUsersHandler() {...};
+         render() {
+            const usersList = (<ul>{DUMMY_USERS.map((user) => (<User key={user.id} name={user.name} />))}</ul>);
+            return (
+               <div className={classes.users}>
+                  <button onClick={this.toggleUsersHandler.bind(this)}>
+                     {showUsers ? 'Hide' : 'Show'} Users
+                  </button>
+                  {showUsers && usersList}
+               </div>
+            );
+         };
+      };
+
+   > When extending from another class, JavaScript requires you to use the .super() method inside of the constructor() method. This method calls the constructor of the super class i.e. the class you are inheriting from.
+   > The constructor() method automatically executes whenever the class is instantiated i.e. when React encounters your class being used as a Component. This allows you to perform initialisation work such as initialising state.
+   > The state is Initialised by using 'this.state' and setting it equal to an object. Important: State inside of a Class-based Component is always an object (in contrast, Functional Component State are flexible i.e. it can be any value you want when using the useState() Hook). The property must also be named 'state' and you have no choice in the name when it comes to Class-based Component State.
+   > Therefore, you always group all the state license and pieces you might need in a Component into one state object (regardless if these pieces are closely related or not). Function Component on the other hand can use multiple useState() Hook calls or create one state object and group it all together there but this is all optional.
+
+   Class-based Component State Object Example:
+      constructor() {
+         this.state = {
+            showUsers:  true,
+            anotherState: 'Hello',
+            nestedState: {...}
+         };
+      };
+
+   > To update the state, you do this by calling the this.setState() method which is provided by Reacts Component Class that we are inheriting from. This method always takes an object. This object would contain the new state you wish to set but, very importantly, it will not override the old state but React behind the scenes will merge the object you passed in with the existing state.
+
+   Incorrect Class-based Component State Updating Example:
+      toggleUsersHandler() {
+         // Invalid syntax for updating state inside of a Class-based Component
+         this.state.showUsers = false
+      };
+
+   Correct Class-based Component State Updating Example:
+      toggleUsersHandler() {
+         this.setState((curState) => {
+            return { showUsers: !curState.showUsers };
+         });
+      };
+
+   > This is different to the Functional Component whereby the useStates updating function will always overwrite the old state with whatever you pass to the updating function. If you would want to merge the old state because you are managing some state object, you would have to write the logic for this on your own.
+   > Note: you can also pass a function to the setState() method, similar to the function form found in the Functional Component state updates. You should use the function form if the new State relies on the previous state.
+   > The function form is slightly different for Class-based Component State update i.e. it requires a new object to be returned from the function. Whatever is returned will be merged with the previous state.
+
+   Using State in Class-based Components Example:
+      ...
+      class Users extends Component {
+         constructor() { this.state = { showUsers:  true}; };
+         toggleUsersHandler() {...};
+         render() {
+            const usersList = (<ul>{DUMMY_USERS.map((user) => (<User key={user.id} name={user.name} />))}</ul>);
+            return (
+               <div className={classes.users}>
+                  <button onClick={this.toggleUsersHandler.bind(this)}>
+                     {this.state.showUsers ? 'Hide' : 'Show'} Users
+                  </button>
+                  {this.state.showUsers && usersList}
+               </div>
+            );
+         };
+      };
+
+   > To use the state you would go into the render() method and wherever the state is needed you can access it via 'this.state' followed by the object property containing the state value you wish to access from the state. You would do this for all the places where you would need access to the state property.
+   > Note: you can still define helper const as seen in the above example with usersList within the render() method. This is valid and working syntax for Class-based Components.
+   > To call a method of a class object, you also require to use the 'this' keyword (e.g. '<button onClick={this.toggleUsersHandler}>'). You would also need to be aware of how the 'this' keyword works within JavaScript.
+   > Refer to this link for more on the 'this' keyword in JavaScript: https://academind.com/tutorials/this-keyword-function-references/.
+   > To make the click event work correctly, we need to use JavaScript .bind() method, passing in the 'this' keyword. This allows you to pass a reference to the “to-be-executed” function to the event listener but bind the 'this' keyword back to the class object and not to the method that called the function i.e. the <button>.
+   > The bind() is a default JavaScript method which you can call on functions/methods. It allows you to bind 'this' inside of the “to-be-executed function/method” to any value of your choice (i.e. we would want to bind it to the constructor() method which will always have the state object that we wish the context of the 'this' keyword to refer to).
+   > This is all related to how JavaScript works and has nothing to do with React.
+   > As you can see, this is a completely different way of writing your Components.
