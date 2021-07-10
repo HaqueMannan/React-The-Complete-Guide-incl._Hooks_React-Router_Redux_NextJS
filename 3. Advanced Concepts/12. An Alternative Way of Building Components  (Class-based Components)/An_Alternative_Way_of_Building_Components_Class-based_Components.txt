@@ -3,6 +3,7 @@ An Alternative Way of Building Components: Class-based Components - Summary:
 2. Creating a Class-based Component
 3. Working with State & Events
 4. Component Lifecycle Methods
+5. Component Lifecycle Method in Action
 
 ------------------------------------------------------------------------------------
 1. What are Class-based Components and Why Would You Use Them?:
@@ -41,7 +42,7 @@ An Alternative Way of Building Components: Class-based Components - Summary:
    > Below will analyse how we can convert the Functional Component example into a Class-based Component.
 
    Functional Component:
-      User.js:
+      src/components/User.js:
          const User = (props) => {
             return <li className={classes.user}>{props.name}</li>;
          };
@@ -195,3 +196,100 @@ An Alternative Way of Building Components: Class-based Components - Summary:
    > Adding the useEffect() Hook with an empty dependencies array in a Functional Component is basically the equivalent to componentDidMount() method for a Class-based Component.
    > Adding the useEffect() Hook with dependency in the dependencies array in a Functional Component which causes a re-evaluation and re-rendering of the Component on a change to the dependency (e.g. a State update) is the equivalent to the componentDidUpdate() method for the Class-based Component.
    > The clean-up function from the useEffect() Hook in a Functional Component is the equivalent to the componentWillUnmount() method for the Class-based Component. The clean-up function is called right before the useEffect() method is executed again and also when the Component is about to be removed from the DOM.
+
+------------------------------------------------------------------------------------
+5. Component Lifecycle Method in Action:
+------------------------------------------------------------------------------------
+   > Below is an example Component created using the Class-based Component pattern. This class also uses lifecycle methods to demonstrate them in action:
+
+   Class-based Component with Lifecycle Methods Example:
+      src/components/UserFinder.js:
+         import { Fragment, Component } from 'react';
+         import Users from './Users';
+         import classes from './UserFinder.module.css';
+         const DUMMY_USERS = [{ id: 'u1', name: 'Alex' }, { id: 'u2', name: 'Beth' }, { id: 'u3', name: 'Charlie' }, { id: 'u4', name: 'Diane' }];
+         class UserFinder extends Component {
+            constructor() {
+               super();
+               this.state = { filteredUsers: DUMMY_USERS, searchTerm: '' };
+            };
+            searchChangeHandler(event) { this.setState({ searchTerm: event.target.value }); };
+            componentDidUpdate(prevProps, prevState) {
+               if(prevState.searchTerm !== this.state.searchTerm) {
+                  this.setState({ filteredUsers: DUMMY_USERS.filter((user) => user.name.includes(this.state.searchTerm)) });
+               };
+            };
+            render() {
+               return (
+                  <Fragment>
+                     <div className={classes.finder}><input type='search' onChange={this.searchChangeHandler.bind(this)} /></div>
+                     <Users users={this.state.filteredUsers} />
+                  </Fragment>
+               );
+            }
+         };
+         export default UserFinder;
+
+   > The 'constructor()' method is used in the Component because it uses state which is initialised by setting 'this.state' to an object. The above example Component has two state of "filteredUsers" and "searchTerm".
+   > The JavaScript 'super()' method is required to be added within the 'constructor()' method in order to extend from another class object's properties and methods i.e. the React Component class.
+   > The "searchChangeHandler" is implemented as a method in the UserFinder Class-based Component. This method should be used to update a part of the state (i.e. the "searchTerm" property).
+   > The "searchChangeHandler" receives an 'event' argument/parameter because it is bound to change event found on the <input/> element. We use the event object received to read the value of the input field entered by the user.
+   > The 'setState({})' method, provided by React, is used to set the new state which always receives an object value. The object is set to the new value for the "searchTerm" property of the state. React will automatically, behind the scenes, preserve all the other state properties and their values when it creates the new state object (i.e. "filteredUsers" will be preserved).
+   > The 'render()' method is used to 'return()' the JSX code from the Class-based Component wrapped inside the round brackets.
+   > Remember: When accessing state properties inside of the JSX code we must use the 'this.state' keyword to point to the Class-based Component state property we wish to access. To access the Component class methods we would use the 'this' keyword but must remember to use the JavaScript '.bind(this)' and pass in the 'this' keyword as the argument/parameter.
+   > The .bind() method will ensure the render method's 'this' context is bound to the Class-based Component's 'this' context in order to be able to point to the "searchChangeHandler" method on the class.
+   > We could derive the filtered users and set them inside of the state update within the "searchChangeHandler" method. However, in the above example, this is also achieved using the lifecycle methods.
+   > The 'componentDidUpdate()' lifecycle method will be called automatically by React whenever the Class-based Component is re-evaluated (e.g. because its state changed).
+
+   Infinite Loop Example:
+      componentDidUpdate() {
+         this.setState({
+            filteredUsers: DUMMY_USERS.filter((user) => user.name.includes(searchTerm))
+         });
+      };
+
+   > The above lifecycle method will cause an infinite loop if implemented in this way. This is because the 'componentDidUpdate()' lifecycle method will always run when an update occurs which is caused by the 'setState({})' method. Therefore, to prevent an infinite loop, you need to check whether the state you are interested in has changed. In the above example this is whether the "searchTerm" state property had changed.
+   > The 'componentDidUpdate()' lifecycle method receives two arguments/parameters which can help you in this case; the previous props (prevProps) and previous state (prevState). These are the last props and state snapshots before the current Component update.
+   > The "if(prevState.searchTerm !== this.state.searchTerm)" checks whether the current "searchTerm" is not the same as the previous "searchTerm" value. Only then will we execute the 'setUpdate({})' method preventing an infinite loop from occurring.
+   > If the filteredUsers did change for some reason other than the searchTerm channing, causing the 'componentDidUpdate()' lifecycle method to execute, the state update function will not run because of the if statement check.
+   > This essentially is the equivalent to using the useEffect() Hook in a Functional Component to handle the side effect.
+   > Note: Class-based Component cannot use React Hooks but demonstrates why React Hooks (and now Functional Components) are popular in modern React (e.g. React Hooks does not require an if statement implementation because the dependencies array handles the changes and re-evaluation/re-execution of the Component for us automatically).
+   > Working with Class-based Components requires you to have a different mental model in mind when implementing this Component pattern. You primarily need to think about when will the lifecycle method will be called and also need to implement if statement checks to restrict the side effect from running in certain circumstance.
+   > With useEffect() Hook, we do not care about what has occurred e.g. rendered for the first time, update, etc - we care about whether a dependency within the dependencies array had actually changed in order for the side effect logic inside of the useEffect() Hook should be executed. This is a much more positive and simpler mental method.
+
+   The componentDidMount() Lifecycle Method Example:
+      src/components/UserFinder.js:
+         ...
+         const DUMMY_USERS = [{ id: 'u1', name: 'Alex' }, { id: 'u2', name: 'Beth' }, { id: 'u3', name: 'Charlie' }, { id: 'u4', name: 'Diane' }];
+         class UserFinder extends Component {
+            constructor() {
+               super();
+               this.state = { filteredUsers: [], searchTerm: '' };
+            };
+            ...
+            componentDidMount() {
+               // Send http request...
+               this.setState({ filteredUsers: DUMMY_USERS });
+            };
+            render(...);
+         };
+
+   > In this example, we imagine that the state's 'filteredUsers' properties is initialised as an empty array and hypothetically expect the data would come from a HTTP request to a server's database and will be populated when the Components rendered for the first time. In this hypothetical example, the 'componentDidMount()' lifecycle method can help us.
+   > In the 'componentDidMount()' lifecycle method, you could send your HTTP request and eventually update the state to be set the "filteredUsers" state property to the fetched data array.
+   > An if statement check is not required here because the 'componentDidMount()' lifecycle method will only run once i.e. when the Component initially was rendered for the very first time. If it is updated later thereafter the 'componentDidMount()' lifecycle method will not execute again, instead the 'componentDidUpdate()' lifecycle method will execute. 
+   > The equivalent in the Functional Component world will be to use 'useEffect(() => {}, [someDependencies])' - this can be with or without dependencies - and will execute the side effect when it is first rendered because it would treat its dependencies array as having changed when it is setting up the dependencies (or none) for the first time.
+
+   The componentWillUnmount() Lifecycle Method Example:
+      src/components/User.js:
+         import React, { Component } from 'react';
+         import classes from './User.module.css';
+         class User extends Component {
+            componentWillUnmount() { console.log('User will unmount'); };
+            render() { return <li className={classes.user}>{this.props.name}</li>; };
+         };
+         export default User;
+
+   > In this example the list will unmount when the <button/> is clicked to toggle the hide/show of the User Component's rendered list.
+   > You can see the 'componentWillUnmount()' lifecycle method executed because the "User will unmount" will be printed to the browser's JavaScript console within the developer tools. This will print for each user that is unmounted because the User Component renders the <li> element for each user within the "filteredUsers" state property.
+   > The lifecycle method runs for every instance of the Class-based Components similar to how useState and useEffect works for every single Component instance as a standalone Component.
+   > This demonstrates how you can achieve the same Functional Component but using a Class-based Component model approach (although it may require a little more code and may be a little more difficult mental model).
