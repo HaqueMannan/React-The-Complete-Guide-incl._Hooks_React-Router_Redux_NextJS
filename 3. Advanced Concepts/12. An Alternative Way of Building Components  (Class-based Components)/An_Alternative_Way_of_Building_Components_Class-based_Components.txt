@@ -5,6 +5,7 @@ An Alternative Way of Building Components: Class-based Components - Summary:
 4. Component Lifecycle Methods
 5. Component Lifecycle Method in Action
 6. Class-based Components and Context
+7. Introducing Error Boundaries
 
 ------------------------------------------------------------------------------------
 1. What are Class-based Components and Why Would You Use Them?:
@@ -369,3 +370,76 @@ An Alternative Way of Building Components: Class-based Components - Summary:
    > If there are two context which should be attached to one and the same Component, this would simply not be an option for Class-based Components and you would need to find some other workaround like wrapping it in another Component or similar.
    > You can access the Context by using 'this.context' followed by the property you wish to access within that imported Context object e.g. the "users" property which contains the users array. You would do this for all the areas you want to access the context properties.
    > Context is also quite straight forward to use in Class-based Components but is a little less flexible than in a Function Component model. It is important to note that you would not always need more than one context per Component because often one context is more than enough. However, if you do need more than one context connected to one Component then this restriction can be problematic for Class-based Components model.
+
+------------------------------------------------------------------------------------
+7. Introducing Error Boundaries:
+------------------------------------------------------------------------------------
+   > You must use Class-based Components if you require error-boundaries.
+   > Sometimes something goes wrong in your applications (note: this is not the same as bugs you introduce as a developer). Sometimes there are errors you cannot prevent or which are simply being used to transport information that something went wrong from one part of the application to another part.
+   > Consider a HTTP request being sent. If the server is temporarily not responding, the request cannot complete and you will likely end up with an error being generated in your application. There is nothing you can do about that error as a developer because servers can be offline. There are errors in general that cannot be prevented.
+
+   Throw New Error Example:
+      class Users extends Component {
+         ...
+         componentDidUpdate() {
+            if(this.props.users.length === 0) {
+               throw new Error('No users provided!');
+            };
+         };
+         ...
+      };
+
+   > In this example, we can create our own error to throw when no users are found within the users array. This error will bubble up the Call Stack (i.e. passing it through the Components) and if it is not handled anywhere this will crash the application. This can be seen if you search for a user that does not exists. The error is printed to the browser "Error: No users provided!" which is what we specified in the "throw new Error()" method.
+   > This is a useful way to transport information that something went wrong from place A to B in your application.
+   > However, you do not want the whole application to crash as it currently will because the error is not handled anywhere. What can you do?
+   > In regular JavaScript, we would use a "try{} catch{}" error handling.
+   > In React we are at the end of the day writing JavaScript code. Nonetheless, if an error is generated inside of a Component and we cannot handle it in that Component (e.g. you do not want to handle the error inside of the Users Component but instead would want to handle it in the Parent Component), the you cannot use the "try{} catch{}" error handling.
+   > The "try{} catch{}" error handling only works in places where we write regular JavaScript statements. The issue is that the JSX is not a regular JavaScript error so we cannot handle the error inside of the Parent Component because the error is being generated inside of the JSX code i.e. inside of the Child Component.
+   > You cannot wrap JSX code inside of a "try{} catch{}" error handling code and so is not an option.
+   > You can build and utilise an "Error Boundary".
+
+   Error Boundary Class-based Component Example:
+      src/components/ErrorBoundary.js:
+         import { Component } from "react"
+         class ErrorBoundary extends Component {
+            constructor() {
+               super();
+               this.state = { hasError: false };
+            };
+            componentDidCatch(error) {
+               console.log(error);
+               this.setState({ hasError: true });
+            };
+            render() {
+               if(this.state.hasError) { return <p>Something went wrong!</p>; };
+            };
+         export default ErrorBoundary;
+   
+      src/components/UserFinder.js:
+         ...
+         import ErrorBoundary from './ErrorBoundary';
+         class UserFinder extends Component {
+            ...
+            render() {
+               return (
+                  <Fragment>
+                     <div className={classes.finder}>
+                        <input type='search' onChange={this.searchChangeHandler.bind(this)} />
+                     </div>
+                     <ErrorBoundary>
+                        <Users users={this.state.filteredUsers} />
+                     </ErrorBoundary>
+                  </Fragment>
+               );
+            };
+         };
+
+   > Important Note: The name of the file/Component does not need to be named ErrorBoundary.
+   > The "Error Boundary" is a regular Class-based Component which implements the "componentDidCatch()" lifecycle method. This lifecycle method can be added to any Class-based Component and whenever you do add it to a Class-based Component, it make that Class-based Component an "Error Boundary". "Error Boundary" is just a term which we use to refer to, when talking about Components that have this lifecycle method.
+   > This lifecycle method cannot be added to Functional Components and there is no equivalent React Hook at the moment. This is the reason for why "Error Boundaries" can only be created using Class-based Components.
+   > The "componentDidCatch()" lifecycle method will be executed whenever one of the Child Components has thrown an error or generates an error.
+   > You would add a "render()" method for the "Error Boundary" like you would for all Components. You would return 'this.props.children' which is now special. We return 'this.props.children' because you want to wrap the "Error Boundary" Component around the Components which should be protected by that Component. You can wrap around more than one Components and it is entirely up to you.
+   > Inside of the "componentDidCatch()" lifecycle method you would receive an error object as an argument/parameter automatically passed by React. You can look into that error object to find what went wrong and run different logic based on different errors. Although, you could create different Error Boundaries for different errors.
+   > You can do whatever you want to do because it is now a regular Class-based Component at the end of the day. We could add a constructor() method and set a State. We could then update the state in the "componentDidCatch()" lifecycle method and then render something to the screen in the "render()" method using an if statement based on that error state as seen in the example above. What you do is entirely up to you.
+   > The error screen is visible/displayed only in development environment when the application crashes. You can close the message and should be able to see the application.
+   > The idea behind "Error Boundaries" is to ensure that not your entire application crashes if something goes wrong, but instead you can catch those errors and then handle them in an elegant way just as you would do it with the JavaScript "try{} catch{}" error handling.
