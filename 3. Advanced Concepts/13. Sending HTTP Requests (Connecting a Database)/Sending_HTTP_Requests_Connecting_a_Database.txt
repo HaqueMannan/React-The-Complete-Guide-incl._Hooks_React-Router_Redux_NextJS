@@ -1,0 +1,18 @@
+Sending HTTP Requests: Connecting a Database - Summary:
+1. How Not to Connect to a Database and Introduction to APIs
+
+------------------------------------------------------------------------------------
+1. How Not to Connect to a Database and Introduction to APIs:
+------------------------------------------------------------------------------------
+   > Browser-side code (i.e. Client Side Code) should never directly talk to a database.
+   > You may have a database (SQL, NoSQL, ...) running on a database server which you might want to fetch and store some data and therefore might want to establish a connection between your React Application and the Database Server; however, that is something you should never do (and will never see this will real world application, unless it is a highly insecure and poorly written application).
+   > If you directly connected to a database server from inside of your client-side JavaScript code, you will expose your database credentials to the public. All JavaScript code running in the browser can be accessed and read not just by the browser but also by the users of your web application (i.e. accessible via the Browser's Developer Tools). You can view this article on this: https://academind.com/tutorials/hide-javascript-code/.
+   > Directly connecting to a database servers can bring other issues such as performance issues but the security problem is the biggest problem of all.
+   > You would always take a different route. You should have a backend application running on another machine/server (not running on the browser). This can be on the same server as the database but is often on a different server.
+   > The backend server can be written with any server-side language of your choice (e.g. NodeJS, PHP, ASP.NET, etc.) and it is this backend server that will do the talking to the database. This is because you can safely store and use database credentials on the backend application since that backend code cannot be viewed by your users. This is because it is on a different server and users of your website will never see that code.
+   > Thus, React will then talk to that backend server (i.e. to the backend API typically - a server which exposes different URLs which requests can be sent to) which allows you to have a safe connection to the database.
+   > Throughout this section we will use the Start Wars API (https://swapi.dev/) to explore how to send HTTP requests in React application. This is an API (i.e. a backend app) and not a database. Behind the scenes it probably uses some database to store some data about the Star Wars movies, but we as the user interact with this backend app.
+   > API stands for Application Programming Interface. This is a very broad term and not just related to React and HTTP requests. In the end it means that in our code we are dealing with something which has a clearly defined interface/rules on how we can achieve certain results and perform certain tasks.
+   > When we talk about APIs in the context of HTTP requests, we typically talk about "REST" or "GraphQL" APIs. These are two different standards for how a server should expose its data.
+   > The Start Wars API uses a "REST API" which means it exposes a couple of URLs (e.g. 'https://swapi.dev/api/people/1') to which you send that request to get back data in a certain format. Different URLs to which you send different requests will give you different chunks of data. This is what makes it an API. You have different entry points which lead to different results.
+   > You can read this article to learn more about APIs ad what they are: https://academind.com/tutorials/rest-vs-graphql/.
