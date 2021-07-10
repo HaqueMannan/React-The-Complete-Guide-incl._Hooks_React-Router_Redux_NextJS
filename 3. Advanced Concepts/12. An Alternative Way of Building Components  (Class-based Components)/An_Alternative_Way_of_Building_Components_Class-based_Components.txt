@@ -4,6 +4,7 @@ An Alternative Way of Building Components: Class-based Components - Summary:
 3. Working with State & Events
 4. Component Lifecycle Methods
 5. Component Lifecycle Method in Action
+6. Class-based Components and Context
 
 ------------------------------------------------------------------------------------
 1. What are Class-based Components and Why Would You Use Them?:
@@ -293,3 +294,78 @@ An Alternative Way of Building Components: Class-based Components - Summary:
    > You can see the 'componentWillUnmount()' lifecycle method executed because the "User will unmount" will be printed to the browser's JavaScript console within the developer tools. This will print for each user that is unmounted because the User Component renders the <li> element for each user within the "filteredUsers" state property.
    > The lifecycle method runs for every instance of the Class-based Components similar to how useState and useEffect works for every single Component instance as a standalone Component.
    > This demonstrates how you can achieve the same Functional Component but using a Class-based Component model approach (although it may require a little more code and may be a little more difficult mental model).
+
+------------------------------------------------------------------------------------
+6. Class-based Components and Context:
+------------------------------------------------------------------------------------
+   > Context can be defined and provided the same as you would in a Functional Component.
+
+   Class-based Component and Context Example:
+      src/store/users-context.js:
+         import React from 'react';
+         const UsersContext = React.createContext({
+            users: []
+         });
+         export default UsersContext;
+
+      src/App.js:
+         import UserFinder from './components/UserFinder';
+         import UsersContext from './store/users-context';
+         const DUMMY_USERS = [{ id: 'u1', name: 'Alex' }, { id: 'u2', name: 'Beth' }, { id: 'u3', name: 'Charlie' }, { id: 'u4', name: 'Diane' }];
+         function App() {
+            const usersContext = { users: DUMMY_USERS };
+            return (
+               <UsersContext.Provider value={usersContext}>
+                  <UserFinder />
+               </UsersContext.Provider>
+            );
+         };
+         export default App;
+
+   > The Context is defined by calling the 'React.createContext()' method with some initial state object. You then provide it using the .Provider Component which is part of the created context object.
+   > You can pass a value to the context object via props.
+   > The only part that changes is how you use it within your Class-based Components. The useContext() Hook is not available to use within Class-based Components. Instead, there are two ways you can use context in a Class-based Component:
+
+   1. Consuming Context using Context <Consumer/> Component Example:
+      src/components/UserFinder.js:
+         ...
+         import UsersContext from '../store/users-context';
+         class UserFinder extends Component {
+            ...
+            render(
+               <Fragment>
+                  <UsersContext.Consumer>
+                     <div className={classes.finder}><input type='search' onChange={this.searchChangeHandler.bind(this)} /></div>
+                     <Users users={this.state.filteredUsers} />
+                  </UsersContext.Consumer>
+               </Fragment>
+            );
+         };
+
+   > You would first import the Context e.g. "UsersContext" named export from the "users-context.js" file. This will allow you to use this as a Component wrapper and access the ".Consumer" Component. Since this is applied to the JSX code, it works in both the Functional and Class-based Component models.
+
+   2. The useReducer() Hook Equivalent for Class-based Component Example:
+      src/components/UserFinder.js:
+         ...
+         import UsersContext from '../store/users-context';
+         class UserFinder extends Component {
+            static contextType = UsersContext;
+            ...
+            componentDidMount() {
+               // Send http request...
+               this.setState({ filteredUsers: this.context.user });
+            };
+            render(
+               <Fragment>
+                  <div className={classes.finder}><input type='search' onChange={this.searchChangeHandler.bind(this)} /></div>
+                  <Users users={this.state.filteredUsers} />
+               </Fragment>
+            );
+         };
+
+   > The useReducer() Hook is the alternative approach for Functional Component without the need to use the Consumer Component approach. There is no perfect Class-based Components equivalent.
+   > Class-based Component cannot listen to multiple context in one or the same Component as you can with Function Component (i.e. by calling useContext() Hook multiple times and pointing at different contexts). This is because you can only connect a Class-based Component to one context.
+   > You do this by adding a static property by using the 'static' keyword in the Class-based Component. This is followed by the property name of 'contextType'. You then assign the value to the imported context. This tells React that the Component should have access to the users-context context. However, you can only set the 'static contextType' property once.
+   > If there are two context which should be attached to one and the same Component, this would simply not be an option for Class-based Components and you would need to find some other workaround like wrapping it in another Component or similar.
+   > You can access the Context by using 'this.context' followed by the property you wish to access within that imported Context object e.g. the "users" property which contains the users array. You would do this for all the areas you want to access the context properties.
+   > Context is also quite straight forward to use in Class-based Components but is a little less flexible than in a Function Component model. It is important to note that you would not always need more than one context per Component because often one context is more than enough. However, if you do need more than one context connected to one Component then this restriction can be problematic for Class-based Components model.
