@@ -1,5 +1,6 @@
 Sending HTTP Requests: Connecting a Database - Summary:
 1. How Not to Connect to a Database and Introduction to APIs
+2. Sending a GET Request
 
 ------------------------------------------------------------------------------------
 1. How Not to Connect to a Database and Introduction to APIs:
@@ -16,3 +17,91 @@ Sending HTTP Requests: Connecting a Database - Summary:
    > When we talk about APIs in the context of HTTP requests, we typically talk about "REST" or "GraphQL" APIs. These are two different standards for how a server should expose its data.
    > The Start Wars API uses a "REST API" which means it exposes a couple of URLs (e.g. 'https://swapi.dev/api/people/1') to which you send that request to get back data in a certain format. Different URLs to which you send different requests will give you different chunks of data. This is what makes it an API. You have different entry points which lead to different results.
    > You can read this article to learn more about APIs ad what they are: https://academind.com/tutorials/rest-vs-graphql/.
+
+------------------------------------------------------------------------------------
+2. Sending a GET Request:
+------------------------------------------------------------------------------------
+   > A React application at the end of the day is regular JavaScript code. Therefore, you can use any send HTTP requests in JavaScript solutions you want. For example, you can use the Axios library or the built-in Fetch API.
+   > The Fetch API is built into browsers and allows us to fetch data and also to send data (even though the name does not imply it). We can use this API to send HTTP Requests and work with with responses.
+
+   Fetch API code Example:
+      src/App.js:
+         function App() {
+            function fetchMoviesHandler() {
+               fetch('https://swapi.dev/api/films/').then(
+                  response => { return response.json(); }
+               ).then(
+                  data => { setMovies(data.results); }
+               );
+            };
+            return (
+               <React.Fragment>
+                  <section><button onClick={fetchMoviesHandler}>Fetch Movies</button></section>
+                  <section><MoviesList movies={movies} /></section>
+               </React.Fragment>
+            );
+         };
+
+   > In the above example, we would create our own function. Within the function body we can use the 'fetch()' method. The browser makes the 'fetch()' function available to us.
+   > In its simplest form, as the first argument/parameter, we only need to pass in the URL to which you want to send a HTTP request to as a string.
+   > The second optional argument/parameter that can be passed into the 'fetch()' function is a JavaScript object. This object allows you to configure various options for the request e.g. adding an extra headers, body or change the HTTP request method. The default method is GET.
+   > The GET request method sends a request to the URL link to retrieve data from that server.
+   > The fetch() method returns a promise which then allows us to react to the returned HTTP response or any potential errors that you may receive.
+   > A promise is an object which will eventually yield some data (instead of immediately providing the data) because sending a HTTP request is a asynchronous task. This means that the task could take a couple of seconds or milliseconds to complete (or fail).
+   > Therefore, you cannot continue to execute the next line of code and use the result immediately, instead the result will be there at some point in the future. This is why promises exist for in JavaScript. You would use the '.then()' onto the function that will be called whenever we get a response.
+   > The '.catch()' can be added to handle any potential errors (e.g. 'fetch('https://swapi.dev/api/films/').then(...).catch(...)').
+   > We would use an arrow function inside of the .then() promise which receives the response object as an argument/parameter. We can then do anything we want with the response within the callback function body. The response object contains a bunch of data about the response such as the response headers, status code, etc.
+   > The Star Wars API returns back a response body which is formatted as a JSON format. JSON is a very popular data format for exchanging data. JSON stands for JavaScript Object Notation and as its name suggest the data is formatted as a JavaScript Object using key:value pairs for each data property. Note that there are no methods but purely data.
+   > The advantage of JSON data is that it is very easy to translate it to JavaScript objects. However, there is a translation step required to transform the JSON data. The response object has a built-in method for automatically translating JSON responses body to a real JavaScript object which you can use in your code. You would use the '.json()' method.
+   > The '.json()' method itself returns a promise and therefore you should return the promise and then add another .then() .catch() block which will be fired once the data transformation has completed.
+   > After the JSON transformation, you will receive the 'data' object as an argument/parameter to the '.then()' promise which you can use in your JavaScript code within the callback function body.
+   > In the above example we use the 'data.results' (the API has a results key with a value of an array of movies) to store the information within some state which can then be used to display the array of movies.
+   > To make everything work you would add the "fetchMoviesHandler" function to an event such as the 'onClick' event of the "Fetch Movies" button.
+
+   https://swapi.dev/api/films/ Response Example:
+      GET /api/films/
+      HTTP 200 OK
+      Content-Type: application/json
+      Vary: Accept
+      Allow: GET, HEAD, OPTIONS
+      {
+      "count": 6, 
+      "next": null, 
+      "previous": null, 
+      "results": [
+         {
+               "title": "A New Hope", 
+               "episode_id": 4, 
+               "opening_crawl": "It is a period of civil war.\r\nRebel spaceships, striking\r\nfrom a hidden base, have won\r\ntheir first victory against\r\nthe evil Galactic Empire.\r\n\r\nDuring the battle, Rebel\r\nspies managed to steal secret\r\nplans to the Empire's\r\nultimate weapon, the DEATH\r\nSTAR, an armored space\r\nstation with enough power\r\nto destroy an entire planet.\r\n\r\nPursued by the Empire's\r\nsinister agents, Princess\r\nLeia races home aboard her\r\nstarship, custodian of the\r\nstolen plans that can save her\r\npeople and restore\r\nfreedom to the galaxy....", 
+               "director": "George Lucas", 
+               "producer": "Gary Kurtz, Rick McCallum", 
+               "release_date": "1977-05-25", 
+               ...
+         }
+
+   Fetch API Mapped Data Example:
+      function fetchMoviesHandler() {
+         fetch('https://swapi.dev/api/films/').then(
+            response => { return response.json(); }
+         ).then(
+            data => {
+               const transformedMovies = data.results.map(
+                  movieData => {
+                     return {
+                        id: movieData.episode_id,
+                        title: movieData.title,
+                        openingText: movieData.opening_crawl,
+                        releaseDate: movieData.release_date 
+                     };
+                  }
+               );
+               setMovies(transformedMovies);
+            }
+         );
+      };
+
+   > Important Note: You would need to ensure that you format the data in your React application to either a) match the same property names of the JSON response object or b) transform the incoming data from the response object to match the format of your react application code.
+   > For example, the Start Wars API has a property called "opening_crawl" and "release_date" so either the react application uses those property name in its code or transforms the incoming data to use "openingText" and "releaseDate" instead. The above example demonstrates the latter method being used.
+   > The .map() method allows you to convert every object in the results array into a new object. It is then the new object which will be stored in the "transformedMovies" variable. We can use the "movieData" object (note: this argument/parameter could have been named anything you want) and extract the id, title, opening text and release date informations (i.e. the data interested in) into a new object.
+   > You will now see that the React application initially has no movies, but when you click on the "Fetch Movies" button, the HTTP request will be sent and the response will be used to populate the list of Star Wars movies that is received from the Star Wars APIs response. It will take a short while but the data will be populated from the GET request.
+   > This in a nutshell is how you would send a HTTP request to connect within a React Application to connect securely to a backend e.g. a backend database.
