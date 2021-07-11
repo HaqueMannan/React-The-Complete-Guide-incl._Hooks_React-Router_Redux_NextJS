@@ -3,6 +3,7 @@ Sending HTTP Requests: Connecting a Database - Summary:
 2. Sending a GET Request
 3. Using Async/Await
 4. Handling Loading & Data States
+5. Handling HTTP Errors
 
 ------------------------------------------------------------------------------------
 1. How Not to Connect to a Database and Introduction to APIs:
@@ -117,7 +118,7 @@ Sending HTTP Requests: Connecting a Database - Summary:
 
    Async/Await Promise Syntax Example:
       async function fetchMoviesHandler() {
-         const response = await fetch('https://swapi.dev/api/films/')
+         const response = await fetch('https://swapi.dev/api/films/');
          const data = await response.json();
          const transformedMovies = data.results.map(
             movieData => {
@@ -152,7 +153,7 @@ Sending HTTP Requests: Connecting a Database - Summary:
          const [isLoading, setIsLoading] = useState(false);
          async function fetchMoviesHandler() {
             setIsLoading(true);
-            const response = await fetch('https://swapi.dev/api/films/')
+            const response = await fetch('https://swapi.dev/api/films/');
             const data = await response.json();
             const transformedMovies = data.results.map(
                movieData => {
@@ -184,3 +185,73 @@ Sending HTTP Requests: Connecting a Database - Summary:
    > It is important to note that loading is not the only state you might have. You might also want to show a different content if you are not loading but there are no movies within the list at the moment (i.e. movies is an empty array with nothing to display). The '!isLoading &&  movies.length > 0 &&' performs this check and will conditionally display the list if the movies array is greater than 0 items.
    > You can have a fallback content if there are no content to be displayed (e.g. '{!isLoading && movies.length == 0 && <p>No Movies Found.</p>}').
    > This is a crucial part of building User Interfaces. You would want to let your users know what state the application currently has (i.e. there is a difference between no movies, loading and there are movies).
+
+------------------------------------------------------------------------------------
+5. Handling HTTP Errors:
+------------------------------------------------------------------------------------
+   > When sending HTTP requests things can also go wrong and you can encounter errors with your requests. These can be technical errors such as no internet connection or you do have connection but receive back an error response code from the server (e.g. 401, 404, 500, etc. - read more on error codes on: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status).
+   > You would want to handle HTTP errors otherwise this could cause a bad user experience (for example, the application hangs on the loading state). You would want to inform your users if something went wrong with the HTTP request such. Response errors are also sent back to the browsers JavaScript console.
+
+   Handling Error State Example:
+      function App() {
+         ...
+         const [error, setError] = useState(null);
+         async function fetchMoviesHandler() {
+            setIsLoading(true);
+            setError(null);
+            try {
+               const response = await fetch('https://swapi.dev/api/films/');
+               if(!response.ok) {
+                  throw new Error('Something went wrong');
+               };
+               const data = await response.json();
+               ...
+            } catch(error) {
+               setError(error.message);
+            };
+            setIsLoading(false);
+         };
+         return (
+            <React.Fragment>
+               <section><button onClick={fetchMoviesHandler}>Fetch Movies</button></section>
+               <section>
+                  {!isLoading &&  movies.length > 0 && <MoviesList movies={movies} />}
+                  {!isLoading && movies.length === 0 && !error && <p>No Movies Found.</p>}
+                  {isLoading && <p>Loading...</p>}
+                  {!isLoading && error  <p>{error}</p>}
+               </section>
+            </React.Fragment>
+         );
+      };
+
+   > If using promises using the traditional '.then()' method, you would use the '.catch()' block to handle the error logic. The '.catch()' block would use a callback function which would receive a "error" object.
+   > When working with Async/Await you would use instead the try/catch block. You would 'try' some code and then 'catch' any potential errors. Whenever any errors are thrown by the 'try' block it will be caught and will trigger the 'catch' block passing the 'error' to that block as a argument/parameter.
+   > Fetch does not treat error status codes as real errors. It will therefore not throw a technical error if you get back an error status code. This will be a problem using the default Fetch API.
+   > The Axios library on the other hand would generate and throw a real error for error status codes.
+   > If you are using the Fetch API you would have to throw the errors on your own when you receive error status codes.
+   > The response object you get back has an 'ok' field. This signals whether the response was successful or not. The response also has a 'status' field which holds the concrete response status code which you could manually check as well.
+   > Using both the if statement and the 'throw new Error()' together allows you to create your own real errors within your application code to overcome the shortcoming of the Fetch API. This error will be thrown if you had an unsuccessful response i.e. the 'response' object does not have an 'ok' property which will trigger the 'catch' block.
+   > The if statement check should be placed before parsing the data so that the 'try' block throws an error (if one should occur on the HTTP request) before it starts to parse the response body.
+   > You can now use this state to display the error message within your application.
+   > The 'setIsLoading(false)' is set to false after the try/catch block so that no matter whether there is a successful or error response, the 'isLoading' state is set to false to stop the loading text from continuously showing after the promise code has resolved.
+   > You can test this out using an invalid URL (e.g. 'await fetch('https://swapi.dev/api/film/')').
+   > The exact implementation of handling an error response will depend on the API you are taking to i.e. some APIs send back a JSON data if the request was not successful while other APIs (such as Star Wars API) sends back non-JSON data.
+   > This is how you can handle all the different states you may have when working with HTTP requests. This is very important because no matter which backend you talk with, you will always have these different states. It is important to know how to handle these scenarios of: waiting for a response, getting errors, getting back some data or the data is empty (i.e. no data returned).
+
+   Handling Checks Elegantly Example:
+      function App() {
+         ...
+         let content = <p>No Movies Found.</p>;
+         if(movies.length > 0) { content = <MoviesList movies={movies} /> };
+         if(error) { content = <p>{error}</p>; };
+         if(isLoading) { content = <p>Loading...</p>; };
+         return (
+            <React.Fragment>
+               <section><button onClick={fetchMoviesHandler}>Fetch Movies</button></section>
+               <section>{content}</section>
+            </React.Fragment>
+         );
+      };
+
+   > Instead of all the inline checks within the JSX code, you could create a variable to handle this more elegantly. The content variable is updated based on the state and this is then what is rendered in the JSX code.
+   > This is how you can handle all the different HTTP request states within your React application code.
