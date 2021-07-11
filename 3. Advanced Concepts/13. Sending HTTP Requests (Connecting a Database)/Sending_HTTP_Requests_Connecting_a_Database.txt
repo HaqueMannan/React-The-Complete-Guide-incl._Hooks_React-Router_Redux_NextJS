@@ -1,6 +1,7 @@
 Sending HTTP Requests: Connecting a Database - Summary:
 1. How Not to Connect to a Database and Introduction to APIs
 2. Sending a GET Request
+3. Using Async/Await
 
 ------------------------------------------------------------------------------------
 1. How Not to Connect to a Database and Introduction to APIs:
@@ -105,3 +106,34 @@ Sending HTTP Requests: Connecting a Database - Summary:
    > The .map() method allows you to convert every object in the results array into a new object. It is then the new object which will be stored in the "transformedMovies" variable. We can use the "movieData" object (note: this argument/parameter could have been named anything you want) and extract the id, title, opening text and release date informations (i.e. the data interested in) into a new object.
    > You will now see that the React application initially has no movies, but when you click on the "Fetch Movies" button, the HTTP request will be sent and the response will be used to populate the list of Star Wars movies that is received from the Star Wars APIs response. It will take a short while but the data will be populated from the GET request.
    > This in a nutshell is how you would send a HTTP request to connect within a React Application to connect securely to a backend e.g. a backend database.
+
+------------------------------------------------------------------------------------
+3. Using Async/Await:
+------------------------------------------------------------------------------------
+   > Promises are nothing React specific. Promises are a JavaScript language feature.
+   > When working with promises you can easily build up '.then' and '.catch' chains which can make the code harder to read or cause unexpected bugs within your code.
+   > The alternative syntax you could use async/await which is a syntactical sugar but allows you to write asynchronous code i.e. promises without the need of using the nested '.then()' and '.catch()' calls. JavaScript behind the scenes will convert the async/await code into the traditional promise using '.this()' and '.catch()' blocks.
+
+   Async/Await Promise Syntax Example:
+      async function fetchMoviesHandler() {
+         const response = await fetch('https://swapi.dev/api/films/')
+         const data = await response.json();
+         const transformedMovies = data.results.map(
+            movieData => {
+               return {
+                  id: movieData.episode_id,
+                  title: movieData.title,
+                  openingText: movieData.opening_crawl,
+                  releaseDate: movieData.release_date 
+               };
+            }
+         );
+         setMovies(transformedMovies);
+      };
+
+   > Simply add the 'async' keyword before the function name.
+   > You would then use the 'await' keyword on the operation which is returning a promise for example like the '.fetch()' function.
+   > The 'await' function can be stored in a variable and you can use the variable's response from the 'await' promise to perform your code logic with the response data.
+   > The .json() is a promise so you would also add the 'await' keyword again to await the response of that promise which we can store in a variable (e.g. data).
+   > The code is much more cleaner and easy to read using the Async/Await syntax for handling promises. The code continues to be asynchronous code.
+   > This is not React specific but a default JavaScript feature.
