@@ -4,6 +4,7 @@ Sending HTTP Requests: Connecting a Database - Summary:
 3. Using Async/Await
 4. Handling Loading & Data States
 5. Handling HTTP Errors
+6. Using the useEffect() Hook for Requests
 
 ------------------------------------------------------------------------------------
 1. How Not to Connect to a Database and Introduction to APIs:
@@ -255,3 +256,52 @@ Sending HTTP Requests: Connecting a Database - Summary:
 
    > Instead of all the inline checks within the JSX code, you could create a variable to handle this more elegantly. The content variable is updated based on the state and this is then what is rendered in the JSX code.
    > This is how you can handle all the different HTTP request states within your React application code.
+
+------------------------------------------------------------------------------------
+6. Using the useEffect() Hook for Requests:
+------------------------------------------------------------------------------------
+   > Typically in application, you would want to fetch the data as soon as a certain Component loads.
+   > To immediately fetch data when the Component loads is to use the useEffect() Hook. This is because sending a HTTP request is a side effect which ultimately changes the Component State. You have learned that such side effects should go inside of the useEffect() Hook.
+   > Having the "fetchMoviesHandler()" within a function is also perfectly fine as long as you do not call the function as part of the main Component function (e.g. "fetchMoviesHandler()" being called within 'function App() {}' function itself) because this will cause an infinite loop.
+
+   Fetch Data on Component Loads using useEffect Example:
+      function App() {
+         const [movies, setMovies] = useState([]);
+         const [isLoading, setIsLoading] = useState(false);
+         const [error, setError] = useState(null);
+         useEffect(() => {
+            fetchMoviesHandler()
+         }, []);
+         async function fetchMoviesHandler() {...}
+         render(...);
+      };
+
+   > You can leave the dependencies array empty and this will mean that the useEffect will only run once the very first time the Component was executed and loaded on the application initialisation.
+   > However, it is best practice to list all the dependencies you use inside of the "fetchMoviesHandler" function within the useEffect() Hook's dependencies array.
+
+   Dependencies Array Best Practice Example:
+      useEffect(() => {
+         fetchMoviesHandler()
+      }, [fetchMoviesHandler]);
+
+   > We point at the "fetchMoviesHandler" function because it is a dependencies of itself. If the function itself changes the useEffect should re-execute again.
+   > The problem with this approach is that a function is an object and therefore the function would technically change whenever the Component re-renders which would create an infinite loop if the function pointer is added as a dependency. One solution would be to omit it (as originally seen). But this could introduce subtle bugs if the function was using some external state.
+   > The better solution is to use the useCallback() Hook.
+
+   Dependencies Array Best Practice with the useCallback() Hook Example:
+      import React, { useState, useEffect, useCallback } from 'react';
+      ...
+      function App() {
+         ...
+         const fetchMoviesHandler = useCallback(async () => {...});
+         useEffect(() => {
+            fetchMoviesHandler()
+         }, [fetchMoviesHandler]);
+         render(...);
+      };
+
+   > Import the useCallback() Hook from the react library and then refactor the code slightly. Create "fetchMoviesHandler" as a const variable and set its value to the useCallback() Hook. Pass in an arrow callback function to the useCallback() Hook which is set to the asynchronous HTTP request code. Remember to list any dependencies the function might have within the dependencies array to the useCallback() Hook. 
+   > In the above example the dependencies array would be an empty array because it has no external dependencies. The Fetch API is a global browser API and therefore is not a dependency. State updating functions do not need to be added as a dependencies because React guarantees that they will never change.
+   > Add the 'async' keyword now at the front of the callback function in order for the asynchronous 'await' code to work again. This will notify JavaScript that the anonymous callback function contains asynchronous code.
+   > The ordering is now important because the "fetchMoviesHandler" is a variable and must be executed first before it can be used in the useEffect() Hook. Otherwise, you would be executing a variable (which is a function definition) before it has been defined which will break your application.
+   > This will ensure that the "fetchMoviesHandler" function is not re-created unnecessarily. The application will fetch the data for the first time the Component initialises without causing an infinite loop and you can click the Fetch Movies button to reload the data manually.
