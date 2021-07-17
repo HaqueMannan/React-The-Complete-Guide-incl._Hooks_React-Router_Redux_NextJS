@@ -1,5 +1,6 @@
 Building Custom React Hooks - Summary:
 1. What are Custom Hooks and Creating a Custom React Hook Function
+2. Using a Custom Hook
 
 ------------------------------------------------------------------------------------
 1. What are Custom Hooks and Creating a Custom React Hook Function:
@@ -13,7 +14,7 @@ Building Custom React Hooks - Summary:
    > Therefore, if you would want to outsource logic (that uses React Hooks) into a special function you would need to use Custom Hooks.
 
    Creating a Custom Hook Example:
-      src/Hooks/use-counter.js:
+      src/hooks/use-counter.js:
          import { useState, useEffect } from "react";
          const useCounter = () => {
             const [counter, setCounter] = useState(0);
@@ -26,7 +27,7 @@ Building Custom React Hooks - Summary:
          };
          export default useCounter;
 
-   > To create a Custom Hook you would create a standalone file. Typically, you would create a "Hooks" directory that will hold your Custom Hooks within the "src" folder. The file name for your Custom Hook is entirely up to you e.g. 'use-functionName.js'; however, it may make sense to name it the same name as the name of the function inside of the file.
+   > To create a Custom Hook you would create a standalone file. Typically, you would create a "hooks" directory that will hold your Custom Hooks within the "src" folder. The file name for your Custom Hook is entirely up to you e.g. 'use-functionName.js'; however, it may make sense to name it the same name as the name of the function inside of the file.
    > There is a clear rule that you must to follow when it comes to naming the function inside of a Custom Hook file. The function name must start with the word use in its name. This is a hard rule you must follow and why you might decide to name your Custom Hook JavaScript file the same name as the function name to make it clear that the file contains Custom Hook code.
    > The function is a normal function but the "use" name at the beginning of the function name will signal to React that the function will be a Custom Hook. This gives React the guarantee that you will use this function by respecting these rules of hooks i.e. you would use the Custom Hook function just as you would use the built-in Hooks.
    > This allows React to look out for these function that begin with "use" and give you any warnings if you violate those rules associated with React Hooks/Custom Hooks.
@@ -34,3 +35,51 @@ Building Custom React Hooks - Summary:
    > Within the function body you would add the logic plus import any React Hooks that are used within the logic from the react library.
    > Finally, you would export the Custom Hook function so that you can use it within your other React application files.
    > Now that you have created a Custom Hook function how do you use it?
+
+------------------------------------------------------------------------------------
+2. Using a Custom Hook:
+------------------------------------------------------------------------------------
+   > To use a Custom Hook you would use a Custom Hook just as you would use a built-in React Hook i.e. you would import the named export function and call it like a function because it is just a normal function.
+
+   Using a Custom Hook Example:
+      src/components/ForwardCounter.js:
+         import React, { useState, useEffect } from 'react';
+         import Card from './Card';
+         import useCounter from '../hooks/use-counter';
+         const ForwardCounter = () => {
+            useCounter();
+            ...
+            return(<Card>{counter}</Card>);
+         };
+
+   > The Custom Hook will execute like a regular function, so all the useState() Hook's state will be registered and the useEffect() Hook will be executed.
+   > If you call a Custom Hook in one of your Components and that Component for example registers a state or an effect, then that state or effect will be tied to the Component in which you use the Custom Hook. Therefore, in the above example, the "ForwardCounter" Component which calls the "useCounter" Custom Hook which creates a "counter" state, that state will be tied to the "ForwardCounter" Component.
+   > If you use the Custom Hook in multiple Components, every Component will receive its own state. Just because you use a Custom Hook does not mean that you share or effects across Components. Instead, for every Component the Custom Hook is executed again and every Component instance then receives its own state. Hence, the logic is shared and not the concrete state.
+   > To access the state created inside of a Custom Hook, just like with a React Hook, behind the scenes the Hook function returns an array which you can de-structure.
+
+   Returning from a Custom Hook Example:
+      src/hooks/use-counter.js:
+         import { useState, useEffect } from "react";
+         const useCounter = () => {
+            const [counter, setCounter] = useState(0);
+            useEffect(() => {...}, []);
+            return counter;
+         };
+         export default useCounter;
+
+   > To make the "counter" state available within the "ForwardCounter" Component, you could simply return whatever is in your Custom Hook. The "counter" ('const [counter, setCounter] = useState(0);') is implicitly a number which we can return from the Custom Hook function.
+
+   Using a Custom Hook Example:
+      src/components/ForwardCounter.js:
+         import React from 'react';
+         import Card from './Card';
+         import useCounter from '../hooks/use-counter';
+         const ForwardCounter = () => {
+            const counter = useCounter();
+            return(<Card>{counter}</Card>);
+         };
+
+   > Now that the Custom Hooks function returns the "counter" state, the "ForwardCounter" Component can be updated to store the returned value from "useCounter" Custom Hook function into a variable.
+   > The "counter" variable is set to "useCounter()" function since this Custom Hook function simply returns the "counter" state, which is the reason for why you could store it within a variable within the Component file.
+   > This allows you to slim down the Component file because the counter logic is now contained within the Custom Hook and the returned value is what is now being used by the Component file.
+   > This is how you would build and use Custom Hooks. When it comes down to building Custom Hooks, the one thing that matters is how you name your Custom Hook function.
