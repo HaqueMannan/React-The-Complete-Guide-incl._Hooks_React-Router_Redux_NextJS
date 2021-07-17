@@ -1,6 +1,7 @@
 Building Custom React Hooks - Summary:
 1. What are Custom Hooks and Creating a Custom React Hook Function
 2. Using a Custom Hook
+3. Configuring Custom Hooks
 
 ------------------------------------------------------------------------------------
 1. What are Custom Hooks and Creating a Custom React Hook Function:
@@ -83,3 +84,50 @@ Building Custom React Hooks - Summary:
    > The "counter" variable is set to "useCounter()" function since this Custom Hook function simply returns the "counter" state, which is the reason for why you could store it within a variable within the Component file.
    > This allows you to slim down the Component file because the counter logic is now contained within the Custom Hook and the returned value is what is now being used by the Component file.
    > This is how you would build and use Custom Hooks. When it comes down to building Custom Hooks, the one thing that matters is how you name your Custom Hook function.
+
+------------------------------------------------------------------------------------
+3. Configuring Custom Hooks:
+------------------------------------------------------------------------------------
+   > To make Custom Hooks reusable and configurable you would allow it to accept arguments/parameters as you would for any regular functions in general. Since Custom Hooks are functions at the end of the day they can also accept arguments/parameters as well. We could see this with the built-in React Hook such as useState() and useEffect() Hooks which take in a argument/parameter.
+   > The argument/parameter could also be setup with a default value so that the configuration argument/parameter for the Custom Hook is optional.
+
+   Configuring Custom Hooks Example:
+      src/hooks/use-counter.js:
+         import { useState, useEffect } from "react";
+         const useCounter = (forwards) => {
+            const [counter, setCounter] = useState(0);
+            useEffect(() => {
+               const interval = setInterval(() => {
+                  if(forwards) {
+                     setCounter((prevCounter) => prevCounter + 1);
+                  } else {
+                     setCounter((prevCounter) => prevCounter - 1);
+                  };
+               }, 1000);
+               return () => clearInterval(interval);
+            }}, [forwards]);
+            return counter;
+         };
+         export default useCounter;
+
+      src/components/ForwardCounter.js:
+         import React from 'react';
+         import Card from './Card';
+         import useCounter from '../hooks/use-counter';
+         const ForwardCounter = () => {
+            const counter = useCounter();
+            return(<Card>{counter}</Card>);
+         };
+
+      src/components/BackwardCounter.js:
+         import React from 'react';
+         import Card from './Card';
+         import useCounter from '../hooks/use-counter';
+         const BackwardCounter = () => {
+            const counter = useCounter(false);
+            return(<Card>{counter}</Card>);
+         };
+
+   > Remember: if you are using the useEffect() Hook, if there are any outside dependencies required for the side effect then this must be added to the dependencies array object argument/parameter of the useEffect() Hook.
+   > In the above example the dependency is the "forwards" configuration parameter/argument because it is a dependency not defined within the useEffect() Hook function or within the useCounter Custom Hook Function. Instead the forwards value is a dependency that is passed in as a argument/parameter when the Custom Hook function is called.
+   > The Custom Hook is configurable and now can be used in different Components with different parameters as seen with both the "ForwardCounter" and "BackwardCounter" Components. Note that the "ForwardCounter" did not need to pass in an argument/parameter to the "useCounter()" Custom Hook because it used the default value of true while for the "BackwardCounter" Components we had to pass in false as the argument/parameter.
