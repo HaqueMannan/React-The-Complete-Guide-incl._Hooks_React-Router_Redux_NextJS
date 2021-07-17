@@ -1,0 +1,36 @@
+Building Custom React Hooks - Summary:
+1. What are Custom Hooks and Creating a Custom React Hook Function
+
+------------------------------------------------------------------------------------
+1. What are Custom Hooks and Creating a Custom React Hook Function:
+------------------------------------------------------------------------------------
+   > Custom Hooks are, at the end of the day, regular functions. However, these are functions that can contain stateful logic.
+   > Custom Hooks are used to outsource stateful logic into re-useable functions.
+   > Unlike regular functions, Custom Hooks can use other React Hooks (and Custom Hooks) and React State. 
+   > Therefore, with Custom Hooks, you can outsource logic which you might be using in different Components into a Custom Hook which you can call from all the various Components. It is a simple mechanism for reusing logic (just as you would with regular function) but with the special ability of using React Hooks and other Custom Hooks.
+   > Whenever you have code duplication in programming you would typically want to take that code and refactor it and create a function that holds the shared code. This is what you can do with Custom Hooks, but the simple benefit of being able to use React Hooks where state matters.
+   > The rules of Hooks dictates that you are not allowed to use these React Hooks in any random functions and can only be used in React Component Functions or Custom Hooks.
+   > Therefore, if you would want to outsource logic (that uses React Hooks) into a special function you would need to use Custom Hooks.
+
+   Creating a Custom Hook Example:
+      src/Hooks/use-counter.js:
+         import { useState, useEffect } from "react";
+         const useCounter = () => {
+            const [counter, setCounter] = useState(0);
+            useEffect(() => {
+               const interval = setInterval(() => {
+                  setCounter((prevCounter) => prevCounter + 1);
+               }, 1000);
+               return () => clearInterval(interval);
+            }, []);
+         };
+         export default useCounter;
+
+   > To create a Custom Hook you would create a standalone file. Typically, you would create a "Hooks" directory that will hold your Custom Hooks within the "src" folder. The file name for your Custom Hook is entirely up to you e.g. 'use-functionName.js'; however, it may make sense to name it the same name as the name of the function inside of the file.
+   > There is a clear rule that you must to follow when it comes to naming the function inside of a Custom Hook file. The function name must start with the word use in its name. This is a hard rule you must follow and why you might decide to name your Custom Hook JavaScript file the same name as the function name to make it clear that the file contains Custom Hook code.
+   > The function is a normal function but the "use" name at the beginning of the function name will signal to React that the function will be a Custom Hook. This gives React the guarantee that you will use this function by respecting these rules of hooks i.e. you would use the Custom Hook function just as you would use the built-in Hooks.
+   > This allows React to look out for these function that begin with "use" and give you any warnings if you violate those rules associated with React Hooks/Custom Hooks.
+   > After the "use" word you can follow by the name of the function e.g. "useCounter".
+   > Within the function body you would add the logic plus import any React Hooks that are used within the logic from the react library.
+   > Finally, you would export the Custom Hook function so that you can use it within your other React application files.
+   > Now that you have created a Custom Hook function how do you use it?
