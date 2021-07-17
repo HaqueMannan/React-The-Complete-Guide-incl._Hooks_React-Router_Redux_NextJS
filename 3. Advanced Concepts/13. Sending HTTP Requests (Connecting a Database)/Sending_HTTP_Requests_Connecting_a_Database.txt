@@ -5,6 +5,7 @@ Sending HTTP Requests: Connecting a Database - Summary:
 4. Handling Loading & Data States
 5. Handling HTTP Errors
 6. Using the useEffect() Hook for Requests
+7. Sending a POST Request
 
 ------------------------------------------------------------------------------------
 1. How Not to Connect to a Database and Introduction to APIs:
@@ -305,3 +306,51 @@ Sending HTTP Requests: Connecting a Database - Summary:
    > Add the 'async' keyword now at the front of the callback function in order for the asynchronous 'await' code to work again. This will notify JavaScript that the anonymous callback function contains asynchronous code.
    > The ordering is now important because the "fetchMoviesHandler" is a variable and must be executed first before it can be used in the useEffect() Hook. Otherwise, you would be executing a variable (which is a function definition) before it has been defined which will break your application.
    > This will ensure that the "fetchMoviesHandler" function is not re-created unnecessarily. The application will fetch the data for the first time the Component initialises without causing an infinite loop and you can click the Fetch Movies button to reload the data manually.
+
+------------------------------------------------------------------------------------
+7. Sending a POST Request:
+------------------------------------------------------------------------------------
+   > To send a POST request using the Fetch API you would use the fetch() method. This method not only fetches data but it can also perform other CRUD operations.
+   > The second argument/parameter to the fetch() API takes in an options object. This allows you to configure the outgoing request.
+
+   Fetch API POST Request Example:
+      async function addMovieHandler(movie) {
+         const response await fetch('https://react-http-6b4a6.firebase.io.com/movies.json', {
+            method: 'POST',
+            body: JSON.stringify(movies),
+            header: {
+               'Content-Type': 'application/jason'
+            }
+         });
+         const data = await response.json();
+         console.log(data);
+      };
+
+   > The method key by default is set the the 'GET' http method, which is why the second argument/parameter is not needed for a GET request.
+   > The method key's value can be set to other HTTP methods like 'POST', 'DELETE' and 'PUT'.
+   > In the above example, a post request would be made to the Firebase database endpoint. What actually happens when sending a POST request to some URL will depend on the backend you are using. A 'POST' request is not set in stone to always create a resource even though it typically would - this all depends on the concrete API.
+   > To add the resource that should be stored, the body key option is used. The body wants a JSON data. To convert a JavaScript object into a JSON data format you can use a JavaScript utility method. JSON is built into the browser which you can call on and then call on the .stringify() method i.e. JSON.stringify() which will convert the JavaScript object into a JSON data format.
+   > The .stringify() method takes in a JavaScript object or array as its argument/parameter which it will then convert that data into a JSON data format.
+   > lastly, you need to add some headers using the headers key. This takes in an object as its value. The 'Content-Type': 'application/jason' describes the content that will be sent. Technically, Google's Firebase service does not require the header property because it would be able to handle the request even if the header is not set but it does not hurt to set it.
+   > A lot of REST APIs to which you might be sending requests to might require this extra header which describes the content that would be sent along with the request.
+   > The POST request is a asynchronous task and will return a promise; thus, you can use the async/await syntax and store the response in a variable.
+   > Firebase returns data back in a JSON data format.
+   > You could also add error handling by wrapping the function in a try/catch syntax as demonstrated in section 5. Handling HTTP Errors above.
+   > When you now send the request, you should see the new data added to the backend database as well as see the new response data object within the browsers JavaScript console to confirm the new object was created. This is how you can send a POST request, but now you would need to re-configure your 'GET' request to match the data you actually receive from your backend API.
+
+   Fetching Firebase Data Example:
+      const fetchMoviesHandler = useCallback(async () => {
+         const loadedMovies = [];
+         for(const key in data) {
+            loadedMovies.push({
+               id: key,
+               title: data[key].title,
+               openingText: data[key].openingText,
+               releaseDate: data[key].releaseDate
+            });
+         };
+         setMovies(loadedMovies);
+      };
+
+   > In the above example, this demonstrates one such way of how you could fetch the movies data from your Firebase database API. This all depends on the object you receive from the API you are using.
+   > This concludes the core elements when working with REST APIs and sending HTTP requests within your React applications. You should now know how to send a 'GET' request to fetch data and send a 'POST' request to store data to some backend database. Both methods are typical in many application and you should now know how to handle state and errors.

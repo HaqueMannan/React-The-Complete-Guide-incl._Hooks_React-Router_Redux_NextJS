@@ -15,6 +15,7 @@ function App() {
       try {
          // const response = await fetch('https://swapi.dev/api/film/');   // Trigger error in HTTP request.
          const response = await fetch('https://swapi.dev/api/films/');
+         // const response = await fetch('https://react-http-6b4a6.firebased.io.com/movies.json');    // Using a Firebase service for storing data
 
          if(!response.ok) {
             throw new Error('Something went wrong');
@@ -22,6 +23,7 @@ function App() {
 
          const data = await response.json();
 
+         // Fetching from SWAPI API:
          const transformedMovies = data.results.map((movieData) => {
             return {
                id: movieData.episode_id,
@@ -30,6 +32,18 @@ function App() {
                releaseDate: movieData.release_date 
             };
          });
+
+         // Fetching from Firebase Database API:
+         // const loadedMovies = [];
+         // for(const key in data) {
+         //    loadedMovies.push({
+         //       id: key,
+         //       title: data[key].title,
+         //       openingText: data[key].openingText,
+         //       releaseDate: data[key].releaseDate
+         //    });
+         // };
+         // setMovies(loadedMovies);
 
          setMovies(transformedMovies);
          setIsLoading(false);
@@ -43,9 +57,15 @@ function App() {
       fetchMoviesHandler();
    }, [fetchMoviesHandler]);
 
-   function addMovieHandler(movie) {
-      console.log(movie);
-   }
+   async function addMovieHandler(movie) {
+      // console.log(movie);
+      const response = await fetch('https://react-http-6b4a6.firebased.io.com/movies.json', {
+         method: 'POST',
+         body: JSON.stringify(movies)
+      });
+      const data = await response.json();
+      console.log(data);
+   };
 
    let content = <p>No Movies Found.</p>;
    if(movies.length > 0) { content = <MoviesList movies={movies} /> };
@@ -55,7 +75,7 @@ function App() {
    return (
       <React.Fragment>
          <section>
-            <AddMovie onAddMovieHandler={addMovieHandler}></AddMovie>
+            <AddMovie onAddMovie={addMovieHandler}></AddMovie>
          </section>
          <section>
             <button onClick={fetchMoviesHandler}>Fetch Movies</button>
