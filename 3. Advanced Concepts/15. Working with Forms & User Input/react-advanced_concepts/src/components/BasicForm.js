@@ -1,7 +1,7 @@
 import React from 'react';
 
 const BasicForm = (props) => {
-   return (
+   return(
       <form>
          <div className='control-group'>
             <div className='form-control'>

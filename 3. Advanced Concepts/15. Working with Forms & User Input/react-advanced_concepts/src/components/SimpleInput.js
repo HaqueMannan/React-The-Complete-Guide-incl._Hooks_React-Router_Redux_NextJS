@@ -10,8 +10,18 @@ const SimpleInput = (props) => {
       setEnteredName(event.target.value);
    };
 
+   // Form Validation Example:
+   const [enteredNameIsValid, setEnteredNameIsValid] = useState(true);
+
    const formSubmissionHandler = (event) => {
       event.preventDefault();
+
+      if(enteredName.trim() === '') {
+         setEnteredNameIsValid(false);
+         return;
+      };
+
+      setEnteredNameIsValid(true);
 
       // Value from useState:
       console.log(enteredName);
@@ -27,11 +37,14 @@ const SimpleInput = (props) => {
       // nameInputRef.current.value = ''     // NOT RECOMMENDED, DO NOT MANIPULATE THE REAL DOM DIRECTLY, LET REACT MANIPULATE THE DOM.
    };
 
-   return (
+   const nameInputClasses = enteredNameIsValid ? 'form-control' : 'form-control invalid';
+
+   return(
       <form onSubmit={formSubmissionHandler} >
-         <div className='form-control'>
+         <div className={nameInputClasses} >
             <label htmlFor='name'>Your Name</label>
             <input type='text' id='name' ref={nameInputRef} onChange={nameInputChangeHandler} value={enteredName} />
+            { !enteredNameIsValid && <p className="error-text">Name must not be empty.</p> }
          </div>
 
          <div className="form-actions">

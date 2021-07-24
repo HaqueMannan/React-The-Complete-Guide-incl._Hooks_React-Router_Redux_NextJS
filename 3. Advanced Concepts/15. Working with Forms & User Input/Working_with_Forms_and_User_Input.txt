@@ -1,5 +1,6 @@
 Working with Forms & User Input - Summary:
 1. Dealing With Form Submission & Getting User Input Values
+2. Adding Basic Validation and Providing Validation Feedback
 
 ------------------------------------------------------------------------------------
 1. Dealing With Form Submission & Getting User Input Values:
@@ -102,3 +103,64 @@ Working with Forms & User Input - Summary:
       - React should be the only thing that should manipulate the DOM.
 
    > Now that you can listen to user input, how can you validate the user input?
+
+------------------------------------------------------------------------------------
+2. Adding Basic Validation and Providing Validation Feedback:
+------------------------------------------------------------------------------------
+   > Important Note: Client side validation (i.e. within the browser) should not be the only validation you should be doing with real applications. Validation on the Client is great for the User Experience because it provides direct feedback to the user but you should also always validate input on the server. This is because code on the Client can be edited by the user within their browser and cannot be reliable.
+   > Code on the client is there to provide a good user experience and it is not a security mechanism.
+   > Browser Security Further Reading: https://academind.com/tutorials/hide-javascript-code/
+
+   > To add a Client side validation to a form input you can add an if statement to check form fields on a form submission. The exact form validation logic you need will depend on form input value you are expecting.
+
+   Basic Form Validation Example:
+      ...
+      const SimpleInput = (props) => {
+         ...
+         const formSubmissionHandler = (event) => {
+            event.preventDefault();
+            if(enteredName.trim() === '') {
+               return;
+            };
+            console.log(enteredName);
+            setEnteredName('')
+         };
+         return(...);
+      };
+
+   > If the if statement condition evaluates to true i.e. the input field is empty, you would return the function. This will prevent the rest of the code below within the function from executing because in JavaScript when a function reaches a 'return' statement it will stop the execution of the function whether or not something is returned from that function execution.
+   > Now that you have some Client side form validation, you would want to display some form of error feedback to the user.
+
+   Providing Basic Form Validation Feedback Example:
+      ...
+      const SimpleInput = (props) => {
+         ...
+         const [enteredNameIsValid, setEnteredNameIsValid] = useState(true);
+         const formSubmissionHandler = (event) => {
+            event.preventDefault();
+            if(enteredName.trim() === '') {
+               setEnteredNameIsValid(false);
+               return;
+            };
+            setEnteredNameIsValid(true);
+            console.log(enteredName);
+            setEnteredName('')
+         };
+         const nameInputClasses = enteredNameIsValid ? 'form-control' : 'form-control invalid';
+         return(
+            <form onSubmit={formSubmissionHandler} >
+               <div className={nameInputClasses} >
+                  <label htmlFor='name'>Your Name</label>
+                  <input type='text' id='name' ref={nameInputRef} onChange={nameInputChangeHandler} value={enteredName} />
+                  { !enteredNameIsValid && <p className="error-text">Name must not be empty.</p> }
+               </div>
+            </form>
+         ));
+      };
+
+   > A state is created to capture whether the form input field is valid using a boolean value. This is initially set to true so that the error message does not appear before the user has had a chance to enter some input.
+   > This state value is then updated when the form is being submitted i.e. using the if statement to see whether the input field is valid or not and setting the updated state value accordingly.
+   > The state can now be used in the JSX code to conditionally render a HTML element to display some form of error feedback message to the user on the screen.
+   > This is one such way to provide some feedback to the user when something is wrong.
+   > You can also use the validation state to dynamically set a variable value which can be used to update the CSS class applied to the JSX code as seen with in the above example with the wrapping div element. This provides dynamic visual feedback based on the CSS class applied to a element.
+   > This is a perfectly fine approach to adding form validation but this approach has some downside.
