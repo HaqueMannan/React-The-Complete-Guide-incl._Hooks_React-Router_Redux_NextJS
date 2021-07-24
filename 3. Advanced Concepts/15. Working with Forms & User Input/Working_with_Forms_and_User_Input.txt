@@ -1,0 +1,104 @@
+Working with Forms & User Input - Summary:
+1. Dealing With Form Submission & Getting User Input Values
+
+------------------------------------------------------------------------------------
+1. Dealing With Form Submission & Getting User Input Values:
+------------------------------------------------------------------------------------
+   > There are two main ways of fetching user input:
+      - Listen on every keystroke and store the value in some state variable.
+      - Use a ref to fetch the input one the user is done typing in a value.
+   > In reality you will only use one of the two approaches.
+
+   Listen to User Input on Every Keystroke Example:
+      import React, { useState } from 'react';
+      const SimpleInput = (props) => {
+         const [enteredName, setEnteredName] = useState('');
+         const nameInputChangeHandler = (event) => {
+            setEnteredName(event.target.value);
+         };
+         const formSubmissionHandler = (event) => {
+            event.preventDefault();
+            console.log(enteredName);
+         };
+         return (
+            <form onSubmit={formSubmissionHandler} >
+               <div className='form-control'>
+                  <label htmlFor='name'>Your Name</label>
+                  <input type='text' id='name' onChange={nameInputChangeHandler} />
+               </div>
+               <div className="form-actions">
+                  <button>Submit</button>
+               </div>
+            </form>
+         );
+      };
+
+   > Import the useState from the React Library in order to store state variable.
+   > Create a function which receives the event object as a argument/parameter. Using the event object you can capture the .target.value from the event object (i.e. the user input) which can be stored in the state using the state updating function.
+   > The 'event.target' object will be the input that the function gets attached to which allows us to extract the '.value' from that user input field.
+   > Finally, bind the event function to the input using the 'onChange' event. This will trigger the function on every keystroke and ultimately update the stored state value.
+   > Remember: when binding the function to not use the parenthesis (i.e. round brackets) at the end. This would tell JavaScript to execute the function straight away and would re-execute each time the Component function is re-evaluated/re-executed. Instead, you want point to the function and this function will only execute when the event trigger is executed.
+   > The formSubmissionHandler is another event function you would create and bind it to the form 'onSubmit' event. This function will also receives an event object.
+   > Using the event object you would want to use the '.preventDefault()' method to prevent the default browser behaviour.
+   > When a form is submitted with a button inside of a form a HTTP request is sent to the server serving the website. This occurs automatically by the browser. The issue here is that you do not have a server that wants to do anything with that request (i.e. you have a static server which serves your JavaScript and HTML files). The '.preventDefault()' will tell the browser not to do this default behaviour.
+   > When HTTP requests are sent by the browser, it also leads to the page being reloaded again. You would want to prevent this default behaviour using the '.preventDefault()' method otherwise this will restart the entire application again losing all the state and not have the behaviour you would want.
+   > The 'console.log(enteredName)' will display the last name stored in the state variable (i.e. the input value). You could do anything at this point on the form submission function.
+
+   Listen to User Input with useRef Example:
+      import React, { useState } from 'react';
+      const SimpleInput = (props) => {
+         const nameInputRef = useRef();
+         const formSubmissionHandler = (event) => {
+            event.preventDefault();
+            const enteredValue = nameInputRef.current.value;
+            console.log(enteredValue);
+         };
+         return (
+            <form onSubmit={formSubmissionHandler} >
+               <div className='form-control'>
+                  <label htmlFor='name'>Your Name</label>
+                  <input type='text' id='name' ref={nameInputRef} />
+               </div>
+               <div className="form-actions">
+                  <button>Submit</button>
+               </div>
+            </form>
+         );
+      };
+
+   > Import the useRef from the React Library. This will allow you set a ref on an input in order to read the value from the input when needed.
+   > Create a variable and assign it a value calling the 'useRef()' function.
+   > Set the variable as the ref to the input element using the special 'ref' prop. React provides this 'ref' prop which allows you to set on any default HTML element.
+   > In the formSubmissionHandler function you can now create a variable that can reach out and access the value in the ref prop variable (e.g. 'nameInputRef').
+   > Every React 'ref' prop objects has a '.current' property which holds the value assigned to the element assigned to the ref. In the above example the 'nameInputRef' reference has a pointer to the <input> element which will be stored in the '.current' property. This then allows you to access the input value using '.current.value' property.
+   > JavaScript objects representing HTML input elements always has a value property which holds the value of the currently entered within that input element.
+   > The 'console.log(enteredValue)' will display the input value stored in the input element using a reference to that input element object. You could do anything at this point on the form submission function.
+
+   > How would you decide which approach to use? This all depends on what you plan to do with the entered user input. But as a general guidance:
+      - If only interested in the value once after the form is submitted then a useRef approach is better for this scenario. This is because logging/updating the state value on every keystroke might be an overkill.
+      - If you need the entered value after every keystroke for instant validation then using the useState approach is better for this scenario. This is because the useRef approach cannot accomplish this requirement.
+      - If you want to reset the user input after a form submission using the useState approach is better for this scenario. Below is an example code of how to handle this behaviour with useState which is not possible with useRef:
+
+      const SimpleInput = (props) => {
+         ...
+         const formSubmissionHandler = (event) => { setEnteredName('') };
+         return (
+            <form onSubmit={formSubmissionHandler} >
+               <div className='form-control'>
+                  <label htmlFor='name'>Your Name</label>
+                  <input type='text' id='name' onChange={nameInputChangeHandler} value={enteredName} />
+               </div>
+               <div className="form-actions">
+                  <button>Submit</button>
+               </div>
+            </form>
+         );
+      };
+
+      > On the 'formSubmissionHandler' function you would reset the state by calling the state updating function and set it to an empty string.
+      > On the input element use the 'value' prop to bind the state to the element. This will then clear the input on the form submission event because the state value is bound to the input using the 'value' prop.
+
+      - Resetting the form input could be achieved with the useRef approach but is much less elegant compared to the above useState example. This is achieved by accessing the input value property and setting it to an empty string (e.g. nameInputRef.current.value = ''). However, this approach is not recommended because you are directly manipulating the DOM with this approach rather than having React manipulate the DOM.
+      - React should be the only thing that should manipulate the DOM.
+
+   > Now that you can listen to user input, how can you validate the user input?
