@@ -1,6 +1,7 @@
 Working with Forms & User Input - Summary:
 1. Dealing With Form Submission & Getting User Input Values
 2. Adding Basic Validation and Providing Validation Feedback
+3. Handling the 'was touched' State
 
 ------------------------------------------------------------------------------------
 1. Dealing With Form Submission & Getting User Input Values:
@@ -155,7 +156,8 @@ Working with Forms & User Input - Summary:
                   { !enteredNameIsValid && <p className="error-text">Name must not be empty.</p> }
                </div>
             </form>
-         ));
+            ...
+         );
       };
 
    > A state is created to capture whether the form input field is valid using a boolean value. This is initially set to true so that the error message does not appear before the user has had a chance to enter some input.
@@ -164,3 +166,62 @@ Working with Forms & User Input - Summary:
    > This is one such way to provide some feedback to the user when something is wrong.
    > You can also use the validation state to dynamically set a variable value which can be used to update the CSS class applied to the JSX code as seen with in the above example with the wrapping div element. This provides dynamic visual feedback based on the CSS class applied to a element.
    > This is a perfectly fine approach to adding form validation but this approach has some downside.
+
+------------------------------------------------------------------------------------
+3. Handling the 'was touched' State:
+------------------------------------------------------------------------------------
+   > A downside of the basic form validation feedback seen in the previous example is having the 'enteredNameIsValid' state which starts with 'true' as its value. This implies the input field is initially valid. This is not the case and it is set to true to avoid showing the error state when the form initially loads.
+   > The problem with this approach, for example, if you had some 'useEffect()' side effect code which would trigger whenever the 'enteredNameIsValid' dependency changes. If the code triggered when the state was valid then the code will execute when the form is loaded:
+
+   Downside Example:
+      import React, { useState, useEffect } from 'react';
+      const SimpleInput = (props) => {
+         const [enteredNameIsValid, setEnteredNameIsValid] = useState(true);
+         useEffect(() => {
+            if(enteredNameIsValid) {
+               console.log('Name input is valid!');
+            };
+         }, [enteredNameIsValid]);
+         ...
+         render(...);
+      };
+
+   > The issue here is that the 'useEffect()' side effect would execute when the application is loaded because the dependency 'enteredNameIsValid' would be set for the first time and because it is set as true (even though the input is actually not valid) this will trigger the if statement block code. You would see the 'Name input is valid!' printed to the browser console.
+   > Imagine if the code block was to send a HTTP request or something else when the state is set to true. This will cause an undesired effect just because we intentionally set the state to an incorrect value to workaround/overcome the initial issue of hiding the error message before the user has a chance to enter some input.
+   > Furthermore, the code might not read correctly (initially) if someone else was to look at the code fort the first time without understanding why you did what you did.
+   > To overcome this you could create another state to see whether or not the user has touched the input and only then check and update the state accordingly.
+
+   Has Touched State Example:
+      import React, { useState, useEffect } from 'react';
+      const SimpleInput = (props) => {
+         const [enteredNameIsValid, setEnteredNameIsValid] = useState(false);
+         const [enteredNameTouched, setEnteredNameTouched] = useState(false);
+         useEffect(() => {
+            if(enteredNameIsValid) {
+               console.log('Name input is valid!');
+            };
+         }, [enteredNameIsValid]);
+         ...
+         const formSubmissionHandler = (event) => {
+            event.preventDefault();
+            setEnteredNameTouched(true);
+            ...
+         };
+         ...
+         const nameInputIsInvalid = !enteredNameIsValid && enteredNameTouched;
+         const nameInputClasses = nameInputIsInvalid ? 'form-control invalid' : 'form-control';
+         render(
+            <form onSubmit={formSubmissionHandler} >
+               <div className={nameInputClasses} >
+                  <label htmlFor='name'>Your Name</label>
+                  <input type='text' id='name' ref={nameInputRef} onChange={nameInputChangeHandler} value={enteredName} />
+                  { nameInputIsInvalid && <p className="error-text">Name must not be empty.</p> }
+               </div>
+            </form>
+            ...
+         );
+      };
+
+   > This now allows you to have the correct initial values for the state and when the user does touch a input field only then would you check for validation and display the error feedback messages.
+   > You now need to decide how you would update the touched state e.g. on form submission on on input keystroke event etc.
+   > This is a little more code than before but it is a better/cleaner code. This also allows you to handle more case scenarios and the code works exactly as you would expect it to without running into any unexpected logic bugs cause by some workaround fix.
