@@ -2,6 +2,7 @@ Working with Forms & User Input - Summary:
 1. Dealing With Form Submission & Getting User Input Values
 2. Adding Basic Validation and Providing Validation Feedback
 3. Handling the 'was touched' State
+4. Reacting to Lost Focus using onBlur
 
 ------------------------------------------------------------------------------------
 1. Dealing With Form Submission & Getting User Input Values:
@@ -225,3 +226,42 @@ Working with Forms & User Input - Summary:
    > This now allows you to have the correct initial values for the state and when the user does touch a input field only then would you check for validation and display the error feedback messages.
    > You now need to decide how you would update the touched state e.g. on form submission on on input keystroke event etc.
    > This is a little more code than before but it is a better/cleaner code. This also allows you to handle more case scenarios and the code works exactly as you would expect it to without running into any unexpected logic bugs cause by some workaround fix.
+
+------------------------------------------------------------------------------------
+4. Reacting to Lost Focus using onBlur:
+------------------------------------------------------------------------------------
+   > In the previous example, while we were able to fix the form validation feedback logic using the touched event; however, the error message will now only appear when the form is submitted.
+   > How can we handle the situation whereby the user is shown the error message after they had the chance to touch the input but then remove all the text making the field invalid but have not submitted the form?
+   > You can validate on 'blur' (i.e. when the input loses focus). React provides the 'onBlur' prop event which will fire whenever the element loses focus.
+
+   React onBlur Prop (Losing Focus Event) Example:
+      import React, { useState, useEffect } from 'react';
+      const SimpleInput = (props) => {
+         ...
+         const nameInputBlurHandler = (event) => {
+            setEnteredNameTouched(true);
+
+            if(enteredName.trim() === '') {
+               setEnteredNameIsValid(false);
+               return;
+            };
+         };
+         ...
+         render(
+            <form onSubmit={formSubmissionHandler} >
+               <div className={nameInputClasses} >
+                  <label htmlFor='name'>Your Name</label>
+                  <input type='text' id='name' ref={nameInputRef} onChange={nameInputChangeHandler} onBlur={nameInputBlurHandler} value={enteredName} />
+                  { nameInputIsInvalid && <p className="error-text">Name must not be empty.</p> }
+               </div>
+            </form>
+            ...
+         );
+      };
+
+   > The input field is provided the 'onBlur' prop which points at the 'nameInputBlurHandler' function. This function will be triggered whenever this input loses focus.
+   > The function will set the "enteredNameTouched" state to true because if an input lost focus it definitely has been touched. In addition you may wish to re-run validation at this point in order to display the error feedback message if the form input was incorrect.
+   > Important Note: the if statement condition can be seen as code duplication but it is ok for this demonstration but realistically you would refactor that logic to abide by the DRY principal.
+   > The code now provides a better user experience as the error message appears not only when you submit the form but when you touch and lose focus of an input.
+   > The last issue you know have is that when the user starts to type something into the input field the error feedback message continues to be shown until the user submits the form. You may wish to add some logic on the key stroke event which would allow the user to fix the error and hide it once they start typing into the input field again.
+   > Therefore, this hopefully demonstrates why you may end up using a combination of all three cases (i.e. when form is submitted, when input lost focus and on every keystroke) for immediate form validation feedback and a better reactive ad interactive user experience overall.
