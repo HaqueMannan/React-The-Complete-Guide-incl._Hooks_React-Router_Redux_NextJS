@@ -5,6 +5,7 @@ Working with Forms & User Input - Summary:
 4. Reacting to Lost Focus using onBlur
 5. Managing the Overall Form Validity
 6. Adding a Custom Input Hook & Re-using the Custom Hook
+7. Conclusion
 
 ------------------------------------------------------------------------------------
 1. Dealing With Form Submission & Getting User Input Values:
@@ -472,6 +473,24 @@ Working with Forms & User Input - Summary:
    > The Custom Hook should return something. In the above example this is an object because we want to return more than one thing.
    > Note: Modern JavaScript allows you to write short form of e.g. "hasError" within an object which is the same as writing "hasError: hasError".
    > The functions defined in the return object allows you to expose these state updating functions to the place where the Custom Hook is being used.
-   > You can call the Custom Hook and extract values from the results object returned by the Custom Hook using JavaScript's object destructuring. You can assign aliases to these values extracted.
+   > You can call the Custom Hook and extract values from the results object returned by the Custom Hook using JavaScript's object destructuring.
+   > Aliases are assigned to the values extracted which is required to avoid any variable name clashes when using the Custom Hook for multiple inputs.
    > The anonymous function is defined outside the Custom Hook but is passed in as the "validateValue" argument/parameter and that function is actually executed inside the Custom Hook's 'const valueIsValid = validateValue(enteredValue);' line where the argument/parameter is being called. The "enteredValue" which is the state that is being managed in the Custom Hook, is the value that gets passed into this function. This can be a little tricky to get your head around but this is all just regular JavaScript where you are passing a function as a value to another function.
    > The form would continue to work as before but now using Custom Hooks to outsource repeating/duplicate logic which ultimately will help lean the Component code.
+
+------------------------------------------------------------------------------------
+7. Conclusion:
+------------------------------------------------------------------------------------
+   When to Validate Diagram:
+   [When Form is Submitted]               [When a Input Loses Focus]                [On every Keystroke]
+   Allow a user to enter a                Allow the user to enter a                 Warn the user before they
+   valid value before warning             a valid value before warnings             had the chance of entering
+   the user.                              the user.                                 valid values.
+
+   Avoid unnecessary warnings             Very useful for untouched                 If applied only on invalid
+   but maybe present feedback             forms.                                    inputs, has the potential of 
+   "too late".                                                                      providing more direct feedback.
+
+   > You can read the following article on creating a more elaborate Custom Hooks (https://academind.com/tutorials/reactjs-a-custom-useform-hook/).
+   > There are many great third party libraries that can be of interest to you and your future projects. For example, Formik (https://formik.org/) is a very popular library for creating Form Components for React projects. The core idea is that you do not have to write much state management logic but instead you write your validation logic, define your fields and then let Formik do the rest.
+   > You should now be well prepared to handle forms and user inputs in your next projects.
