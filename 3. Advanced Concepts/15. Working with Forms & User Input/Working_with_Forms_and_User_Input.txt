@@ -3,6 +3,7 @@ Working with Forms & User Input - Summary:
 2. Adding Basic Validation and Providing Validation Feedback
 3. Handling the 'was touched' State
 4. Reacting to Lost Focus using onBlur
+5. Managing the Overall Form Validity
 
 ------------------------------------------------------------------------------------
 1. Dealing With Form Submission & Getting User Input Values:
@@ -309,3 +310,74 @@ Working with Forms & User Input - Summary:
          );
       };
       export default SimpleInput;
+
+   > Notice in the above code that the "enteredNameIsValid" derives its value from the other states. The "nameInputIsInvalid" can use the derived "enteredNameIsValid" state in its logic. This allows the code to be a lot more leaner without requiring too manu individual states.
+
+------------------------------------------------------------------------------------
+5. Managing the Overall Form Validity:
+------------------------------------------------------------------------------------
+   > So far we have explored the form validity on a single input. Often you would have more than one input and in such scenarios it would be nice to find out whether the overall form is valid on submissions and not the single input only. The overall form is only valid if all the inputs within the form are valid.
+   > How can you take into account the overall form validity? one way is to add a new state.
+
+   Overall Form Validity Using useState Example:
+      const SimpleInput = (props) => {
+         ...
+         const [formIsValid, setFormIsValid] = useState(false);
+         useEffect(() => {
+            if(enteredNameIsValid && enteredAgeIsValid) {
+               setFormIsValid(true);
+            } else {
+               setFormIsValid(false);
+            };
+         }, [enteredNameIsValid, enteredAgeIsValid]);
+         return(
+            <form onSubmit={formSubmissionHandler} >
+               ...
+               <div className="form-actions">
+                  <button disabled={!formIsValid}>Submit</button>
+               </div>
+            </form>
+         );
+      };
+
+   CSS Styling for disabled button:
+      button:hover,
+      button:active {
+         background-color: #33059e;
+         border-color: #33059e;
+      }
+      button:disabled,
+      button:disabled:hover,
+      button:disabled:active {
+         background-color: #ccc;
+         border-color: #ccc;
+         color: #292929;
+         cursor: not-allowed;
+      }
+
+   > The formIsValid is set to false when it is initialised because the form initially will not be valid.
+   > You can then update this overall form state whenever one of the form inputs changes. For this you can use the 'useEffect()' Hook to handle this side effect.
+   > As dependencies you would add all the form validities. Whenever the value of the dependency changes the effect would run again (it would also run for the first initialisation of the Component function). The logic in the side effect would then combine all the dependencies and check if they are all valid and if true then the overall form validity can be set to true.
+   > The above example demonstrates where there are two input fields to the overall form i.e. "enteredNameIsValid" and "enteredAgeIsValid".
+   > Whenever one of the input is invalid then the overall form validation will be set to false else the form is valid and the state will be set to true.
+   > This overall form state can then be used to 'disabled' the Submit button when the overall form state evaluates to false (i.e. '<button disabled={!formIsValid}>').
+   > If you take a closer look at the above example you will notice that the useEffect is not even needed. You are not performing any side effect. All that you are doing here is deriving a new value for the overall form validity. So while you can use useEffect, it adds extra Component re-evaluation cycles which is not an advantage.
+
+   Alternative Overall Form Validity Using Derived State Variable Example:
+      const SimpleInput = (props) => {
+         ...
+         let formIsValid = false;
+         if(enteredNameIsValid && enteredAgeIsValid) {
+            formIsValid = true;
+         };
+         return(
+            <form onSubmit={formSubmissionHandler} >
+               ...
+               <div className="form-actions">
+                  <button disabled={!formIsValid}>Submit</button>
+               </div>
+            </form>
+         );
+      };
+
+   > The derived state variable "formIsValid" is initially set to false when the variable is created. The if statement will check all the other validity states are true before updating the derived state value to true. This then provides the same functionality but without requiring the "useEffect()" Hook. This approach allows you to write much more leaner code for your Component functions which may also be more performant.
