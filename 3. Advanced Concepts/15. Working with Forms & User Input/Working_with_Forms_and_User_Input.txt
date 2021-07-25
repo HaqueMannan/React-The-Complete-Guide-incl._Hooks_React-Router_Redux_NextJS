@@ -284,7 +284,7 @@ Working with Forms & User Input - Summary:
       const SimpleInput = (props) => {
          const [enteredName, setEnteredName] = useState('');
          const [enteredNameTouched, setEnteredNameTouched] = useState(false);
-         const enteredNameIsValid = enteredName.trim() !== ''
+         const enteredNameIsValid = enteredName.trim() !== '';
          const nameInputIsInvalid = !enteredNameIsValid && enteredNameTouched;
          const nameInputChangeHandler = (event) => { setEnteredName(event.target.value) };
          const nameInputBlurHandler = (event) => { setEnteredNameTouched(true) };
