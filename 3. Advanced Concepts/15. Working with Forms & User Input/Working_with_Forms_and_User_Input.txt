@@ -263,5 +263,49 @@ Working with Forms & User Input - Summary:
    > The function will set the "enteredNameTouched" state to true because if an input lost focus it definitely has been touched. In addition you may wish to re-run validation at this point in order to display the error feedback message if the form input was incorrect.
    > Important Note: the if statement condition can be seen as code duplication but it is ok for this demonstration but realistically you would refactor that logic to abide by the DRY principal.
    > The code now provides a better user experience as the error message appears not only when you submit the form but when you touch and lose focus of an input.
-   > The last issue you know have is that when the user starts to type something into the input field the error feedback message continues to be shown until the user submits the form. You may wish to add some logic on the key stroke event which would allow the user to fix the error and hide it once they start typing into the input field again.
+   > The last issue you know have is that when the user starts to type something into the input field the error feedback message continues to be shown until the user submits the form. You may wish to add some logic on the keystroke event which would allow the user to fix the error and hide it once they start typing into the input field - example logic shown below:
+
+   On Keystroke Hide Error Message Logic Example:
+      const SimpleInput = (props) => {
+         const nameInputChangeHandler = (event) => {
+            setEnteredName(event.target.value);
+            if(event.target.value.trim() !== '') {
+               setEnteredNameIsValid(true);
+            };
+         };
+      };
+
    > Therefore, this hopefully demonstrates why you may end up using a combination of all three cases (i.e. when form is submitted, when input lost focus and on every keystroke) for immediate form validation feedback and a better reactive ad interactive user experience overall.
+   > Below is a refactored code example demonstrating a cleaner code which achieves the same form validation and validation feedback providing a good user experience.
+
+   Refactored Form Validation Example:
+      import React, { useState } from 'react';
+      const SimpleInput = (props) => {
+         const [enteredName, setEnteredName] = useState('');
+         const [enteredNameTouched, setEnteredNameTouched] = useState(false);
+         const enteredNameIsValid = enteredName.trim() !== ''
+         const nameInputIsInvalid = !enteredNameIsValid && enteredNameTouched;
+         const nameInputChangeHandler = (event) => { setEnteredName(event.target.value) };
+         const nameInputBlurHandler = (event) => { setEnteredNameTouched(true) };
+         const formSubmissionHandler = (event) => {
+            event.preventDefault();
+            if(!enteredNameIsValid) { return };
+            console.log(enteredName);
+            setEnteredName('');
+            setEnteredNameTouched(false);
+         };
+         const nameInputClasses = nameInputIsInvalid ? 'form-control invalid' : 'form-control';
+         return(
+            <form onSubmit={formSubmissionHandler} >
+               <div className={nameInputClasses} >
+                  <label htmlFor='name'>Your Name</label>
+                  <input type='text' id='name' onChange={nameInputChangeHandler} onBlur={nameInputBlurHandler} value={enteredName} />
+                  { nameInputIsInvalid && <p className="error-text">Name must not be empty.</p> }
+               </div>
+               <div className="form-actions">
+                  <button>Submit</button>
+               </div>
+            </form>
+         );
+      };
+      export default SimpleInput;
