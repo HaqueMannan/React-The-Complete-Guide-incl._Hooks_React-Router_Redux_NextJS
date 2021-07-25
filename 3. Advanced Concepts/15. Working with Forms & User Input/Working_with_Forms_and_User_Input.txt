@@ -4,6 +4,7 @@ Working with Forms & User Input - Summary:
 3. Handling the 'was touched' State
 4. Reacting to Lost Focus using onBlur
 5. Managing the Overall Form Validity
+6. Adding a Custom Input Hook & Re-using the Custom Hook
 
 ------------------------------------------------------------------------------------
 1. Dealing With Form Submission & Getting User Input Values:
@@ -381,3 +382,96 @@ Working with Forms & User Input - Summary:
       };
 
    > The derived state variable "formIsValid" is initially set to false when the variable is created. The if statement will check all the other validity states are true before updating the derived state value to true. This then provides the same functionality but without requiring the "useEffect()" Hook. This approach allows you to write much more leaner code for your Component functions which may also be more performant.
+
+------------------------------------------------------------------------------------
+6. Adding a Custom Input Hook & Re-using the Custom Hook:
+------------------------------------------------------------------------------------
+   > When you have a lot of duplication (i.e. the variables names are not exactly the same but the overall logic structure is the same) the Component code could look complex especially when the form has more inputs.
+   > Typically you would want to outsource some of the logic somewhere so that you do not need to retype and repeat the same code all the time.
+   > How best can you achieve this? One way could be to consider creating a separate input Component. Within that Component you would have the logic to validate the input Component. While this is one solution that could work, you would need to find a solution to managing the overall form validity which can be a little more tricky with this approach.
+   > If you manage every input as an individual closed thing (via a input Component approach) you then need to find a way of letting the overall form know if all the inputs are valid or not. This could certainly be done using props and passing functions to props and calling them from the input Component and so on; however, there is another approach.
+   > You can use a Custom Hook to manage all the state logic. The hook should therefore be flexible in managing the input states i.e. the Custom Hook should be generic and not limited to one specific input.
+
+   Custom Hook Example:
+      src/hooks/use-input.js:
+         import { useState } from "react";
+         const useInput = (validateValue) => {
+            const [enteredValue, setEnteredValue] = useState('');
+            const [isTouched, setIsTouched] = useState(false);
+            const valueIsValid = validateValue(enteredValue);
+            const hasError = !valueIsValid && isTouched;
+            const valueChangeHandler = (event) => { setEnteredValue(event.target.value) };
+            const inputBlurHandler = (event) => { setIsTouched(true) };
+            const reset = () => {
+               setEnteredValue('');
+               setIsTouched(false);
+            };
+            return {
+               value: enteredValue,
+               isValid: valueIsValid,
+               hasError,
+               valueChangeHandler,
+               inputBlurHandler,
+               reset
+            };
+         };
+         export default useInput;
+
+      src/components/SimpleInput.js:
+         import React from 'react';
+         import useInput from '../hooks/use-input';
+         const SimpleInput = (props) => {
+            const { 
+               value: enteredName,
+               isValid: enteredNameIsValid,
+               hasError: nameInputHasError,
+               valueChangeHandler: nameChangedHandler,
+               inputBlurHandler: nameBlueHandler,
+               reset: resetNameInput
+            } = useInput(value => value.trim() !== '');
+            const { 
+               value: enteredEmail,
+               isValid: enteredEmailIsValid,
+               hasError: emailInputHasError,
+               valueChangeHandler: emailChangedHandler,
+               inputBlurHandler: emailBlueHandler,
+               reset: resetEmailInput
+            } = useInput(value => value.includes('@'));
+            let formIsValid = false;
+            if(enteredNameIsValid && enteredEmailIsValid) { formIsValid = true };
+            const formSubmissionHandler = (event) => {
+               event.preventDefault();
+               if(!enteredNameIsValid) { return };
+               console.log(enteredName);
+               resetNameInput();
+               resetEmailInput();
+            };
+            const nameInputClasses = nameInputHasError ? 'form-control invalid' : 'form-control';
+            const emailInputClasses = emailInputHasError ? 'form-control invalid' : 'form-control';
+            return(
+               <form onSubmit={formSubmissionHandler} >
+                  <div className={nameInputClasses} >
+                     <label htmlFor='name'>Your Name</label>
+                     <input type='text' id='name' onChange={nameChangedHandler} onBlur={nameBlueHandler} value={enteredName} />
+                     { nameInputHasError && <p className="error-text">Name must not be empty.</p> }
+                  </div>
+                  <div className={emailInputClasses} >
+                     <label htmlFor='email'>Your Email</label>
+                     <input type='email' id='email' onChange={emailChangedHandler} onBlur={emailBlueHandler} value={enteredEmail} />
+                     { emailInputHasError && <p className="error-text">Please enter a valid email.</p> }
+                  </div>
+                  <div className="form-actions">
+                     <button disabled={!formIsValid}>Submit</button>
+                  </div>
+               </form>
+            );
+         };
+         export default SimpleInput;
+
+   > Custom Hooks can take in functions as argument/parameter as seen with the "validateValue".
+   > The Custom Hook should return something. In the above example this is an object because we want to return more than one thing.
+   > Note: Modern JavaScript allows you to write short form of e.g. "hasError" within an object which is the same as writing "hasError: hasError".
+   > The functions defined in the return object allows you to expose these state updating functions to the place where the Custom Hook is being used.
+   > You can call the Custom Hook and extract values from the results object returned by the Custom Hook using JavaScript's object destructuring. You can assign aliases to these values extracted.
+   > The anonymous function is defined outside the Custom Hook but is passed in as the "validateValue" argument/parameter and that function is actually executed inside the Custom Hook's 'const valueIsValid = validateValue(enteredValue);' line where the argument/parameter is being called. The "enteredValue" which is the state that is being managed in the Custom Hook, is the value that gets passed into this function. This can be a little tricky to get your head around but this is all just regular JavaScript where you are passing a function as a value to another function.
+   > The form would continue to work as before but now using Custom Hooks to outsource repeating/duplicate logic which ultimately will help lean the Component code.
