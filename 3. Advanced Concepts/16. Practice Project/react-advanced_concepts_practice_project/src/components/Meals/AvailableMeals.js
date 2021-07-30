@@ -8,10 +8,17 @@ import MealItem from './MealItem/MealItem';
 const AvailableMeals = () => {
    const [meals, setMeals] = useState([]);
    const [isLoading, setIsLoading] = useState(true);
+   const [httpError, setHttpError] = useState();
 
    useEffect(() => {
       const fetchMeals = async() => {
          const response = await fetch('https://reactjs-practiceproject-default-rtdb.europe-west1.firebasedatabase.app/meals.json');
+         // const response = await fetch('https://reactjs-practiceproject-default-rtdb.europe-west1.firebasedatabase.app/meals');         // Uncomment to test error handling.
+
+         if(!response.ok) {
+            throw new Error('Something went wrong!');
+         };
+
          const responseData = await response.json();
 
          const loadedMeals = [];
@@ -28,7 +35,10 @@ const AvailableMeals = () => {
          setIsLoading(false);
       };
 
-      fetchMeals();
+      fetchMeals().catch((error) => {
+         setIsLoading(false);
+         setHttpError(error.message);
+      });
    }, []);
 
    if(isLoading) {
@@ -38,6 +48,14 @@ const AvailableMeals = () => {
          </section>
       );
    };
+
+   if(httpError) {
+      return(
+         <section className={classes.MealsError}>
+            <p>{httpError}</p>
+         </section>
+      );
+   }
 
    const mealsList = meals.map(meal => (
       <MealItem id={meal.id} key={meal.id} name={meal.name} description={meal.description} price={meal.price} />
