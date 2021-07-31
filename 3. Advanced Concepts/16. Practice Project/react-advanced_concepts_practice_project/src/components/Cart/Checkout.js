@@ -3,7 +3,7 @@ import React, { useRef, useState } from "react";
 import classes from './Checkout.module.css';
 
 const isEmpty = (value) => value.trim() === '';
-const isSixOrSevenChars = (value) => value.trim().length === 6 || value.trim().length === 7;
+const isSevenOrSixChars = (value) => value.trim().length === 7 || value.trim().length === 8;
 
 
 const Checkout = (props) => {
@@ -30,7 +30,7 @@ const Checkout = (props) => {
       const enteredNameIsValid = !isEmpty(enteredName);
       const enteredStreetIsValid = !isEmpty(enteredStreet);
       const enteredCityIsValid = !isEmpty(enteredCity);
-      const enteredPostCodeIsValid = isSixOrSevenChars(enteredPostCode);
+      const enteredPostCodeIsValid = isSevenOrSixChars(enteredPostCode);
 
       setFormInputsValidity({
          name: enteredNameIsValid,
