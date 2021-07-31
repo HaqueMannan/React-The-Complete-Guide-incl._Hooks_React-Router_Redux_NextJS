@@ -13,7 +13,6 @@ const AvailableMeals = () => {
    useEffect(() => {
       const fetchMeals = async() => {
          const response = await fetch('https://reactjs-practiceproject-default-rtdb.europe-west1.firebasedatabase.app/meals.json');
-         // const response = await fetch('https://reactjs-practiceproject-default-rtdb.europe-west1.firebasedatabase.app/meals');         // Uncomment to test error handling.
 
          if(!response.ok) {
             throw new Error('Something went wrong!');
