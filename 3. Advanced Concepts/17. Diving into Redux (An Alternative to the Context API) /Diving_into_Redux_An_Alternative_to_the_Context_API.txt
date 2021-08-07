@@ -1,6 +1,7 @@
 Diving into Redux: An Alternative to the Context API - Summary:
 1. Redux vs React Context
 2. How Redux Works
+3. Exploring the Core Redux Concepts
 
 ------------------------------------------------------------------------------------
 1. Redux vs React Context:
@@ -78,3 +79,122 @@ Diving into Redux: An Alternative to the Context API - Summary:
             |                             | Subscription
             | Dispatch                    v
             ------------------------[Components]
+
+------------------------------------------------------------------------------------
+3. Exploring the Core Redux Concepts:
+------------------------------------------------------------------------------------
+   > To install the Redux library use the following npm command within the terminal while within the project directory (note: you could run a similar command to install using Yarn Package Manager):
+      $ npm install redux
+   
+   > The Redux library (and all of its dependencies) will get installed inside of your project file and the package.json will be updated to reflect the new library and dependencies installed to the node_modules folder.
+   > To use Redux you would need to import the library into your JavaScript file.
+   > Note: If executing JavaScriptfiles through NodeJS the import syntax is slightly different to the normal ES6 import syntax. This is because NodeJS has not implemented the ES6 import Syntax.
+
+      ES6 Import Syntax Importing Redux example:
+         import redux from 'redux';
+
+      NodeJS Import Syntax Importing Redux example:
+         const redux = require('redux');
+
+   > After installing and importing Redux you are now ready to use Redux.
+
+      Creating a Store Example:
+         const redux = require('redux');
+         const store = redux.createStore();
+
+   > The imported redux object from the Redux library provides a .createStore() method. This exposed method will create a Central Data Store.
+   > The new store is saved to a const variable which you can name as anything you want (the above example uses store as the const variable name).
+   > The data the central store manages is determined by the Reducer Function. It is the Reducer Function which will produce new state snapshots whenever an action reaches it.
+   > When the code is executed for the first time the Reducer Function will also be executed with a default action which will produce the initial state.
+
+      Creating a Reducer Function Example:
+         const redux = require('redux');
+         const counterFunction = (state, action) => {
+            return { counter: state.counter + 1 };
+         };
+         const store = redux.createStore(counterFunction);
+
+      or
+         const redux = require('redux');
+         function counterFunction(state, action) {
+            return { counter: state.counter + 1 };
+         };
+         const store = redux.createStore(counterFunction);
+
+   > You can use either syntax (ES5 function or ES6 anonymous arrow function syntax) to create the Reducer Function.
+   > The Reducer is a standard JavaScript function but it will be called by the Redux library and therefore will always then receive two pieces of input arguments/parameters:
+      - Inputs: state (i.e. the old state) & action (i.e. the dispatched action)
+   > The Reducer Function must return a certain output i.e. a new State object:
+      - Output: New State Object
+   > Therefore, the reducer function should be a pure function which means the same input (i.e. values for the input) should always lead to (i.e. produce) the same output. There should be no side effects inside of the function i.e. you must not send a HTTP request or fetch/write something to local storage, etc.
+   > Typically the output would be a State object because in most applications, State is more than just a single value; however, theoretically the output can be any kind of value type (but in reality it is typically an object).
+   > The State Object can have any structure you want and will totally depend on the developer.
+   > In the above example, the counter property refers to the old state.counter property value and adds 1 to get the new counter value for the new state. This is how a basic reducer could look like.
+   > The reducer is what is passed to the .createStore() method. This is because the .createStore() method needs to know which reducer is responsible for changing the store (keep in mind that it is the reducer that works together with the store). Therefore, the store wants to know who the reducer function is that will manipulate the store.
+   > It is important that you do not execute the Reducer Function but just point to the function when passing it as an argument/parameter to the .createStore() method.
+
+      Creating a Subscriber Example:
+         const counterSubscriber = () => {
+            const latestState = store.getState();
+            console.log(latestState);
+         };
+         store.subscribe(counterSubscriber);
+
+   > You can use either syntax (ES5 function or ES6 anonymous arrow function syntax) to create the Subscriber Function.
+   > The subscriber function does not receive any function but it is a function that can reach out to the store and call the .getState() method which is a method created on to the created store object.
+   > The .getState() will provide the latest state snapshot after the store was updated. This can be stored in a variable which can be used to do whatever is required with the new state.
+   > To make Redux aware of the Subscriber Function and to tell Redux that this function should be executed whenever the state changes by reaching out the the created store object and calling the .subscribe() method. This is another method provided by the Redux library's .createStore() method when setting up the store object.
+   > The .subscribe() method expects a subscribe function which Redux will execute for you whenever the data in the data store changes.
+   > It is important that you do not execute the subscriber function but just point to the function when passing it as an argument/parameter to the .subscribe() method.
+   > Both the Reducer Function and the Subscriber Function will be executed by Redux.
+
+   Executing File through NodeJS:
+      $: node fileName.js
+
+   > The above command will execute the specified JavaScript file within the current terminal directory through NodeJS and spit out the the result in the terminal. You will notice an error is thrown of:
+      counter: state.counter + 1
+                     ^
+      TypeError: Cannot read property 'counter' of undefined
+
+   > This error appears because you are creating a store which has a reducer and in that reducer you return a state object which sets the counter to the old state.counter + 1. The problem is that when the store is initialised, Redux will execute the Reducer Function for the very first time and the state is undefined because there are no existing state because it is the first time the function is executing.
+   > Therefore, when passing the state argument/parameter inside of the Reducer Function you should always give the state argument/parameter a default/fallback value so that when it runs for the first time it will have a value that is not undefined which will remove the error.
+
+      Providing a Default State Value Example:
+         const counterFunction = (state = { counter: 0 }, function) => {...};
+
+   > When the Reducer Function runs after the initial execution, the state will always have a value for state which will ignore the default value set for the state argument/parameter. The default value will only be used where the state does not have a value i.e. on first execution where the state is undefined.
+   > Now when the code is run you will not see any output to the terminal. This is because while we have the Central Data Store, Reducers and Subscription all setup there are no Actions dispatched. While the initial initialisation is dispatched by Redux, this does not trigger the Subscription function.
+   > You could get the initial state by using the following code after the store is created:
+
+      Get Initial Store State Example:
+         const store = redux.createStore(counterFunction);
+         console.log(store.getState());
+
+   > Typically you would not want to do the above, but this demonstrates how you could receive the initial state if needed.
+
+      Creating An Action Example:
+         store.dispatch({ type: 'increment' });
+
+   > The store object has a .dispatch() method which is a method that dispatches an Action.
+   > An Action is a JavaScript object with a 'type' property which acts as an identifier. The value is typically a string value which should be a unique string value. Every distinct Action you dispatch should lead to different things being done in the reducer.
+   > In its simplest form the .dispatch() method only needs an object with the 'type' property set to a unique string value
+   > If you execute the JavaScript file again you would see { counter: 2 } printed to the terminal. This is because counter is initially set to 1 after the first .createStore() initialisation (as seen with the above Get Initial Store State Example) and then when you dispatched a new action this caused the "counterFunction" Reducer Function to be executed again incrementing the existing counter state property by 1 resulting in the value of 2.
+   > This in a nutshell is how Redux works. The final code can be found below for reference of understanding the core Redux concepts.
+
+      Final Core Redux Concepts Example:
+      redux-demo.js:
+         const redux = require('redux');
+         const counterFunction = (state = { counter: 0 }, function) => {
+            return{ counter: state.counter + 1 };
+         };
+         const store = redux.createStore(counterFunction);
+         const counterSubscriber = () => {
+            const latestState = store.getState();
+            console.log(latestState);
+         };
+         store.subscribe(counterSubscriber);
+         store.dispatch({ type: 'increment' });
+      
+      Running the Above JavaScript File through NodeJS in terminal:
+         redux-demo.js $ node redux-demo.js
+         { counter: 2 }
