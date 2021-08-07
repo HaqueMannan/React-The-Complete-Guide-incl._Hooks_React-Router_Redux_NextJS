@@ -1,0 +1,51 @@
+Diving into Redux: An Alternative to the Context API - Summary:
+1. Redux vs React Context
+
+------------------------------------------------------------------------------------
+1. Redux vs React Context:
+------------------------------------------------------------------------------------
+   > Redux is a State Management System for cross-component or app-wide state.
+   > We can split the definition of State into three types of States:
+      - Local State: State that belong to a single Component e.g. listening to user input in an input field or toggling a "show more" details field. Should be managed internally inside of a Component using useState() or useReducer() Hooks
+      - Cross-Component State: State that affects multiple Components e.g. open/close state of a modal overlay. Can use useState() or useReducer() but will require "prop chains"/"prop drilling" (a little more complex compared to Local State).
+      - App-Wide State: State that affects the entire application (i.e. most or all Components) e.g. user authentication status. Can use useState() or useReducer() but will require "prop chains"/"prop drilling".
+   > For Cross-Component and App-Wide State, passing around data and update function through props can be cumbersome. React Context is a built-in feature in React that makes managing cross-component or application-wide state much more easier. Redux also solves the same problem.
+   > Both React Context and Redux are there to help you manage such cross-component or application-wide state. But this should lead to the question: Why would we need Redux if we have React-Context?
+   > Important Note: You can use both React Context and Redux together in the same application.
+   > React Context has a couple of potential disadvantages (potential because it may not matter depending on the application you are building):
+      - Complex Setup/Management of State. Typically occurs with larger enterprise level applications which can end up with deeply nested JSX code if using multiple State Providers or one large State Provider unmangeable state provider file, both issues demonstrated below:
+
+         Complex React Context Setup/Management Multiple State Providers:
+            ...
+            return(
+               <AuthContextProvider>
+                  <ThemeContextProvider>
+                     <UIInteractionContextProvider>
+                        <MultiStepFormContextProvider>
+                           <UserRegistration />
+                        </MultiStepFormContextProvider>
+                     </UIInteractionContextProvider>
+                  </ThemeContextProvider>
+               </AuthContextProvider>
+            );
+
+      or
+
+      Complex React Context Setup/Management with one Big State Provider:
+         function AllContextProvider() {
+            const [isAuth, setIsAuth] = useState(false);
+            const [isEvaluatingAuth, setIsEvaluatingAuth] = useState(false);
+            const [activeTheme, setActiveTheme] = useState('default');
+            const [...] = useState(...);
+            ...
+            function loginHandler(email, password) {...};
+            function signupHandler(email, password) {...};
+            function changeThemeHandler(email, password) {...};
+            function(...) {...};
+            ...
+            return(<AllContext.Provider></AllContext.Provider>);
+         };
+
+      - Performance Issues. React Context is great for low frequency/unlikely updates (like changing locale/theme); however, it is not great if the data changes a lot i.e. high frequency/often updates. React Context is not ready to be used as a replacement for all Flux-like state propagation (note: Redux on the other hand is a Flux-like state management library).
+
+   > Redux does not suffer from the two potential disadvantages mentioned above that may be applicable to React Context.
