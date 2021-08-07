@@ -1,5 +1,6 @@
 Diving into Redux: An Alternative to the Context API - Summary:
 1. Redux vs React Context
+2. How Redux Works
 
 ------------------------------------------------------------------------------------
 1. Redux vs React Context:
@@ -13,7 +14,7 @@ Diving into Redux: An Alternative to the Context API - Summary:
    > Both React Context and Redux are there to help you manage such cross-component or application-wide state. But this should lead to the question: Why would we need Redux if we have React-Context?
    > Important Note: You can use both React Context and Redux together in the same application.
    > React Context has a couple of potential disadvantages (potential because it may not matter depending on the application you are building):
-      - Complex Setup/Management of State. Typically occurs with larger enterprise level applications which can end up with deeply nested JSX code if using multiple State Providers or one large State Provider unmangeable state provider file, both issues demonstrated below:
+      - Complex Setup/Management of State. Typically occurs with larger enterprise level applications which can end up with deeply nested JSX code if using multiple State Providers or one large State Provider unmanageable state provider file, both issues demonstrated below:
 
          Complex React Context Setup/Management Multiple State Providers:
             ...
@@ -49,3 +50,31 @@ Diving into Redux: An Alternative to the Context API - Summary:
       - Performance Issues. React Context is great for low frequency/unlikely updates (like changing locale/theme); however, it is not great if the data changes a lot i.e. high frequency/often updates. React Context is not ready to be used as a replacement for all Flux-like state propagation (note: Redux on the other hand is a Flux-like state management library).
 
    > Redux does not suffer from the two potential disadvantages mentioned above that may be applicable to React Context.
+
+------------------------------------------------------------------------------------
+2. How Redux Works:
+------------------------------------------------------------------------------------
+   > Redux is all about having ONE central Data (State) Store in an application. You never have more than one store.
+   > The central data store holds all the state (cross-component and app-wide states) for the entire application. This might seem unmanageable but the positive is that you do not need to manage the whole store.
+   > Ultimately, you have data inside of the store so that you can use it from inside of the Components.
+   > Components setup Subscriptions to the central store. Whenever the data changes the store notifies the Subscribed Components. The Components can get the data they need (i.e. a slice of the data store) and then use it to React to the change.
+   > One important rule, Components never directly manipulate the store data.
+   > While data flow can be passed down by Subscriptions there is no data flow in the other direction (at least not a direct data flow).
+   > There is a concept called Reducers. A Reducer Function (which needs to be setup) is a function responsible for mutating (i.e. changing) the Store's data.
+   > Important Note: "Reducer Function" is a general concept and is not the same as the useReducer() Hook. Reducer Function are general functions that take an input and then transforms/reduce that input and returns a new transformed output. This is a general programming concept which both the Reducer Function and useReducer() Hook implements.
+   > Components dispatch (i.e. trigger) Actions. An Action is a simple JavaScript object which describes the kind of operation the reducer should perform.
+   > Redux forwards Actions to the Reducer which reads the description of the desired operation and then the operation is performed by the Reducer Function.
+   > Redux uses Actions to indirectly connect Components to Reducers.
+   > The Reducer will output a new State which will effectively replace the existing state in the central data store. When the state inside of the data store is updated, subscribing Components are notified of the data change so that they can update their UI.
+   > This is how Redux works and can be shown visually in the diagram below:
+
+   Redux Concept:
+            ----------------------->[Reducer Function]
+            | forwarded to                |
+            |                             | Mutates (changes) Store Data
+            |                             v
+         [Actions]            [Central Data (State) Store]
+            ^                             |
+            |                             | Subscription
+            | Dispatch                    v
+            ------------------------[Components]
