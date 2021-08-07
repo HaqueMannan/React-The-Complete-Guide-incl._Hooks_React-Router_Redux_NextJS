@@ -2,6 +2,7 @@ Diving into Redux: An Alternative to the Context API - Summary:
 1. Redux vs React Context
 2. How Redux Works
 3. Exploring the Core Redux Concepts
+4. More Redux Basics
 
 ------------------------------------------------------------------------------------
 1. Redux vs React Context:
@@ -88,7 +89,7 @@ Diving into Redux: An Alternative to the Context API - Summary:
    
    > The Redux library (and all of its dependencies) will get installed inside of your project file and the package.json will be updated to reflect the new library and dependencies installed to the node_modules folder.
    > To use Redux you would need to import the library into your JavaScript file.
-   > Note: If executing JavaScriptfiles through NodeJS the import syntax is slightly different to the normal ES6 import syntax. This is because NodeJS has not implemented the ES6 import Syntax.
+   > Note: If executing JavaScript files through NodeJS the import syntax is slightly different to the normal ES6 import syntax. This is because NodeJS has not implemented the ES6 import Syntax.
 
       ES6 Import Syntax Importing Redux example:
          import redux from 'redux';
@@ -160,7 +161,7 @@ Diving into Redux: An Alternative to the Context API - Summary:
    > Therefore, when passing the state argument/parameter inside of the Reducer Function you should always give the state argument/parameter a default/fallback value so that when it runs for the first time it will have a value that is not undefined which will remove the error.
 
       Providing a Default State Value Example:
-         const counterFunction = (state = { counter: 0 }, function) => {...};
+         const counterFunction = (state = { counter: 0 }, action) => {...};
 
    > When the Reducer Function runs after the initial execution, the state will always have a value for state which will ignore the default value set for the state argument/parameter. The default value will only be used where the state does not have a value i.e. on first execution where the state is undefined.
    > Now when the code is run you will not see any output to the terminal. This is because while we have the Central Data Store, Reducers and Subscription all setup there are no Actions dispatched. While the initial initialisation is dispatched by Redux, this does not trigger the Subscription function.
@@ -184,7 +185,7 @@ Diving into Redux: An Alternative to the Context API - Summary:
       Final Core Redux Concepts Example:
       redux-demo.js:
          const redux = require('redux');
-         const counterFunction = (state = { counter: 0 }, function) => {
+         const counterFunction = (state = { counter: 0 }, action) => {
             return{ counter: state.counter + 1 };
          };
          const store = redux.createStore(counterFunction);
@@ -198,3 +199,31 @@ Diving into Redux: An Alternative to the Context API - Summary:
       Running the Above JavaScript File through NodeJS in terminal:
          redux-demo.js $ node redux-demo.js
          { counter: 2 }
+
+------------------------------------------------------------------------------------
+4. More Redux Basics:
+------------------------------------------------------------------------------------
+   > Typically when using Redux the goal is to different things inside of the reducer for different actions. This is the reason for why you get the 'action' as the second argument/parameter to the reducer function by Redux.
+   > Therefore, inside of the reducer function you can look at the action and use conditional statements to check the 'action.type' is equal to a specific unique string value for the action.type property.
+
+      Different Reducer Mutations Based on Action.Type value Example:
+         const counterFunction = (state = { counter: 0 }, action) => {
+            if(action.type === 'increment') {
+               return{ counter: state.counter + 1 };
+            };
+            if(action.type === 'decrement') {
+               return{ counter: state.counter - 1 };
+            };
+            return state;
+         };
+         ...
+         store.dispatch({ type: 'increment' });
+         store.dispatch({ type: 'decrement' });
+
+   > In the above example, if the 'increment' Action was dispatched the state's counter property will increment by one when it detects the action.type is equal to the unique 'increment' string. However, if the action.type has no value or a different action then the Reducer Function will either run the other mutation function (e.g. 'decrement') or return the state.
+   > This small change will change the behaviour of what is returned by the Reducer Function i.e. on first initialisation the counter property value will not increment but will return instead the the state { counter: 0 }. When the dispatch action of 'increment' is executed this will increment the counter property and will return { counter: 1 }.
+   > You can dispatch other actions in which case you would now need to add a conditional statement to check for that action type string within the Reducer Function to perform a different mutation based on the new action type.
+   > The above Reducer Function example has an mutation for 'increment' and 'decrement' actions. The Reducer Function will mutate/change/reduce the new state output based on the action type received from the dispatched action.
+   > There are more things you can do with Reducer Functions and Actions but what has been covered is the fundamental/core of how Redux works no matter how you use it.
+   > Redux is not a library restricted to React. It is a library that can be used in any JavaScript project. There are also implementations for other programming languages.
+   > We can now explore how to use Redux in a React application.
