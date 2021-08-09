@@ -3,6 +3,7 @@ Diving into Redux: An Alternative to the Context API - Summary:
 2. How Redux Works
 3. Exploring the Core Redux Concepts
 4. More Redux Basics
+5. Redux with React
 
 ------------------------------------------------------------------------------------
 1. Redux vs React Context:
@@ -86,7 +87,7 @@ Diving into Redux: An Alternative to the Context API - Summary:
 ------------------------------------------------------------------------------------
    > To install the Redux library use the following npm command within the terminal while within the project directory (note: you could run a similar command to install using Yarn Package Manager):
       $ npm install redux
-   
+
    > The Redux library (and all of its dependencies) will get installed inside of your project file and the package.json will be updated to reflect the new library and dependencies installed to the node_modules folder.
    > To use Redux you would need to import the library into your JavaScript file.
    > Note: If executing JavaScript files through NodeJS the import syntax is slightly different to the normal ES6 import syntax. This is because NodeJS has not implemented the ES6 import Syntax.
@@ -227,3 +228,56 @@ Diving into Redux: An Alternative to the Context API - Summary:
    > There are more things you can do with Reducer Functions and Actions but what has been covered is the fundamental/core of how Redux works no matter how you use it.
    > Redux is not a library restricted to React. It is a library that can be used in any JavaScript project. There are also implementations for other programming languages.
    > We can now explore how to use Redux in a React application.
+
+------------------------------------------------------------------------------------
+5. Using Redux with React:
+------------------------------------------------------------------------------------
+   > Use NPM or Yarn Package Manager to install Redux and React-Redux libraries:
+      $ npm install redux react-redux
+
+   > The React-Redux library helps with connecting React applications to Redux stores, reducers, subscriptions, actions, ect. much more simply.
+   > Now that the package is installed you are ready to use Redux in your React project.
+   > As a common convention (and not something you have to do) create a folder called store within the src folder within your project. This folder will contain Redux related code files inside of this store folder.
+   > Create a index.js (or a suitable named file) within the store folder which will contain the Redux logic.
+
+   Creating a Store Example:
+      src/store/index.js:
+         import { createStore } from 'redux';
+         const counterReducer = (state = { counter: 0 }, action) => {
+            if(action.type === 'increment') {
+               return { counter: state.counter + 1 };
+            };
+            if(action.type === 'decrement') {
+               return { counter: state.counter - 1 };
+            };
+         };
+         export default store;
+
+   > First import the redux library. The syntax in the above example extracts the 'createStore' function from the redux library. Note: you could have imported the whole library (e.g. import redux from 'redux').
+   > A 'store' const variable is used to store the .createStore() functions returned central data store object. The .createStore() wants a pointer to a reducer function as its argument/parameter.
+   > The counterReducer function is an anonymous function which receives the state and action arguments/parameter from the redux library. The reducer function code must come before the .createStore() method because it is pointed at later in the code.
+   > The state argument/parameter much have a default value so that no errors are thrown on first initialisation of the redux store.
+   > The reducer function should handle different actions returning different state snapshots depending on which action was dispatched. The above example has an increment and decrement actions. If neither action.type is met then the reducer will return the unchanged state.
+   > This now creates the Redux Store for your react application. We would now want to connect the React App to the Redux store so that the Components of the App can dispatch an action and subscribe to the changed store state.
+   > Export the store as the default export of the file so that the Redux store object can be used outside of the file.
+   > Remember: You can only have one Redux store, therefore, you only need to provide the store once. What does provide mean?
+
+   Providing Redux Store Example:
+      src/index.js:
+         import React from 'react';
+         import ReactDOM from 'react-dom';
+         import from 'react-redux';
+         import store from './store/index';
+         ...
+         ReactDOM.render(
+            <React.StrictMode>
+               <Provider store={store}><App/><Provider/>
+            </React.StrictMode>,
+            document.getElementById('root')
+         );
+
+   > To provide the Redux store to the React application you would typically go to the index.js file where you render the entire application i.e. the highest level where you can go in your React application (the top of the Component Tree).
+   > The 'Provider' Component is imported from 'react-redux' which is then used to wrap the root Component of your application i.e. <App />. This is similar to wrapping using your own Context Providers using React Context API (e.g. <AuthContextProvider />).
+   > You do not need to wrap the Root Component but whichever Component is wrapped using the Provider will have access to the Redux store and so will the all the Child Components going down the tree also have access. If the vast majority of the application requires the store then it makes sense to typically wrap the root (highest level) <App/> Component.
+   > Import the file containing the created redux store and set the store prop of the Provider to the imported store. This will let react-redux know which store it should provide to your React application.
+   > The <App /> Components in the React application (and any other child Component) can now tap into the Redux store that is now provided. Component can now setup subscriptions to the store as well as dispatch actions.
