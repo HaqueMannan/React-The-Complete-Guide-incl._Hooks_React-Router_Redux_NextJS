@@ -281,3 +281,51 @@ Diving into Redux: An Alternative to the Context API - Summary:
    > You do not need to wrap the Root Component but whichever Component is wrapped using the Provider will have access to the Redux store and so will the all the Child Components going down the tree also have access. If the vast majority of the application requires the store then it makes sense to typically wrap the root (highest level) <App/> Component.
    > Import the file containing the created redux store and set the store prop of the Provider to the imported store. This will let react-redux know which store it should provide to your React application.
    > The <App /> Components in the React application (and any other child Component) can now tap into the Redux store that is now provided. Component can now setup subscriptions to the store as well as dispatch actions.
+
+   Using Redux Data In React Component Example:
+      src/component/Counter.js:
+         import { useSelector } from 'react-redux';
+            const Counter = () => {
+               const counter = useSelector((state) => state.counter);
+               return (
+                  <main className={classes.counter}>
+                     <h1>Redux Counter</h1>
+                     <div className={classes.value}>{counter}</div>
+                     <button onClick={toggleCounterHandler}>Toggle Counter</button>
+                  </main>
+               );
+            };
+
+   > For a Component to get access to the Redux Store, first import the useSelector() Hook (a custom React Hook made by the React-Redux team) from the 'react-redux' library.
+   > Important Note: The useStore Hook from the 'react-redux' library allows access to the whole store while the useSelector() Hook allows you to select a slice/part of the data store. If the Component is a Class-based Component then the 'react-redux' library provides a connect function which can be used as a wrapper around the component to connect to the store.
+   > The useSelector() Hook takes in a function as an argument/parameter. This function will be executed by React-Redux which will determine which piece of data we want to extract from the store. The anonymous function receives a 'state' argument passed by React-Redux which will then allow you to retrieve a slice of the state from. The returned value is then stored in a const variable.
+   > When using the useSelector() Hook the React-Redux library will automatically setup a Subscription to the Redux Store for the Component. The Component will therefore be updated and receive the latest state data automatically whenever that data changes in the Redux store. This change will cause the Component function to be re-executed so that the latest data is displayed in the Component.
+   > If the Component was to unmount from the DOM the React-Redux will automatically clear the Component subscription for you behind the scenes.
+
+   Dispatching Actions From A React Component Example:
+      src/component/Counter.js:
+         import { useSelector, useDispatch } from 'react-redux';
+         const Counter = () => {
+            ...
+            const dispatch = useDispatch();
+            const incrementHandler = () => { dispatch({ type: 'increment' }) };
+            const decrementHandler = () => { dispatch({ type: 'decrement' }) };
+            ...
+            return (
+               <main className={classes.counter}>
+                  ...
+                  <div>
+                     <button onClick={incrementHandler}>Increment</button>
+                     <button onClick={decrementHandler}>Decrement</button>
+                  </div>
+                  ...
+               </main>
+            );
+         };
+
+   > The useDispatch() Hook from the React-Redux library allows you to dispatch actions from inside of a Component file.
+   > When you call the useDispatch() Hook it does not take any parameter, instead this Hook returns a function which you can store in a variable. You can call on this function to dispatch an action against the Redux store.
+   > Within your event handler functions of your Component you can call on the 'dispatch' function (i.e. the function provided by useDispatch() Hook). An action is a object which has a type property. You would pass this action object to the dispatch function as an argument/parameter. The action type identifier must match exactly the action string that was setup within the Redux store's Reducer Function.
+   > Whenever the event triggers e.g. on a button click the action will be dispatched from the Component to the Redux store to update the state and when that state is updated the Component (if subscribed to the Redux store) will re-execute on state changes and will re-render the Component.
+   > In the above example the increment and decrement buttons will increase/decrease the Redux store's counter property which will trigger the subscription which will notify the subscribed Component. Since the Counter.js is a subscriber to the store, when it is notified the store has changed this will trigger a re-execution of the Component function to re-render the counter value to the screen.
+   > This demonstrates all the fundamental of Redux Concepts being used within a React Project using the Redux library and implementations support from the React-Redux library.
