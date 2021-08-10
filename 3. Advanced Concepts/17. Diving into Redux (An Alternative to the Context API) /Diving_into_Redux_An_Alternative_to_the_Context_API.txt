@@ -3,7 +3,8 @@ Diving into Redux: An Alternative to the Context API - Summary:
 2. How Redux Works
 3. Exploring the Core Redux Concepts
 4. More Redux Basics
-5. Redux with React
+5. Using Redux with React
+6. Using Redux with Class-based Components
 
 ------------------------------------------------------------------------------------
 1. Redux vs React Context:
@@ -329,3 +330,62 @@ Diving into Redux: An Alternative to the Context API - Summary:
    > Whenever the event triggers e.g. on a button click the action will be dispatched from the Component to the Redux store to update the state and when that state is updated the Component (if subscribed to the Redux store) will re-execute on state changes and will re-render the Component.
    > In the above example the increment and decrement buttons will increase/decrease the Redux store's counter property which will trigger the subscription which will notify the subscribed Component. Since the Counter.js is a subscriber to the store, when it is notified the store has changed this will trigger a re-execution of the Component function to re-render the counter value to the screen.
    > This demonstrates all the fundamental of Redux Concepts being used within a React Project using the Redux library and implementations support from the React-Redux library.
+
+------------------------------------------------------------------------------------
+6. Using Redux with Class-based Components:
+------------------------------------------------------------------------------------
+   > While most modern React Projects use Functional Components there are a lot of older React projects that continue to use Class-based Components. Therefore the below demonstrate how the previous Counter.js Functional Component would look like if it were a Class-based Component implementing Redux.
+   > You should at this point be aware that Class-based Components cannot use React Hooks. Therefore, the custom Hooks provided by the React-Redux library would not work with Class-based Components.
+
+   Redux with Class-based Component Example:
+      src/component/Counter.js:
+         import React, { Component } from 'react';
+         import { connect } from 'react-redux';
+         import classes from './Counter.module.css';
+         class Counter extends Component {
+            incrementHandler() {
+               this.props.increment();
+            };
+            decrementHandler() {
+               this.props.decrement();
+            };
+            render() {
+               return (
+                  <main className={classes.counter}>
+                     <h1>Redux Counter</h1>
+                     <div className={classes.value}>{this.props.counter}</div>
+                     <div>
+                        <button onClick={this.incrementHandler.bind(this)}>Increment</button>
+                        <button onClick={this.decrementHandler.bind(this)}>Decrement</button>
+                     </div>
+                     <button onClick={this.toggleCounterHandler}>Toggle Counter</button>
+                  </main>
+               );
+            };
+         };
+         const mapStateToProps = (state) => {
+            return {
+               counter: state.counter
+            };
+         };
+         const mapDispatchToProps = (dispatch) => {
+            return {
+               increment: () => dispatch({ type: 'increment' }),
+               decrement: () => dispatch({ type: 'decrement' })
+            };
+         };
+         export default connect(mapStateToProps, mapDispatchToProps)(Counter);
+
+   > The React-Redux library exports a connect function which you would need to import into the Class-based Component. This function helps connect Class-based Component to the Redux store.
+   > The connect function can also be used with Functional Components but using the React Hooks is much more convenient.
+   > When exporting the Component you would call the connect() function which will return a new function as a value which you would then execute again passing in the Component as the argument/parameter to the executed function (i.e. connect()(Component)).
+   > This syntax could look strange but the connect() function is a so called 'Higher Order Component' which is executed first and it returns another function which is then executed passing in the Component as the argument to the second executed function.
+   > The connect() function itself expects two argument/parameters which are both functions:
+      - The first function is conventionally called 'mapStateToProps' and is the equivalent to the useSelector() Hook. This function receives the Redux store as an argument/parameter automatically by Redux and it s then used to return an object where the keys will be available as props in the receiving Component and the values of those keys then uses the logic to extract from the Redux store.
+      - The second function is conventionally called 'mapDispatchToProps' and is the equivalent to the useDispatch() Hook. This function receives dispatch as an argument/parameter automatically by Redux and it is then used to return an object where the keys will be available as props in the receiving Component and the value is then another function in which you call dispatch and then setup the action object.
+   > Both these functions are used as pointers (not executed) to the connect() function which Redux will execute for us automatically behind the scenes.
+   > The returned function from connect() will provide props (received from the 'mapStateToProps' and 'mapDispatchToProps' functions) to the linked Component. The Component can uses these exposed props to retrieve state from the Redux store as wel as dispatch actions to the Redux store via prop names.
+   > To access the exposed props from the Component, use the 'this.props.' followed by the prop name you wish to access/execute.
+   > The '.bind()' is required to bind the 'this' keyword to the class functions context.
+   > The React-Redux library will setup and manage all the subscription for you when calling the connect() function. It is just an alternative to using the useSelector() and useDispatch() Hooks.
+   > The functionality should work as before but now using Redux and React-Redux with Class-based Components.
