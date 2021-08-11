@@ -6,6 +6,7 @@ Diving into Redux: An Alternative to the Context API - Summary:
 5. Using Redux with React
 6. Using Redux with Class-based Components
 7. Attaching Payloads to Actions
+8. Working with Multiple State Properties
 
 ------------------------------------------------------------------------------------
 1. Redux vs React Context:
@@ -432,3 +433,52 @@ Diving into Redux: An Alternative to the Context API - Summary:
    > The name of the payload property must match the same name inside of the reducer function for that action (or vice versa). In the above example the action.type "increase"  function can receive an "amount" payload data (i.e. on action.amount). The matching of the name is important in order to pass the payload along to the reducer function when dispatching actions.
    > While in the above example the Component dispatches a hardcoded value for the amount payload, you can in reality set this to a variable coming from a user input.
    > Action payloads are very common and are often needed. Payloads are simply extra properties added to the action object.
+
+------------------------------------------------------------------------------------
+8. Working with Multiple State Properties:
+------------------------------------------------------------------------------------
+   > To add a new piece of data to the Redux Store you need to go the Reducer Function and add the new piece of state to all the state snapshots.
+
+   Working with Multiple State Properties Example:
+      src/store/index.js:
+         import { createStore } from 'redux';
+         const initialState = { counter: 0, showCounter = true };
+         const counterReducer = (state = initialState, action) => {
+            if(action.type === 'increment') {
+               return { counter: state.counter + 1, showCounter: state.showCounter };
+            };
+            if(action.type === 'increase') {
+               return { counter: state.counter + action.amount, showCounter: state.showCounter };
+            };
+            if(action.type === 'decrement') {
+               return { counter: state.counter - 1, showCounter: state.showCounter };
+            };
+            if(action.type === 'toggle') {
+               return { counter: state.counter, showCounter: !state.showCounter };
+            };
+            return state;
+         };
+         const store = createStore(counterReducer);
+         export default store;
+
+      src/components/Counter.js:
+         ...
+         const Counter = () => {
+            const counter = useSelector((state) => state.counter);
+            const show = useSelector((state) => state.showCounter);
+            ...
+            return (
+               <main className={classes.counter}>
+                  <h1>Redux Counter</h1>
+                  {show && <div className={classes.value}>{counter}</div>}
+                  ...
+               </main>
+            );
+         };
+
+   > To make the code more readable you could extract the state object into its own variable (e.g. initialState) and then set the Reducer Functions 'state' argument/parameter to the extract state object.
+   > Each function within the reducer functions would still need to return every property of the state because the function would return the overall state object.
+   > Redux will not merge the changes with the existing state. Instead, it will take whatever is returned from the reducer function and replaces the existing state with it.
+   > The useSelector() Hook can be used multiple times to retrieve multiple different pieces of state data from the Redux store to store in a variable to be accessed by the Component. Whenever that state updated (Redux automatically sets up a Subscription to the Redux store state) the Component file will re-execute again re-rendering the Component file UI.
+   > The Component file can use this state to conditionally render HTML elements to the screen as seen in the above example with the 'show' state to conditionally render the Counter <div>.
+   > This is how you can manage multiple pieces of different store data in state.
