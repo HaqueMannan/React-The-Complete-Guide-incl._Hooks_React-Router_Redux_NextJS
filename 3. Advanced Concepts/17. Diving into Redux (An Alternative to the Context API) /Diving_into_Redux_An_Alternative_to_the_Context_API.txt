@@ -5,6 +5,7 @@ Diving into Redux: An Alternative to the Context API - Summary:
 4. More Redux Basics
 5. Using Redux with React
 6. Using Redux with Class-based Components
+7. Attaching Payloads to Actions
 
 ------------------------------------------------------------------------------------
 1. Redux vs React Context:
@@ -389,3 +390,45 @@ Diving into Redux: An Alternative to the Context API - Summary:
    > The '.bind()' is required to bind the 'this' keyword to the class functions context.
    > The React-Redux library will setup and manage all the subscription for you when calling the connect() function. It is just an alternative to using the useSelector() and useDispatch() Hooks.
    > The functionality should work as before but now using Redux and React-Redux with Class-based Components.
+
+------------------------------------------------------------------------------------
+7. Attaching Payloads to Actions:
+------------------------------------------------------------------------------------
+   > Often you would want to dispatch actions that also carry an extra value.
+   > Usually the extra value will come from a user input and it is not possible (or does not scale well) to multiple hard-code values within the Reducer Function.
+   > The extra data is known as a payload.
+
+   Attaching Payloads to Actions Example:
+      src/store/index.js:
+         import { createStore } from 'redux';
+         const counterReducer = (state = { counter: 0 }, action) => {
+            if(action.type === 'increase') {
+               return { counter: state.counter + action.amount };
+            };
+            ...
+         };
+         const store = createStore(counterReducer);
+         export default store;
+
+      src/components/Counter.js:
+         ...
+         const Counter = () => {
+            ...
+            const increaseHandler = () => {
+               dispatch({ type: 'increase', amount: 10 });
+            };
+            ...
+            return (
+               <main className={classes.counter}>
+                  ...
+                  <div>
+                     <button onClick={increaseHandler}>Increment by 10</button>
+                  </div>
+               </main>
+            );
+         };
+
+   > The payload property name can be of your choosing. In the above example the dispatched action receives the action type and a payload called amount.
+   > The name of the payload property must match the same name inside of the reducer function for that action (or vice versa). In the above example the action.type "increase"  function can receive an "amount" payload data (i.e. on action.amount). The matching of the name is important in order to pass the payload along to the reducer function when dispatching actions.
+   > While in the above example the Component dispatches a hardcoded value for the amount payload, you can in reality set this to a variable coming from a user input.
+   > Action payloads are very common and are often needed. Payloads are simply extra properties added to the action object.
