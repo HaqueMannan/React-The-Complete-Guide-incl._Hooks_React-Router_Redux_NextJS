@@ -7,6 +7,7 @@ Diving into Redux: An Alternative to the Context API - Summary:
 6. Using Redux with Class-based Components
 7. Attaching Payloads to Actions
 8. Working with Multiple State Properties
+9. How to Work with Redux State Correctly
 
 ------------------------------------------------------------------------------------
 1. Redux vs React Context:
@@ -482,3 +483,21 @@ Diving into Redux: An Alternative to the Context API - Summary:
    > The useSelector() Hook can be used multiple times to retrieve multiple different pieces of state data from the Redux store to store in a variable to be accessed by the Component. Whenever that state updated (Redux automatically sets up a Subscription to the Redux store state) the Component file will re-execute again re-rendering the Component file UI.
    > The Component file can use this state to conditionally render HTML elements to the screen as seen in the above example with the 'show' state to conditionally render the Counter <div>.
    > This is how you can manage multiple pieces of different store data in state.
+
+------------------------------------------------------------------------------------
+9. How to Work with Redux State Correctly:
+------------------------------------------------------------------------------------
+   > We learnt that the Reducer function always returns a brand new snapshot of the state object which Redux will use to replace the existing state with. The state being returned will NOT be merged with the existing state instead they will override the existing state. Therefore, you must always set the other states whenever updating a piece of state.
+   > You must never mutate the existing state but should always override the existing state by providing a new state object. This is because Objects and Arrays are reference values in JavaScript it is easy to accidentally override and change the existing state.
+   > Refer to the following article on Primitive vs Reference Values to understand why mutating Objects or Arrays is not recommended in JavaScript (https://academind.com/tutorials/reference-vs-primitive-values/).
+   > It is recommended not to mutate the original state object because this can lead to bugs, unpredictable behaviour, unexpected side effects and it can make debugging applications much more difficult. This can cause the UI to get out of sync and the UI not reflecting the true/correct state.
+   > The simple rule is to never mutate your state instead replace it with a new object.
+
+   Incorrect Mutation of Original State Example:
+      if(action.type === 'increment') {
+         state.counter++ 
+         return { counter: state.counter, showCounter: state.showCounter };
+      };
+
+   > While the "state.counter++" will not cause any errors in the above example and will continue to increment as expected. However, doing this on other more complicated state which has nested objects and arrays, it can become more easy to accidentals mutate your existing state introducing bugs, unexpected behaviours and side effects. Therefore; avoid doing any mutations on existing state!
+   > Returning a new object will always ensure that you update the existing state in an immutable way and you would never accidentally mutate your existing state.
