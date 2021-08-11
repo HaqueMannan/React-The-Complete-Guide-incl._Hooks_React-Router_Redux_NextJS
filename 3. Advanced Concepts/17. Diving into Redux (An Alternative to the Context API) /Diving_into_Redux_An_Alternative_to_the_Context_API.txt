@@ -8,6 +8,7 @@ Diving into Redux: An Alternative to the Context API - Summary:
 7. Attaching Payloads to Actions
 8. Working with Multiple State Properties
 9. How to Work with Redux State Correctly
+10. Using Redux Toolkit Library as a Solution
 
 ------------------------------------------------------------------------------------
 1. Redux vs React Context:
@@ -501,3 +502,136 @@ Diving into Redux: An Alternative to the Context API - Summary:
 
    > While the "state.counter++" will not cause any errors in the above example and will continue to increment as expected. However, doing this on other more complicated state which has nested objects and arrays, it can become more easy to accidentals mutate your existing state introducing bugs, unexpected behaviours and side effects. Therefore; avoid doing any mutations on existing state!
    > Returning a new object will always ensure that you update the existing state in an immutable way and you would never accidentally mutate your existing state.
+
+------------------------------------------------------------------------------------
+10. Using Redux Toolkit Library as a Solution:
+------------------------------------------------------------------------------------
+   > The more complex projects become the more complex it can get to use Redux correctly. There is a slightly easier way to use Redux as well.
+   > At this point you should be familiar with the core fundamental Redux Concepts and also how to use Redux with React projects with the help of React-Redux library. We can now dive into an approach that is slightly more easier to setup and maintain.
+   > Below are potential problems that could be identified with the core fundamental Redux approach if the project was to continue to grow in size:
+      - The action types (identifiers): you need to avoid typos when dispatching actions identifier otherwise it will not be handled or handled correctly by the reducer. With larger applications and a larger developer contribution it is easy to mess up one of the identifier or have a clashing identifier names. Therefore, defining identifier once and re-using them can be something that can be done in JavaScript.
+      - The amount of data you handle: the more data (i.e. different pieces of state) you have the bigger the state objects get. This would mean you would need to copy a lot of state whenever you update and return the state object from the reducer. This also means the reducer function will grow in size and become an unmaintainable and large Redux file.
+      - The state immutability to respect: you need to always ensure to return a brand new state snapshot object and you do not accidentally change the existing state anywhere. Especially with more complex data with nested objects and arrays, it is easier to mess up and accidentally change some nested data even though you did not want to.
+   > For all these problems there are solutions we could implement on our own e.g. for unique identifier we could create a const variables that store the identifier and export the variable. The const variable can be used to check the value in the reducer function. The const variable can then be imported in the Component file to use. This will ensure both identifiers will always match and avoid typos. This is a solution used in the past with Redux.
+
+   Past Unique Identifier Solution Example:
+      src/store/index.js:
+         export const INCREMENT = 'increment';
+         const counterReducer = (state = initialState, action) => {
+            if(action.type === INCREMENT) {...};
+            ...
+         };
+
+      src/components/Counter.js:
+         import { INCREMENT } from '../store/index';
+         const Counter = () => {
+            ...
+            const incrementHandler = () => { dispatch({ action.type = INCREMENT }) };
+         };
+
+   > There are solutions for splitting the Reducer Functions into smaller Reducers files so that you do not get a large Reducer file. There are also solutions and third party packages which allow you to automatically copy state and ensure that you do not accidentally mutate the original state.
+   > However, we do not need to dive into those various solutions anymore and this is because there is another library called Redux Toolkit (https://redux-toolkit.js.org/). This library is developed by the same development team behind React-Redux and Redux libraries itself.
+   > Redux Toolkit is simply an extra package which makes working with Redux more convenient and easier. You do not have to use it unlike React and React-Redux but if you do install it certain things will become easier.
+
+   Terminal Command to Install Redux Toolkit:
+      $: npm install @reduxjs/toolkit
+
+   > After installing the Redux Toolkit package you could uninstall the Redux package from the package.json because it is included as part of the Redux Toolkit dependencies.
+   > Redux Toolkit simplifies a couple of aspects of working with Redux and so it should be used within the store/index.js file.
+
+   Using Redux Toolkit and Adding State Slices Example:
+      src/store/index.js:
+         import { createSlice } from '@reduxjs/toolkit';
+         const initialState = { counter: 0, showCounter: true };
+         const counterSlice = createSlice({
+            name: 'counter',
+            initialState,
+            reducers: {
+               increment(state) { state.counter++ },
+               decrement(state) { state.counter-- },
+               increase(state, action) { state.counter = state.counter + action.amount },
+               toggleCounter(state) { state.count = !state.counter; }
+            }
+         });
+
+   > The createSlice function allows us to create state slices. The createReducer function also allows you to create a reducer with certain enhancements. However; the createSlice method is more powerful than the createReducer function and will simplify couple of aspects in one go.
+   > The createSlice function wants an object as an argument/parameter. The createSlice allows you to prepare a slice of the global state. When you have different pieces of state which are not directly related (e.g. authentication status and counter status) we could create different slices (potentially in different files) to make your code more maintainable.
+   > Every slice needs a 'name' property which is an identifier of that piece of state. The value of the name is entirely up to you.
+   > Next, you need to setup an initial state (i.e. an object or a pointer to a variable storing a state object) for the 'initialState' property on the object argument/parameter. The above example uses ES6 Object Property Value shorthand of 'initialState' which is the same as writing 'initialState: initialState'.
+   > Finally, you need to setup reducers object for the 'reducers' property on the object argument/parameter. The 'reducer' object lists all the reducers that the state slice needs. Here you would all all the methods with any name of you choice, although those names will become important later.
+   > Every method in the reducer object will receive the latest state as an argument/parameter from Redux automatically. There is no need to pass in action as a second argument because we no longer need to write our own if statement checks anymore, instead we will soon be able to identify the different reducers and dispatch actions that target the different reducers. This helps reduce some boilerplate code.
+   > Within the reducer methods we are now allowed to mutate the state. This is because when using Redux Toolkit and its functions such as createSlice we cannot accidentally manipulate the existing state. This is because Redux Toolkit internally uses another package called 'imgur' which will detect mutating codes like 'state.counter++' and will automatically clone the existing state, create a new state object, keep all the state that are not edited and override the state which you are editing in an immutable way. Therefore, you still have immutable code even though it does not look like it because of the internally used package.
+   > Redux Toolkit allows us as a developer to have a much easier time working with Redux because we do not need to create a copy manually and keep all the code we are not changing. Instead, we would change the code we want to change and internally it is translated into immutable code.
+   > With Redux Toolkit we can still have actions that listen to extra payload. The reducer methods also receive 'action' as a second argument/parameter but we can decide whether to include or ignore it. Therefore, whenever the reducer method expects a payload you should add the 'action' as a second argument to the method.
+   > The createSlice function returns a state slice which we need to store in a variable. The name of the variable is entirely up to you (e.g. counterSlice).
+   > We now have a state slice created using the Redux Toolkit's createSlice function. How do we make the store aware of the slice and dispatch actions against this slice?
+
+   Connecting Redux Toolkit State Example:
+      src/store/index.js:
+         import { createSlice, configureStore } from '@reduxjs/toolkit';
+         const initialState = { counter: 0, showCounter: true };
+         const counterSlice = createSlice({ ... });
+         const store = configureStore({
+            reducer: counterSlice.reducer
+         });
+         export default store;
+
+   > To the createStore we could pass the createSlice function's returned state slice object and call .reducer on it (e.g. const store = createStore(counterSlicer.reducer)). This will be enough to connect the state slice and the reducer function to the React application. However, you will have a problem with this approach in larger application because there can only be one reducer passed to the createStore() function.
+   > With standard Redux there is a combineReducers function which you can import and use.
+   > However; Redux Toolkit provides a configureStore function which makes it a little easier to setup. The configureStore function just like the createStore function creates a Redux store but it makes merging multiple reducers into one reducer much easier.
+   > The configureStore function takes in an object as an argument/parameter. This is a configuration object expected by the configureStore function. This takes an expected 'reducer' property which can have a value of a single reducer or an object with key:values where the key is the name of our choice for the the state slice and the value is the different Reducer functions. For example:
+      - Single Reducer Syntax: reducer: counterSlice.reducer
+      - Multiple Reducers Syntax: reducer: { counter: counterSlice.reducer, auth: authenticationSlice.reducer }
+   > Behind the scenes the configureStore function will combine the different Reducers into one big global store data.
+   > The state slice has now been connected to the Redux store. The question that now remains is how do we dispatch actions? This is because we do not have our own if statement checks and we do not know what identifiers to dispatch for our actions to trigger the reducer function methods.
+
+   Dispatching Actions wit Redux Toolkit Example:
+      src/store/index.js:
+         import { createSlice, configureStore } from '@reduxjs/toolkit';
+         const initialState = { counter: 0, showCounter: true };
+         const counterSlice = createSlice({
+            name: 'counter',
+            initialState,
+            reducers: {
+               increment(state) { state.counter++ },
+               decrement(state) { state.counter-- },
+               increase(state, action) { state.counter = state.counter + action.payload },
+               toggleCounter(state) { state.count = !state.counter; }
+            }
+         });
+         const store = configureStore({ reducer: counterSlice.reducer });
+         export const counterActions = counterSlice.actions;
+         export default store;
+
+      src/components/Counter.js:
+         import { useSelector, useDispatch } from 'react-redux';
+         import { counterActions } from '../store/index';
+         const Counter = () => {
+            const dispatch = useDispatch();
+            ...
+            const incrementHandler = () => { dispatch(counterActions.increment()) };
+            const decrementHandler = () => { dispatch(counterActions.decrement()) };
+            const increaseHandler = () => { dispatch(counterActions.increase(10)) };
+            const toggleHandler = () => { dispatch(counterActions.toggleCounter()) };
+            ...
+         };
+
+   > The createSlice function automatically creates unique action identifiers for the different reducers methods. To get hold of the action identifiers we can use the counterSlice and access the '.action' property. This is an object full of keys where the key names match the method names within the createSlice function within the reducers property area.
+   > These action methods (called action creators) on the 'action' object when called will automatically create action objects for us where the 'type' property has a unique identifier per action automatically created behind the scenes by Redux Toolkit. For example:
+      - counterSlice.actions.toggleCounter() returns an action object something like: { type: 'autogenerated identifier'}
+   > We do not have to worry about action identifiers or create the action objects of our own because we can tap into the '.actions' object on the created slice and execute these action creator methods which with their names match the reducers methods to dispatch actions which will then ultimately trigger those different reducer methods.
+   > This means that we as a developer do not have to worry about creating action objects on our own or coming up with unique identifier or avoiding typos.
+   > We can store the '.action' object in a variable and export it so that the Component files that require the actions can import this export and use the '.actions' object to dispatch actions to the Redux store.
+   > We can use this object which has all the reducer methods names as keys which you can use to dispatch with. Remember to executed the method when dispatch the action (e.g. 'counterActions.increment()'). This is because the method is an action creator that creates a full action object with the type set to the automatically created unique action identifier.
+   > Where there is a payload data expected, we use the same syntax but pass the payload data as either an object with key:value pairs of you choice or a single value. For example:
+      - dispatch(counterActions.increase(10));
+      - dispatch(counterActions.increase({ amount: 10 }));
+   > Any payload values you pass to the executed action creator method as an argument will be stored in an extra field named 'payload' which will store you passed in values (whether a single value or an object). For example:
+      - { type: 'SOME_UNIQUE_VALUE', payload: 10 }
+      - { type: 'SOME_UNIQUE_VALUE', payload: { amount: 10 } }
+   > To access these payload values in the Redux store file you would either need to use:
+      - reducers: { increase(state, action) { state.counter = state.counter + action.payload } }
+      - reducers: { increase(state, action) { state.counter = state.counter + action.payload.amount } }
+   > This will depend all on how you pass the payload data through from the action in order to access the passed down value in the reducer method i.e. whether to call on the action objects 'payload' property or need to use dot notation to drill into the 'payload' property to access the relevant key on the object you passed as a payload to the action objects default 'payload' property.
+   > Redux Toolkit creates this 'payload' property on the actions object which you cannot change to a different name.
+   > With all of this work to migrate/refactor the code over to use Redux Toolkit library, you now have a React application that works as before but without the shortcomings mentioned at the beginning. Your React application will be much more easier to work with and maintain the Redux store especially as the application grows in size and complexity.
