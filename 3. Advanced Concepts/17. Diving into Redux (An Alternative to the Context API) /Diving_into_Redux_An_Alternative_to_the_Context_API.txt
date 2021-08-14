@@ -9,6 +9,7 @@ Diving into Redux: An Alternative to the Context API - Summary:
 8. Working with Multiple State Properties
 9. How to Work with Redux State Correctly
 10. Using Redux Toolkit Library as a Solution
+11. Working with Multiple Slices
 
 ------------------------------------------------------------------------------------
 1. Redux vs React Context:
@@ -635,3 +636,44 @@ Diving into Redux: An Alternative to the Context API - Summary:
    > This will depend all on how you pass the payload data through from the action in order to access the passed down value in the reducer method i.e. whether to call on the action objects 'payload' property or need to use dot notation to drill into the 'payload' property to access the relevant key on the object you passed as a payload to the action objects default 'payload' property.
    > Redux Toolkit creates this 'payload' property on the actions object which you cannot change to a different name.
    > With all of this work to migrate/refactor the code over to use Redux Toolkit library, you now have a React application that works as before but without the shortcomings mentioned at the beginning. Your React application will be much more easier to work with and maintain the Redux store especially as the application grows in size and complexity.
+
+------------------------------------------------------------------------------------
+11. Working with Multiple Slices:
+------------------------------------------------------------------------------------
+   > In the below example we will explore working with multiple slices from the Redux store using the Redux Toolkit.
+   > The below example will use a login form to log a user into some login mode which will change what is displayed in the navigation bar Component and the login form switched out for a user profile Component. This is to simulate some form of authentication state which is an application wide state which matters to a lot of Components in the application.
+
+   Multiple Slices Example:
+      src/store/index.js:
+         import { createSlice, configureStore } from '@reduxjs/toolkit';
+         const initialCounterState = { counter: 0, showCounter: true };
+         const counterSlice = createSlice({
+            name: 'counter',
+            initialState: initialCounterState,
+            reducers: {
+               increment(state) { state.counter++ },
+               decrement(state) { state.counter-- },
+               increase(state, action) { state.counter = state.counter + action.payload },
+               toggleCounter(state) { state.count = !state.counter; }
+            }
+         });
+         const initialAuthState = { isAuthenticated: false };
+         const authSlice = createSlice({
+            name: 'authentication',
+            initialState: initialAuthState,
+            reducers: {
+               login(state) { state.isAuthenticated = true },
+               logout(state) { state.isAuthenticated = false }
+            }
+         });
+         const store = configureStore({ reducer: { counter: counterSlice.reducer, auth: authSlice.reducer  } });
+         export const counterActions = counterSlice.actions;
+         export const authActions = authSlice.actions;
+         export default store;
+
+   > In programming you would want to separate your concerns i.e. the slices focuses on the state and action related to what the slice data is concerned about. The counterSlice is not concerned with authentication and so a new slice should be created for the authentication state and actions. The position of the slices does not matter, so long as it comes before the store creation line.
+   > The authentication slice has two reducers to change the isAuthenticated state from true/false on login/logout actions.
+   > It is very important that when working with multiple slices the must only be one redux store i.e. you should only call the configureStore function once and should not be change.
+   > The store must have one root reducer. The store reducer property does not just take in a reducer function as a argument but it can instead take a object that acts as a map of reducers. This key:value pairs of properties name to individual reducers will automatically be merged together into one main reducer which is then exposed to the store.
+   > This is how we can combine both the counter and auth slices together into one store (e.g. 'reducer: { counter: counterSlice.reducer, auth: authSlice.reducer  }').
+   > You can now also export the exposed actions from the authSlice reducer. Whichever Component requires the state from a slice can import the exported store and actions as normal.
