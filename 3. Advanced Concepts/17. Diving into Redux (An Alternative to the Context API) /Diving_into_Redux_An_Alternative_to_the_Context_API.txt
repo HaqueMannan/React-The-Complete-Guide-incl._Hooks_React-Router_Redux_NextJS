@@ -10,6 +10,7 @@ Diving into Redux: An Alternative to the Context API - Summary:
 9. How to Work with Redux State Correctly
 10. Using Redux Toolkit Library as a Solution
 11. Working with Multiple Slices
+12. Splitting Redux Store Code
 
 ------------------------------------------------------------------------------------
 1. Redux vs React Context:
@@ -754,3 +755,65 @@ Diving into Redux: An Alternative to the Context API - Summary:
    > You can use an onClick event listener to trigger an event which will trigger a dispatch action on the login and logout button to dispatch the .login() and .logout actions. The action creator exposed by the exported actions will create an actual action object to dispatch to the Redux store which will trigger the particular action and update the store which will update the subscribed Component UI.
    > This is how you can create multiple slices to a Redux store and then read and dispatch actions to the Redux store triggering the particular slice for particular Components that are interested in subscribing to the state slice. This app-wide state allows multiple Components to subscribe and update their UI based on state changes to the Redux store.
    > As you can see that it is very easy to create and manage multiple slices when using Redux Toolkit.
+
+------------------------------------------------------------------------------------
+12. Splitting Redux Store Code:
+------------------------------------------------------------------------------------
+   > In a typical React project where you would have multiple state slices the Redux store file (i.e. the src/store/index.js file) can become very long. Therefore, it may be worth splitting the file into smaller pieces.
+   > When using Redux Toolkit it could make total sense to put every slice in its own file (the file name is entirely up to you for the slices e.g. counter.js or counter-slice.js).
+
+   Splitting Redux Store Code Example:
+      src/store/auth.js:
+         import { createSlice } from "@reduxjs/toolkit";
+         const initialAuthState = { isAuthenticated: false };
+         const authSlice = createSlice({
+            name: 'authentication',
+            initialState: initialAuthState,
+            reducers: {
+               login(state) {
+                  state.isAuthenticated = true
+               },
+               logout(state) {
+                  state.isAuthenticated = false
+               }
+            }
+         });
+         export const authActions = authSlice.actions;
+         export default authReducer.reducer;
+      src/store/counter.js:
+         import { createSlice } from "@reduxjs/toolkit";
+         const initialCounterState = { counter: 0, showCounter: true };
+         const counterSlice = createSlice({
+            name: 'counter',
+            initialState: initialCounterState,
+            reducers: {
+               increment(state) {
+                  state.counter++;
+               },
+               decrement(state) {
+                  state.counter--;
+               },
+               increase(state, action) {
+                  state.counter = state.counter + action.payload;
+               },
+               toggleCounter(state) {
+                  state.showCounter = !state.showCounter;
+               }
+            }
+         });
+         export const counterActions = counterSlice.actions;
+         export default counterSlice.reducer;
+      src/store/index.js:
+         import { configureStore } from '@reduxjs/toolkit';
+         import authReducer from './auth';
+         import counterReducer from './counter';
+         const store = configureStore({
+            reducer: { counter: counterReducer, auth: authReducer }
+         });
+         export default store;
+
+   > Each slice is stored in its own file which is then imported into the index.js store file to create the single Redux store.
+   > More specifically since the createStore requires only the .reducer from the slice, the individual slice files should export the .reducer function and not the whole slice itself (e.g. 'export default counterSlice.reducer' and not 'export default counterSlice;').
+   > In index.js when importing the default exported slice reducers we could name the default import as e.g. 'authReducer' and 'counterReducer' to make it clear that the reducer is being imported and used in the configureStore function.
+   > Component files that require the dispatch actions would need to now import the named exported actions from the particular slice file and not from the index.js (store) file.
+   > The Redux store is now more manageable by splitting the code and can now be maintained and scaled as the application grows in functionality and complexity.
