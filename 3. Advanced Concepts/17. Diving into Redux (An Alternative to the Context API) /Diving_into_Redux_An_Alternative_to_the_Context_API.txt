@@ -677,3 +677,80 @@ Diving into Redux: An Alternative to the Context API - Summary:
    > The store must have one root reducer. The store reducer property does not just take in a reducer function as a argument but it can instead take a object that acts as a map of reducers. This key:value pairs of properties name to individual reducers will automatically be merged together into one main reducer which is then exposed to the store.
    > This is how we can combine both the counter and auth slices together into one store (e.g. 'reducer: { counter: counterSlice.reducer, auth: authSlice.reducer  }').
    > You can now also export the exposed actions from the authSlice reducer. Whichever Component requires the state from a slice can import the exported store and actions as normal.
+
+   Reading & Dispatching from a State Slice Example:
+      src/components/App.js:
+         import React, { Fragment } from 'react';
+         import { useSelector } from 'react-redux';
+         ...
+         function App() {
+            const isAuth = useSelector(state => state.auth.isAuthenticated);
+            ...
+            return(
+               {!isAuth && <Auth />}
+               {isAuth && <UserProfile />}
+               ...
+            );
+         };
+      src/components/Header.js:
+         import React from 'react';
+         import { useSelector, useDispatch } from 'react-redux';
+         import { authActions } from '../store/index';
+         const Header = () => {
+            const isAuth = useSelector(state => state.auth.isAuthenticated);
+            const dispatch = useDispatch();
+            const onLogoutHandler = (event) => {
+               event.preventDefault();
+               dispatch(authActions.logout());
+            };
+            return (
+               <header className={classes.header}>
+                  <h1>Redux Auth</h1>
+                  {isAuth && (
+                     <nav>
+                        ...
+                        <li><button onClick={onLogoutHandler}>Logout</button></li>
+                     </nav>
+                  )}
+               </header>
+            );
+         };
+      src/components/Auth.js:
+         import React from 'react';
+         import { useDispatch } from 'react-redux';
+         import { authActions } from '../store/index';
+         const Auth = () => {
+            const dispatch = useDispatch()
+            const loginHandler = (event) => {
+               event.preventDefault();
+               dispatch(authActions.login());
+            };
+            return (
+               <main className={classes.auth}>
+                  <section>
+                     <form onSubmit={loginHandler}>
+                        ...
+                     </form>
+                  </section>
+               </main>
+            );
+         };
+      src/components/Counter.js:
+         import { useSelector, useDispatch } from 'react-redux';
+         import { counterActions } from '../store/index';
+         ...
+         const Counter = () => {
+            const dispatch = useDispatch();
+            const counter = useSelector((state) => state.counter.counter);
+            const show = useSelector((state) => state.counter.showCounter);
+            ...
+         };
+
+   > Import the useSelector function from the react-redux library in order to tap into a Redux store and retrieve/read a state from the store. The useSelector function always takes in another function which receives the state as a argument/parameter automatically passed by the Redux (react-redux to be precise) library.
+   > Whenever drilling into the state of the store to extract a state you would need to use the identifiers (property names) for the slice reducer you wish to tap into e.g. 'state.auth.isAuthenticated', 'store.counter.counter' and 'state.counter.showCounter' seen above.
+   > The Header Component will only display navigation links when the isAuth is true (i.e. isAuthenticated state is set to true). The Auth Component has a login form and would dispatch an action to authenticate and login a user updating the isAuthenticated state from false to true. Note: the above example does not demonstrate authentication, the demo code purpose is to show Redux and working with multiple slices.
+   > The useDispatch function must also be imported from the react-redux library. The reducer action must also be imported into the Component which wishes to dispatch an action to the Redux store (e.g. authActions).
+   > The useDispatch should be stored in a variable and then the Component can use this variable and pass in the imported actions which will expose action creators which will create an actual action object to dispatch the action to the Redux store slice.
+   > You can use an onClick event listener to trigger an event which will trigger a dispatch action on the login and logout button to dispatch the .login() and .logout actions. The action creator exposed by the exported actions will create an actual action object to dispatch to the Redux store which will trigger the particular action and update the store which will update the subscribed Component UI.
+   > This is how you can create multiple slices to a Redux store and then read and dispatch actions to the Redux store triggering the particular slice for particular Components that are interested in subscribing to the state slice. This app-wide state allows multiple Components to subscribe and update their UI based on state changes to the Redux store.
+   > As you can see that it is very easy to create and manage multiple slices when using Redux Toolkit.
