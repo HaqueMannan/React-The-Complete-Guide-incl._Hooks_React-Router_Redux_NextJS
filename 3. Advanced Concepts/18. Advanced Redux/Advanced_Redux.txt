@@ -1,5 +1,6 @@
 Advanced Redux - Summary:
 1. Redux & Side Effects (Asynchronous Code)
+2. Where to Put the Side Effect (Async Code) Logic
 
 ------------------------------------------------------------------------------------
 1. Redux & Side Effects (Asynchronous Code):
@@ -8,7 +9,7 @@ Advanced Redux - Summary:
    > This is a general reducer concept and is not Redux Reducer Function specific (e.g. even React useReducer() Hook abides by the same concept).
    > This should lead to one important question. When working with Redux and dispatching some action that would involve some side-effect such as a HTTP request where would you put that side-effect (asynchronous) code? The Reducer Function is clearly thr wrong place. There are two possible places where side-effect code can live:
       1. Inside the Component (e.g. with useEffect() Hook) - Redux will not be aware of anything to do with the side-effect code; or
-      2. Inside the actions creator - Not using the automatically generated actions provided by the Redux Toolkit but writing your own action creator code.
+      2. Inside the Actions Creator - Not using the automatically generated actions provided by the Redux Toolkit but writing your own action creator code.
 
    > Redux actually has a solution that allow us to perform side effects and run asynchronous tasks as part of these action creators without changing the reducer function.
    > Remember: Do not perform side effect code inside of Reducers no matter if it is synchronous or asynchronous (and also do not run any asynchronous code in a reducer in general).
@@ -29,3 +30,69 @@ Advanced Redux - Summary:
                                                       ^                                      |                                        ^
                                                       |                                      v                                        |
                                                       ------------------------------[Frontend React App]-------------------------------
+
+------------------------------------------------------------------------------------
+2. Where to Put the Side Effect (Async Code) Logic:
+------------------------------------------------------------------------------------
+   > You can use the useSelector() function from React-Redux within a Component to get the cart before it is updated and then do all that transformation inside of the Component (without mutating the state) and then send the HTTP request. The code would look like something of the below example:
+
+   Transformation in Component Example:
+      src/store/cart-slice.js:
+         import { createSlice } from '@reduxjs/toolkit';
+         const cartSlice = createSlice({
+               name: 'cart',
+               initialState: { items: [], totalQuantity: 0
+            },
+            reducers: {
+               replaceCart(state, action) {
+                  state.totalQuantity = action.payload.totalQuantity;
+                  state.items = action.payload.items;
+               },
+               addItemToCart(state, action) { ... },
+               removeItemFromCart(state, action) { ... },
+            }
+         });
+         export const cartActions = cartSlice.actions;
+         export default cartSlice;
+      src/components/shop/ProductItem.js:
+         import { useDispatch, useSelector } from 'react-redux';
+         ...
+         const ProductItem = (props) => {
+            const cart = useSelector((state) => state.cart);
+            const dispatch = useDispatch();
+            const { title, price, description, id } = props;
+            const addToCartHandler = () => {
+               const newTotalQuantity = cart.totalQuantity + 1;
+               const updatedItems = cart.items.slice();                                   // create copy via slice to avoid mutating original state
+               const existingItem = updatedItems.find((item) => item.id === id);
+               if (existingItem) {
+                  const updatedItem = { ...existingItem };                                // new object + copy existing properties to avoid state mutation
+                  updatedItem.quantity++;
+                  updatedItem.totalPrice = updatedItem.totalPrice + price;
+                  const existingItemIndex = updatedItems.findIndex((item) => item.id === id);
+                  updatedItems[existingItemIndex] = updatedItem;
+               } else {
+                  updatedItems.push({ id: id, price: price, quantity: 1, totalPrice: price, name: title });
+               };
+               const newCart = { totalQuantity: newTotalQuantity, items: updatedItems};
+               dispatch(cartActions.replaceCart(newCart));
+               fetch('firebase-url', { method: 'POST', body: JSON.stringify(newCart) })   // Then send Http request
+               dispatch(cartActions.addItemToCart({ id, title, price }));
+            };
+            return (...);
+         };
+
+   > The code above would work but the problem with the above example approach is that where you need this addToCartHandler logic in a Component file, you would need to copy all that code to the other Component (e.g. a Cart.js Component file). You could outsource the code into its own file to export that as a function to prevent code duplication.
+   > However, you would have another problem. The data transformation is done in some helper function and then in the end directly within the Component. The transformation is not done within the Reducer Function and could end up using the 'replaceCart' approach in all the places within the application. This would mean the Redux Reducers would not do a lot of work i.e they get some data and store it.
+   > This can be fine (and is a personal preference which is not necessarily bad); however, it is not the main idea behind using Redux.
+   > When it comes to the question of where to put your code you have the choice between "Fat Reducers", "Fat Components" or "Fat Actions".
+
+   > Where should the logic (code) go?
+      [Synchronous, side-effect free code (i.e. data transformation)]                  [Asynchronous code or code with side-effects]
+         - Prefer Reducers                                                                - Prefer Action Creators or Components
+         - Avoid Action Creators or Components                                            - Avoid Reducers
+   
+   > Therefore, if the code is more leaning towards the left side (i.e. data transformation), then you should prefer Reducers. While you could have code in your Components (which is perfectly fine), it is generally considered a bit better to prefer Reducers and avoid Action Creators or Components.
+   > If the code is leaning towards the right side (i.e. async/async side-effect code) then you should prefer Action Creators or Components and must never use Reducers.
+   > Therefore, looking at the above code example, the data transformation is occurring in the Component and not inside of the Reducer (if you relied on the 'replaceCart') and that is sub-optimal code. But what would be a better way of doing it then? You need to prepare the data before you can send it off to a backend database using HTTP but this cannot be done inside the Reducer.
+   > The next sections will explore how you can use the two methods mentioned previously to make the above example code more optimal.
