@@ -1,0 +1,31 @@
+Advanced Redux - Summary:
+1. Redux & Side Effects (Asynchronous Code)
+
+------------------------------------------------------------------------------------
+1. Redux & Side Effects (Asynchronous Code):
+------------------------------------------------------------------------------------
+   > One important rule any reducer functions is that they must be pure i.e. side-effect free and synchronous. The reducer function should simply take in some input (i.e. old state + action) and produces some out (i.e. new state). For the same input and values it should always produce the same output without any side-effects that happen along the way and without any asynchronous code that blocks it.
+   > This is a general reducer concept and is not Redux Reducer Function specific (e.g. even React useReducer() Hook abides by the same concept).
+   > This should lead to one important question. When working with Redux and dispatching some action that would involve some side-effect such as a HTTP request where would you put that side-effect (asynchronous) code? The Reducer Function is clearly thr wrong place. There are two possible places where side-effect code can live:
+      1. Inside the Component (e.g. with useEffect() Hook) - Redux will not be aware of anything to do with the side-effect code; or
+      2. Inside the actions creator - Not using the automatically generated actions provided by the Redux Toolkit but writing your own action creator code.
+
+   > Redux actually has a solution that allow us to perform side effects and run asynchronous tasks as part of these action creators without changing the reducer function.
+   > Remember: Do not perform side effect code inside of Reducers no matter if it is synchronous or asynchronous (and also do not run any asynchronous code in a reducer in general).
+   > It is important to recognise that the code you need to write on the frontend and where you write that code will depend on your backend code. This is because the backend API server will talk to the frontend application with the help of HTTP and Responses being sent around.
+      - If you had a backend API that does a lot of work (i.e. transform and stores data) then the front-end application can do less work. It could send data like a product to be added to cart, allow the backend perform the transformation and then use the response on the frontend to then just hand it off to the reducer to store that response. This allows you to slim down the reducer to store the response in Redux.
+      - If you had a backend API that does not do a lot of work (i.e. just stored incoming data in the format it receives it in) then the front-end application needs to do more work. Here it needs to prepare/transform the data before saving to the Redux store. However, the sending of the data to the backend store must be done outside of the Reducer Function. Therefore, with this approach you would need to decide where best to place your code.
+
+                                                      ------------------------------------[Backend]------------------------------------
+                                                      |                                      ^                                        |
+                                                      v                                      |                                        v
+                                          Does a lot of working                              |                          Does not do a lot of work
+                                    (i.e. transform data + store data)                       |                       (i.e. just stores incoming data)
+                                                      ^                                      |                                        ^
+                                                      |                                      |                                        |
+                                                      v                                      |                                        v
+                                       Send & Receive Data + use response                    |                          Transform Data & Send Data
+                                    (i.e. less code on the fontend, ahead of the reducer)    |                 (i.e. more code on the frontend, ahead of the reducer)
+                                                      ^                                      |                                        ^
+                                                      |                                      v                                        |
+                                                      ------------------------------[Frontend React App]-------------------------------
