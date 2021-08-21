@@ -3,6 +3,7 @@ Advanced Redux - Summary:
 2. Where to Put the Side Effect (Async Code) Logic
 3. Method 1 - Using useEffect with Redux
 4. Method 2 - Using an Action Creator Thunk
+5. Exploring the Redux DevTools
 
 ------------------------------------------------------------------------------------
 1. Redux & Side Effects (Asynchronous Code):
@@ -337,3 +338,17 @@ Advanced Redux - Summary:
    > Why use this pattern? This is an alternative to having the logic in your Component. You can add that logic to your Components as seen in Method 1 - Using useEffect with Redux pattern. However, it is not a bad idea to keep your Components lean i.e. to not have too much logic in them.
    > By moving the logic into the Action Creator Thunk function we did achieve this. The App.js dispatches one action and all the hard work happens inside of the custom Action Creator function in the Redux files.
    > Important Note: both methods/options are viable and is your choice which approach to use for your project/scenario.
+
+------------------------------------------------------------------------------------
+5. Exploring the Redux DevTools:
+------------------------------------------------------------------------------------
+   > The Redux DevTools are extra tools you can use within the browser which makes debugging Redux and Redux State slightly easier.
+   > In more complex applications which has a lot of Redux state handled by a lot of different slices and a lot of different actions can make it difficult to find errors in your debug state, order of actions and so on.
+   > It may be interesting to look into the current state of the overall Redux Store without having to dive into the different part oft the UI to verify everything is working correctly.
+   > In Google search for "Redux DevTools" and you will find a github repository about the Redux DevTools (https://github.com/reduxjs/redux-devtools). The Redux DevTools can be installed as a standalone application or also as a Browser extension for supported browsers. You may find the browser extension is more easier to use.
+   > When using Redux without Redux Toolkit, you would have to setup some extra code to make Redux DevTools work. However, with Redux Toolkit it will work straight out of the box and you should have access to that extension.
+   > In the Developer Tools for your browser you should see a tab called Redux. This tab will provide insights into your applications Redux Store, Actions and much more.
+   > You can click on Actions tab to view how it has changed the Redux Store State. The State Tab shows how the state looks like after the action was performed while the Diff Tab shows how the State was updated.
+   > This tool is super useful to see the impact of your applications actions.
+   > You can use time travelling to jump to a previous state by clicking on a previous action and then clicking on the Jump button. This will update the application on the screen to the previous state.
+   > It is highly encouragingly to play around with this tool and familiarise yourself with this debugging tool which will help you when working on much complex and larger React applications that use Redux.
