@@ -1,6 +1,7 @@
 Advanced Redux - Summary:
 1. Redux & Side Effects (Asynchronous Code)
 2. Where to Put the Side Effect (Async Code) Logic
+3. Method 1 - Using useEffect with Redux
 
 ------------------------------------------------------------------------------------
 1. Redux & Side Effects (Asynchronous Code):
@@ -54,7 +55,7 @@ Advanced Redux - Summary:
          });
          export const cartActions = cartSlice.actions;
          export default cartSlice;
-      src/components/shop/ProductItem.js:
+      src/components/Shop/ProductItem.js:
          import { useDispatch, useSelector } from 'react-redux';
          ...
          const ProductItem = (props) => {
@@ -96,3 +97,169 @@ Advanced Redux - Summary:
    > If the code is leaning towards the right side (i.e. async/async side-effect code) then you should prefer Action Creators or Components and must never use Reducers.
    > Therefore, looking at the above code example, the data transformation is occurring in the Component and not inside of the Reducer (if you relied on the 'replaceCart') and that is sub-optimal code. But what would be a better way of doing it then? You need to prepare the data before you can send it off to a backend database using HTTP but this cannot be done inside the Reducer.
    > The next sections will explore how you can use the two methods mentioned previously to make the above example code more optimal.
+
+------------------------------------------------------------------------------------
+3. Method 1 - Using useEffect with Redux:
+------------------------------------------------------------------------------------
+   Using useEffect Example:
+      src/App.js:
+         import React, { useEffect } from 'react';
+         import { useSelector } from 'react-redux';
+         ...
+         function App() {
+            ...
+            const cart = useSelector(state => state.cart);
+            useEffect(() => {
+               fetch('https://advanced-redux-demo-default-rtdb.firebaseio.com/cart.json', {
+                  method: 'PUT',
+                  body: JSON.stringify(cart)
+               });
+            }, [cart]);
+            return (...);
+         };
+      src/components/Shop/ProductItem.js:
+         ...
+         const ProductItem = (props) => {
+            const dispatch = useDispatch();
+            const { title, price, description, id } = props;
+            const addToCartHandler = () => {
+               dispatch(
+                  cartActions.addItemToCart({
+                     id,
+                     title,
+                     price,
+                  })
+               );
+            };
+            ...
+         };
+   src/store/cart-slice.js:
+      import { createSlice } from '@reduxjs/toolkit';
+      const cartSlice = createSlice({
+         name: 'cart',
+         initialState: {
+            items: [],
+            totalQuantity: 0,
+         },
+         reducers: {
+            addItemToCart(state, action) {
+               const newItem = action.payload;
+               const existingItem = state.items.find((item) => item.id === newItem.id);
+               state.totalQuantity++;
+               if (!existingItem) {
+                  state.items.push({
+                     id: newItem.id,
+                     price: newItem.price,
+                     quantity: 1,
+                     totalPrice: newItem.price,
+                     name: newItem.title
+                  });
+               } else {
+                  existingItem.quantity++;
+                  existingItem.totalPrice = existingItem.totalPrice + newItem.price;
+               };
+            },
+            ...
+         };
+
+   > You would want to dispatch the action from the Component file and do all of the heavy work inside of the Reducer Function.
+   > If you now want to sync (update) the server with the new state derived from the frontend you can simply switch the order. You can either do the work on the front-end and let Redux update its store and in a second step thereafter we send a request to the server but do not necessarily need to do this inside of the Reducer Function (which you would not be allowed to do asynchronous/side-effect code).
+   > The second step (i.e.syncing code) can be done inside of the Component file or a separate file such as the App.js root Component file. For example, you can listen to changes to the overall "cart" in the App.js Component using the useSelector and whenever the state changes we can send a HTTP request as seen in the example above.
+   > The useEffect Hook can be used to watch for changes in the "cart" state. The useEffect Hook allows you to run a side-effect and allows you to run an effect whenever some dependency changes.
+   > Note that this could be applied to any Component and does not have to be the root Component.
+   > A 'PUT' request method allows you to POST/PUT new data into a database. The difference between the 'POST' and 'PUT' request is that the 'PUT' request will overwrite the existing data with the incoming data. The "cart" state data is a JSON object which is converted into a string JSON data to send across to the server. The "cart" state is used as a dependency to trigger the useEffect side-effect upon any changes to that state.
+   > The useSelector() function sets up a subscription to the Redux store and so the Component will be re-executed whenever the state changes triggering the HTTP request. This simple addition allows you to add side-effect/asynchronous code without placing the code inside of the Reducer Function (which you are not allowed to do). The synchronous code for updating the state can remain inside of the Reducer Function.
+   > You simply switch the order i.e. you update the Redux store and then select the updated store to send the request to the server. This allows you to keep a lean Components, create a Fat Reducer and then perform any side-effects (asynchronous) code that might depend on the Redux state in the Component or a separate file.
+   > Important Note: there is one problem with using the useEffect method the way it is shown in the above example - the useEffect side-effect will execute when the app starts. This is a problem because it will send an empty "cart" state to the backend server overwriting any existing data stored in the database.
+   > In the above example the HTTP request is being sent but we are not doing anything with the response and the code does not handle any potential errors.
+
+   Handling HTTP States and Feedback with Redux Example:
+      src/components/UI/Notifications.js:
+         import classes from './Notification.module.css';
+         const Notification = (props) => {
+            let specialClasses = '';
+            if(props.status === 'error') {
+               specialClasses = classes.error;
+            };
+            if(props.status === 'success') {
+               specialClasses = classes.success;
+            };
+            const cssClasses = `${classes.notification} ${specialClasses}`;
+            return (
+               <section className={cssClasses}>
+                  <h2>{props.title}</h2>
+                  <p>{props.message}</p>
+               </section>
+            );
+         };
+      src/store/ui-slice.js:
+         import { createSlice } from '@reduxjs/toolkit';
+         const uiSlice = createSlice({
+            name: 'ui',
+            initialState: { cartIsVisible: false, notification: null },
+            reducers: {
+               toggle(state) {
+                  state.cartIsVisible = !state.cartIsVisible;
+               },
+               showNotification(state, action) {
+                  state.notification = {
+                     status: action.payload.status,
+                     title: action.payload.title,
+                     message: action.payload.message
+                  };
+               }
+            }
+         });
+         export const uiActions = uiSlice.actions;
+         export default uiSlice;
+      src/App.js:
+         import React, { Fragment, useEffect } from 'react';
+         import { useSelector, useDispatch } from 'react-redux';
+         import Notification from './components/UI/Notification';
+         import { uiActions } from './store/ui-slice';
+         ...
+         let isInitial = true;
+         function App() {
+            const dispatch = useDispatch();
+            const showCart = useSelector((state) => state.ui.cartIsVisible);
+            const cart = useSelector(state => state.cart);
+            const notification = useSelector(state => state.ui.notification);
+            useEffect(() => {
+               const sendCartData = async () => {
+                  dispatch(
+                     uiActions.showNotification({
+                        status: 'pending',
+                        title: 'Sending...',
+                        message: 'Sending cart data!'
+                     })
+                  );
+                  const response = await fetch('https://advanced-redux-demo-default-rtdb.firebaseio.com/cart.json', {
+                     method: 'PUT',
+                     body: JSON.stringify(cart)
+                  });
+                  if(!response.ok) { throw new Error('Sending cart data failed') };
+                  dispatch(uiActions.showNotification({ status: 'success', title: 'Success!', message: 'Sent cart data successfully!' }));
+               };
+               if(isInitial) {
+                  isInitial = false;
+                  return;
+               };
+               sendCartData().catch(error => {
+                  dispatch(uiActions.showNotification({ status: 'error', title: 'Error!', message: 'Sending cart data failed!' }));
+               }); 
+            }, [cart, dispatch]);
+            return (
+               <Fragment>
+                  {notification && <Notification status={notification.status} title={notification.title} message={notification.message}/>}
+                  <Layout>...</Layout>
+               </Fragment>
+            );
+         };
+
+   > The Notification Component is a simple component which can display different notifications with different CSS styles which will show at the top of the page.
+   > We can use the .then() syntax or async/await syntax to add the notification to the side effect code. Note that if using async/await syntax inside of useEffect, you should wrap the side-effect code in another function and call async on that function as seen above with the "sendCartData" function which wraps the fetch request. Do not add async in-front of the anonymous function argument for useEffect as this will cause an error.
+   > The Redux store "ui-slice" can store a state for the notification which Components can then use to to listen to and dynamically display notifications such as sending a HTTP request, success and error messages, etc. The showNotification action can be dispatched from a Component whenever we perform fetch requests.
+   > The dispatch function is now also a dependency. React-Redux will ensure this dispatch function will never change and will never trigger the useEffect to re-run again.
+   > The "notification" Redux state will either be "null" or a state we set when dispatching the showNotification action. This will then allow us to conditionally render the Notification Component and provide extra data to this Component.
+   > To avoid the application running the side-effect HTTP request previously mentioned above, we can add a variable outside the Component function (e.g. "isInitial") and set its value to true. Using an if statement we can check whether the application is executing for the first time using this variable and if return from the function (avoid executing the sendCartData() function).
+   > The variable can then be set to false so that the sendCartData() function can be executed thereafter.
