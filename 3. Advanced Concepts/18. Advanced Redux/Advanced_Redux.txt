@@ -2,6 +2,7 @@ Advanced Redux - Summary:
 1. Redux & Side Effects (Asynchronous Code)
 2. Where to Put the Side Effect (Async Code) Logic
 3. Method 1 - Using useEffect with Redux
+4. Method 2 - Using an Action Creator Thunk
 
 ------------------------------------------------------------------------------------
 1. Redux & Side Effects (Asynchronous Code):
@@ -263,3 +264,76 @@ Advanced Redux - Summary:
    > The "notification" Redux state will either be "null" or a state we set when dispatching the showNotification action. This will then allow us to conditionally render the Notification Component and provide extra data to this Component.
    > To avoid the application running the side-effect HTTP request previously mentioned above, we can add a variable outside the Component function (e.g. "isInitial") and set its value to true. Using an if statement we can check whether the application is executing for the first time using this variable and if return from the function (avoid executing the sendCartData() function).
    > The variable can then be set to false so that the sendCartData() function can be executed thereafter.
+
+------------------------------------------------------------------------------------
+4. Method 2 - Using an Action Creator Thunk:
+------------------------------------------------------------------------------------
+   > We can write our own Action Creators instead of using the automatically generated action creators from React-Toolkit.
+   > A "Thunk" is a function that delays an action until later (i.e. when something else has finished).
+   > You can write an Action Creator as a thunk i.e. an action that does not immediately return the action object but instead returns another function which will eventually return the action object. This allows you to run some other code before dispatching the actual action object we did want to create to Redux Reducer Function.
+
+                                                [Action Creator Thunk - A function that delays an action until later]
+                                                                              |
+                                                                              v
+                  [An Action Creator function that does not return the action itself but another function which eventually returns the action]
+
+   > This is a very common pattern and is very easy to implement.
+
+   Action Creator Thunk Example:
+      src/store/cart-slice.js:
+         import { createSlice } from '@reduxjs/toolkit';
+         const cartSlice = createSlice({ ... });
+         export const sendCartData = (cart) => {
+            return async (dispatch) => {
+               dispatch(uiActions.showNotification({ status: 'pending', title: 'Sending...', message: 'Sending cart data!' }));
+               const sendRequest = async () => {
+                  const response = await fetch('https://advanced-redux-demo-default-rtdb.firebaseio.com/cart.json', { method: 'PUT', body: JSON.stringify(cart) });
+                  if(!response.ok) { throw new Error('Sending cart data failed') };
+               };
+               try{
+                  await sendRequest();
+                  dispatch(uiActions.showNotification({ status: 'success', title: 'Success!', message: 'Sent cart data successfully!' }));
+               } catch (error) {
+                  dispatch(uiActions.showNotification({ status: 'error', title: 'Error!', message: 'Sending cart data failed!' }));
+               };
+            };
+         };
+      src/App.js:
+         ...
+         import { sendCartData } from './store/cart-slice';
+         let isInitial = true;
+         function App() {
+            const dispatch = useDispatch();
+            const showCart = useSelector((state) => state.ui.cartIsVisible);
+            const cart = useSelector(state => state.cart);
+            const notification = useSelector(state => state.ui.notification);
+            useEffect(() => {
+               if(isInitial) {
+                  isInitial = false;
+                  return;
+               };
+               dispatch(sendCartData(cart));
+            }, [cart, dispatch]);
+            return (
+               <Fragment>
+                  {notification && <Notification status={notification.status} title={notification.title} message={notification.message}/>}
+                  <Layout>...</Layout>
+               </Fragment>
+            );
+         };
+
+   > The Action Creator should be written outside of the slice if contained within the slice file. It would make logical sense to keep the custom Action Creator Thunk inside of the store slice file it relates to i.e. the slice that the action will dispatch to.
+   > The "sendCartData" Action Creator is just a regular function which receives the "cart" state. You could just return the action object which is just a regular object which has a type property and possibly a payload property. Redux Toolkit creates these actions automatically for us for all the reducer methods which is why you did not need to write actions. Therefore, we do not need to create such simple action creators on our own.
+   > You can create an action object which instead returns another function. In JavaScript you can write functions that return other functions. The function should receive a dispatch function as an argument and then this can be called inside of the function to actually dispatch an action object to Redux.
+   > Before you call the dispatch function you can perform other task (i.e. any asynchronous, side-effects or synchronous codes) This is because the Action Creator function has not reached the Reducer and is not being run inside of the Reducer Function. It is simply a separate standalone JavaScript function instead.
+   > If using Async/Await syntax you can add the Async keyword in-front of the function without any issues or having to wrap the side-effect logic inside of another function as you would with the useEffect Hook.
+   > The sendCartData() function immediately without doing anything else returns another function (an async function, we do not know who will execute the function but will soon know), in that function it dispatches a notification action, then create a new async function on the fly to send a HTTP request and this function is called by us inside of the try/catch block to handle success/errors notifications.
+   > This Action Creator Thunk needs to be exported in order to be able to use the function in other files.
+   > In the App.js Component you would still want to dispatch the sendCartData function attaching the cart state the function expects to receive.
+   > Redux Toolkit is prepared for this and it does not just accept action objects with a type property instead it also does accept Action Creators that return functions.
+   > If Redux Toolkit sees that you are dispatching a action which is actually a function instead of an action object, it will execute that function for you (i.e. 'return async (dispatch)') and will give that dispatch argument automatically so that in the executed function you can dispatch again.
+   > This is a common pattern where we want to have Action Creators that can perform side-effects and can then dispatch other actions which will eventually reach the reducers as part of a flow of side-effects or as a flow of steps that should be taken. This is what we have in the above sendCartData example.
+   > The code will work as before but now using the Action Creators Thunk method to perform the HTTP asynchronous/side-effect code.
+   > Why use this pattern? This is an alternative to having the logic in your Component. You can add that logic to your Components as seen in Method 1 - Using useEffect with Redux pattern. However, it is not a bad idea to keep your Components lean i.e. to not have too much logic in them.
+   > By moving the logic into the Action Creator Thunk function we did achieve this. The App.js dispatches one action and all the hard work happens inside of the custom Action Creator function in the Redux files.
+   > Important Note: both methods/options are viable and is your choice which approach to use for your project/scenario.
