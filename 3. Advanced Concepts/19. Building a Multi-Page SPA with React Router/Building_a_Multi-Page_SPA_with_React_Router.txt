@@ -3,6 +3,7 @@ Building a Multi-Page SPA with React Router - Summary:
 2. Defining & Using Routes, Working with Links and Using NavLinks
 3. Adding Dynamic Routes with Params and Extracting Route Params
 4. Using 'Switch' and 'exact' for Configuring Routes
+5. Working with Nested Routes
 
 ------------------------------------------------------------------------------------
 1. What is Routing & Installing React Router:
@@ -310,3 +311,29 @@ Building a Multi-Page SPA with React Router - Summary:
          <Route path="/products"><Products /></Route>
    > An alternative is to keep the ordering as is but use the 'exact' prop on the 'Route'. The 'exact' prop tells React Router that the Route path should only lead to a match if you have an exact match. This switches the matching for that particular Route from the beginning of the path to matching the full URL path in the browser.
    > Therefore, these behaviour (i.e. having multiple Components rendered at the same time from a URL) are not always a problem but will always depend on the navigation scenario. You can use the 'exact' prop to target a scenario where you only want a specific Component to render when there is a absolute exact match with the URL. This is a solution you can therefore use.
+
+------------------------------------------------------------------------------------
+5. Working with Nested Routes:
+------------------------------------------------------------------------------------
+   > What is meant by Nested Routes? Depending on what you are building you could have the requirements that you do not just have a couple of different main pages but that instead also inside of a page you also want to have a route.
+
+   Working with Nested Routes Example:
+      src/pages/Welcome.js:
+         import React from 'react';
+         import { Route } from 'react-router-dom';
+         const Welcome = () => {
+            return(
+               <section>
+                  <h1>The Welcome Page</h1>
+                  <Route path="/welcome/new-user"><p>Welcome New User!</p></Route>
+               </section>
+            );
+         };
+         export default Welcome;
+
+   > You are not limited to defining Routes in one place only, you can define routes wherever you want. If the 'Route' are on a Component which is currently active they will be evaluated by React Router.
+   > Therefore, if the Welcome page is active the nested routes will be evaluated.
+   > In the above example, if the path was "/products" then the Route will never be active because you can never be on the Welcome page for a path that starts with "/products".If on the other hand you set the path to "welcome/new-user" then this route would become active if you are on the Welcome page because you have to be on "/welcome" to render the Component which will trigger the nested rule for "/new-user" which will come after "/welcome".
+   > You still need to define the full path to the URL for nested routes.
+   > Therefore, in the above example if you visit "domain-name.com/welcome" you will not see the paragraph "Welcome New User!" being rendered to the screen because the router has not evaluated a match. However, if you navigate to "domain-name.com/welcome/new-user" then it will render the paragraph.
+   > This is the nested routes feature provided by React Router. You can define routes in other Components and then load more content if you have a more specific path match as we see with the example. This is a feature you can use to build more complex user interfaces and whilst you may not need it in every application you build it can be helpful in a couple of applications.
