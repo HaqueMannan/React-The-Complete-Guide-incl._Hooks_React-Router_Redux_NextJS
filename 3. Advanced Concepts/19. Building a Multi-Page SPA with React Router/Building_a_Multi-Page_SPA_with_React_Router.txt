@@ -4,6 +4,7 @@ Building a Multi-Page SPA with React Router - Summary:
 3. Adding Dynamic Routes with Params and Extracting Route Params
 4. Using 'Switch' and 'exact' for Configuring Routes
 5. Working with Nested Routes
+6. Redirecting the User
 
 ------------------------------------------------------------------------------------
 1. What is Routing & Installing React Router:
@@ -337,3 +338,33 @@ Building a Multi-Page SPA with React Router - Summary:
    > You still need to define the full path to the URL for nested routes.
    > Therefore, in the above example if you visit "domain-name.com/welcome" you will not see the paragraph "Welcome New User!" being rendered to the screen because the router has not evaluated a match. However, if you navigate to "domain-name.com/welcome/new-user" then it will render the paragraph.
    > This is the nested routes feature provided by React Router. You can define routes in other Components and then load more content if you have a more specific path match as we see with the example. This is a feature you can use to build more complex user interfaces and whilst you may not need it in every application you build it can be helpful in a couple of applications.
+
+------------------------------------------------------------------------------------
+6. Redirecting the User:
+------------------------------------------------------------------------------------
+   > The redirect feature allows you to redirect a user to a different URL route/path.
+
+   Redirect the User Example:
+      src/App.js:
+         import React from 'react';
+         import { Route, Switch, Redirect } from 'react-router-dom';
+         ...
+         const App = () => {
+            return (
+               <div>
+                  <MainHeader />
+                  <main>
+                     <Switch>
+                        <Route path="/" exact><Redirect to="/welcome" /></Route>
+                        <Route path="/welcome"><Welcome /></Route>
+                        <Route path="/products" exact><Products /></Route>
+                        <Route path="/products/:productId"><ProductsDetails /></Route>
+                     </Switch>
+                  </main>
+               </div>
+            );
+         };
+         export default App;
+
+   > Import the 'Redirect' Component from the 'react-router-dom' package. If the 'Redirect' Component gets rendered it will do what the name implies i.e. redirect the user somewhere else. The 'Redirect' Component requires a 'to' prop which should be the value to the URL it should redirect the user to.
+   > In the above example, if a user was to visit "domain-name.com/" this will redirect the user to the "domain-name.com/welcome" page instead of showing the page with no rendered content. The 'exact' prop is important in this example because every route starts with "/" which will end up causing an infinite loop breaking the application.

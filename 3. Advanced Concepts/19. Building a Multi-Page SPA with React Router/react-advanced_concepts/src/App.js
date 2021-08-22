@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Switch } from 'react-router-dom';
+import { Route, Switch, Redirect } from 'react-router-dom';
 
 import MainHeader from './components/MainHeader';
 import Welcome from './pages/Welcome';
@@ -12,6 +12,9 @@ const App = () => {
          <MainHeader />
          <main>
             <Switch>
+               <Route exact path="/">
+                  <Redirect to="/welcome" />
+               </Route>
                <Route path="/welcome">
                   <Welcome />
                </Route>
