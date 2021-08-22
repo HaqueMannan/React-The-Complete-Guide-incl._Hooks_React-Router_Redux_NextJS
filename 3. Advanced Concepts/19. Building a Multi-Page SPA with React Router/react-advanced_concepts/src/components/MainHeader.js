@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 import classes from './MainHeader.module.css';
 
@@ -8,8 +8,6 @@ const MainHeader = () => {
       <header className={classes.header}>
          <nav>
             <ul>
-               {/* <li><Link to="/welcome">Welcome</Link></li> */}
-               {/* <li><Link to="/products">Products</Link></li> */}
                <li><NavLink activeClassName={classes.active} to="/welcome">Welcome</NavLink></li>
                <li><NavLink activeClassName={classes.active} to="/products">Products</NavLink></li>
             </ul>

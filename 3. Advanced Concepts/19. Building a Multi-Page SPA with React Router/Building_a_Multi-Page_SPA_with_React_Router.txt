@@ -2,6 +2,7 @@ Building a Multi-Page SPA with React Router - Summary:
 1. What is Routing & Installing React Router
 2. Defining & Using Routes, Working with Links and Using NavLinks
 3. Adding Dynamic Routes with Params and Extracting Route Params
+4. Using 'Switch' and 'exact' for Configuring Routes
 
 ------------------------------------------------------------------------------------
 1. What is Routing & Installing React Router:
@@ -267,3 +268,45 @@ Building a Multi-Page SPA with React Router - Summary:
    > This object will have key:value pairs where the keys are the name of the dynamic segments leading to that page and the value is extracted segment value from the URL.
    > Using the params object you can now access and extract the entered parameters from URL and use it within the Component JSX.
    > You could have more than one dynamic segment for a route e.g. "domain-name.com/product-detail/:productId/:anotherId". If the URL in the browser was "domain-name.com/product-detail/1/2" then the useParams Hook would extract the params object as { productId: 1, anotherId: 2 } from the URL which you can then use inside of the Component file to do something like fetching data from a database using a backend API.
+
+------------------------------------------------------------------------------------
+4. Using 'Switch' and 'exact' for Configuring Routes:
+------------------------------------------------------------------------------------
+   > Dynamic Routes and Route Parameters are a another crucial feature of React Router which you will use in almost any application your building. However, there is a potential problem you could face using the above example setup. Your URL path should basically work like a folder structure i.e. new sub-folders (related pages) add a new segment:
+
+      "domain-name.com/products"
+         "domain-name.com/products/:productId"
+
+   > Whenever you navigate as an example "domain-name.com/products/1" this will render both the Products Component as well as the ProductDetail Component. By default the routes are not parsed such that only one is loaded at the same time but instead all routes that match the current path will be loaded.
+   > Matching in React Router world means your path starts with the path defined in the Route component. Therefore, the URL "domain-name.com/products/1" start with "/products" as well as "/products/:productId" and so both paths are active and also the reason for why both Components will be rendered to the screen when navigating to that URL path.
+   > Sometimes this might be what you want but other times it is not and in the example of the product detail this is the latter.
+
+   Using Switch and 'exact' Prop Example:
+      src/App.js:
+         import React from 'react';
+         import { Route, Switch } from 'react-router-dom';
+         ...
+         const App = () => {
+            return (
+               <div>
+                  <MainHeader />
+                  <main>
+                     <Switch>
+                        <Route path="/welcome"><Welcome /></Route>
+                        <Route path="/products" exact><Products /></Route>
+                        <Route path="/products/:productId"><ProductsDetails /></Route>
+                     </Switch>
+                  </main>
+               </div>
+            );
+         };
+         export default App;
+
+
+   > Import the 'Switch' Component from the 'react-router-dom' package. This allows you to wrap the 'Route' Components and this will then allow only one active Route at the same time.
+   > The active route will be the Route 'path' that matches first (i.e. matching Routes (the starting path and not the entire path) from top to bottom). When a match is found the 'Switch' will stop matching routes and render that one route it did find a match for.
+   > One solution is to change the order of the route path.
+         <Route path="/products/:productId"><ProductsDetails /></Route>
+         <Route path="/products"><Products /></Route>
+   > An alternative is to keep the ordering as is but use the 'exact' prop on the 'Route'. The 'exact' prop tells React Router that the Route path should only lead to a match if you have an exact match. This switches the matching for that particular Route from the beginning of the path to matching the full URL path in the browser.
+   > Therefore, these behaviour (i.e. having multiple Components rendered at the same time from a URL) are not always a problem but will always depend on the navigation scenario. You can use the 'exact' prop to target a scenario where you only want a specific Component to render when there is a absolute exact match with the URL. This is a solution you can therefore use.
