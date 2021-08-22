@@ -1,0 +1,37 @@
+Building a Multi-Page SPA with React Router - Summary:
+1. What is Routing & Installing React Router
+
+------------------------------------------------------------------------------------
+1. What is Routing & Installing React Router:
+------------------------------------------------------------------------------------
+   > When the path in the URL changes the URL loads different pages i.e. the visible content of the page also changes.
+   > The combination of the different pages with their own paths that make up the overall website. This is how the web works and how the React application should work as well.
+
+   Traditional Multi-Page Application:
+      [/welcome]---------------URL Change--------------->[/products]
+      [Welcome Page]-------Visible Content Change------->[Products Page]
+      [welcome.html]---------Page Change = New---------->[products.html]
+                           (Requests + Response)
+
+   > When you have a traditional multi-page application where the server sends back different HTML files it will be typically be built with different HTML files on the server (or generating the files dynamically on the server) and then for the requests to the different URLs, different HTML pages are sent back to the client as the response. These pages are then rendered by the browser.
+   > When you have different HTML pages you no longer have a single page application which means whenever you change the URL you leave the running client side application (losing all the state), wait for the request/response cycle and let the browser render the new page.
+   > One of the reason switching to React is to move away from the traditional flow. Instead you want to load client side application (i.e. a JavaScript web app that runs in the browser) and utilise this application to change what is visible on the screen with JavaScript to provide an instant reactive user experience.
+   > Fetching different HTML pages does not fit in with React Applications because it does not provide the reactive experience.
+
+   Multi-Page Single Page Application:
+                     [Single Page Application]
+                              |
+                              v
+               [One initial HTML Request & Response]
+                              |
+                              v
+      [URL changes handled by client side React Code]----->[Changes the visible content without fetching a new HTML file]
+
+   > React allows you to build a Single Page Application (SPA) which allows you to have one initial HTML request & response. You can then look at the URL and manipulate the URL and path after the domain name with JavaScript.
+   > You can use some client side React code to control the URL which would then change what is displayed on the screen when the URL changes without fetching a new HTML file providing a Multi-Page experience.
+   > Therefore, you need some code that works on the URL (i.e. the path after the domain name) and then listens to clicks on the page to update that path into the URL. However, this does not actually send a request to the server for a new HTML file but instead blocks the browsers default behaviour and update what is visible on the screen with client side JavaScript i.e. React.
+   > You need to write code that does all the above or you could use a Third-Party package that does it for you. There is a popular third-party package called "React Router" (https://reactrouter.com/) which you have to install separately. This package will provide this client-side routing feature to watch and manipulate the URL which the Component will render based on the URL.
+   > To install React Router to your React project run the following command in the terminal while in the project directory.
+
+   React Router Install Command:
+      $: npm install react-router-dom
