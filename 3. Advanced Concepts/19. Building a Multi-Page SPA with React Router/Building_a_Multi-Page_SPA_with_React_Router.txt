@@ -1,6 +1,7 @@
 Building a Multi-Page SPA with React Router - Summary:
 1. What is Routing & Installing React Router
 2. Defining & Using Routes, Working with Links and Using NavLinks
+3. Adding Dynamic Routes with Params and Extracting Route Params
 
 ------------------------------------------------------------------------------------
 1. What is Routing & Installing React Router:
@@ -195,3 +196,74 @@ Building a Multi-Page SPA with React Router - Summary:
    > The 'NavLink' Component works exactly like the 'Link' Component but it also does more. The NavLink Component will set a CSS class on the active anchor (<a> tag) item. You need to use the 'activeClassName' prop to tell the 'NavLink' which class it should add on the active link.
    > In the above example the module.css file contains a style for the ".header a.active" i.e. this style targets anchor elements that have the class name of "active". The 'NavLink' will conditionally add the "active" class using the 'activeClassName' prop whenever the 'NavLink' is active which will trigger the "active" link styling.
    > This is a nice additional feature you would want to have with a lot of application you would build. This is made simple using the NavLink feature provided by React Router (i.e. without having to write your own code).
+
+------------------------------------------------------------------------------------
+3. Adding Dynamic Routes with Params and Extracting Route Params:
+------------------------------------------------------------------------------------
+   > You may want a route path that is activated by a link but that page is rendered using details based on the link you clicked from. For example, you could have a products page with links to different products. Those links would take you to the product details page which will provide the detail of the product that was clicked (whether that detail data comes from aback-end API from a database or application from an application-wide state frp, React Context API or Redux).
+   > In this example you would definitely want one and the same Component but you need a way to tell React Router for which specific product the product details Component should be loaded so that inside of this Component you can kind of retrieve that extra product data.
+
+   Dynamic Routes with Params Example:
+      src/pages/ProductDetails.js:
+         import React from 'react';
+         const ProductsDetails = () => {
+            return(
+               <section><h1>Product Detail</h1></section>
+            );
+         };
+         export default ProductsDetails;
+      src/pages/Products.js:
+         import React from 'react';
+         const Products = () => {
+            return(
+               <section>
+                  <h1>The Products Page</h1>
+                  <ul>
+                     <li>A Book</li>
+                     <li>A Pen</li>
+                     <li>A Ruler</li>
+                  </ul>
+               </section>
+            );
+         };
+         export default Products;
+      src/App.js:
+         import React from 'react';
+         import { Route } from 'react-router-dom';
+         ...
+         import ProductsDetails from './pages/ProductDetail';
+         const App = () => {
+            return (
+               <div>
+                  <MainHeader />
+                  <main>
+                     ...
+                     <Route path="/product-detail/:productId"><ProductDetail /></Route>
+                  </main>
+               </div>
+            );
+         };
+
+   > You can define dynamic routes in the path prop using a special syntax of using the colon followed by any identifier of your choice e.g. "domain-name.com/product-detail/:productId".
+   > The ":productId" is a dynamic path segment which tells React Router that the overall path for which the page should be loaded will be something like "domain-name.com/product-detail/<any value>" where the "<any value>" is a placeholder that can have any value e.g. "domain-name.com/product-detail/a-book".
+   > Inside of the ProductsDetails Component which gets rendered (as long as the URL is valid) when the path is reached you will get access to the concrete value for the dynamic segment. You now need a way to access that value stored in the dynamic segment so that you can use it inside of the rendered Component.
+
+   Extracting Route Params Example:
+      src/pages/ProductDetails.js:
+         import React from 'react';
+         import { useParams } from 'react-router-dom';
+         const ProductsDetails = () => {
+            const params = useParams();
+            return(
+               <section>
+                  <h1>Product Detail</h1>
+                  <p>{params.productId}</p>
+               </section>
+            );
+         };
+         export default ProductsDetails;
+
+   > Import the 'useParams' Custom Hook from the 'react-router-dom' package. When you call on the useParams Hook this will return a params object which you can store in a const variable.
+   > This object will have key:value pairs where the keys are the name of the dynamic segments leading to that page and the value is extracted segment value from the URL.
+   > Using the params object you can now access and extract the entered parameters from URL and use it within the Component JSX.
+   > You could have more than one dynamic segment for a route e.g. "domain-name.com/product-detail/:productId/:anotherId". If the URL in the browser was "domain-name.com/product-detail/1/2" then the useParams Hook would extract the params object as { productId: 1, anotherId: 2 } from the URL which you can then use inside of the Component file to do something like fetching data from a database using a backend API.
