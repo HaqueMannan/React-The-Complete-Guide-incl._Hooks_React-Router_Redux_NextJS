@@ -1,5 +1,6 @@
 Building a Multi-Page SPA with React Router - Summary:
 1. What is Routing & Installing React Router
+2. Defining & Using Routes, Working with Links and Using NavLinks
 
 ------------------------------------------------------------------------------------
 1. What is Routing & Installing React Router:
@@ -35,3 +36,162 @@ Building a Multi-Page SPA with React Router - Summary:
 
    React Router Install Command:
       $: npm install react-router-dom
+
+------------------------------------------------------------------------------------
+2. Defining & Using Routes, Working with Links and Using NavLinks:
+------------------------------------------------------------------------------------
+   > Now that the 'react-router-dom' is installed to the React application you are now ready to start using routes.
+   > Routing is basically like conditionally rendering a Component and may recall it being similar to using state to conditionally show a certain Component.
+
+   "domain-name.com/"            => Renders Component A
+   "domain-name.com/products"    => Renders Component B
+
+   > You could write your own code to conditionally render Component based on the URL i.e. set your own states, listening to clicks on links and prevent the browser's default behaviour of sending a request, change some state to conditionally render something onto the screen, etc. The third-party 'react-router-dom' package does this all for us (i.e. we do not need to write our own code) and makes working with routes very easy.
+
+   Using React-Router-Dom Example:
+      src/pages/Welcome.js:
+         import React from 'react';
+         const Welcome = () => { return <h1>The Welcome Page</h1> };
+         export default Welcome;
+      src/pages/Products.js:
+         import React from 'react';
+         const Products = () => { return <h1>The Products Page</h1> };
+         export default Products;
+      src/App.js:
+         import React from 'react';
+         import { Route } from 'react-router-dom';
+         import Welcome from './pages/Welcome';
+         import Products from './pages/Products';
+         const App = () => {
+            return (
+               <div>
+                  <Route path="/welcome">
+                     <Welcome />
+                  </Route>
+                  <Route path="/products">
+                     <Products />
+                  </Route>
+               </div>
+            );
+         };
+         export default App;
+      src/index.js:
+         import React from 'react';
+         import ReactDOM from 'react-dom';
+         import { BrowserRouter } from 'react-router-dom';
+         import App from './App';
+         ReactDOM.render(
+            <React.StrictMode>
+               <BrowserRouter>
+                  <App />
+               </BrowserRouter>
+            </React.StrictMode>, 
+            document.getElementById('root')
+         );
+
+   > First import the 'Route' Component from the 'react-router-dom' package. This Component allows you to define a certain path and then the React Component that should be loaded when that path becomes active in the URL.
+   > The Route Component wants a special prop called 'path' which should be the path in the URL that comes after the domain-name. In-between the Route tags you would place the Component(s) that should be rendered for that route. In the above example the Welcome Component is rendered for the "domain-name.com/welcome" route path while the Products Component is rendered for the "domain-name.com/products".
+   > The Route Component will ensure that only the Component between the tags are rendered when the URL route path is active otherwise the Component will not be displayed.
+   > This is how you would register routes with 'react-router-dom' so that it can evaluate the URL and render the relevant Component(s) to the browser's screen.
+   > To activate the 'react-router-dom' and all its features (e.g. the Routes Component feature) you need to go to the 'src/index.js' file of your React application and import 'BrowserRouter' Component from the 'react-router-dom' package. This component needs to wrap the overall <App/> i.e. the root Component for the whole React application.
+   > This will active React Router and unlock the React Router features like defining the routes/paths using the Route Component.
+   > Whenever you navigate to any other URL path other than those defined within the Route Component(s) will now render/display nothing to the screen. This in a nutshell how routing works. There are more features to routing and more concepts to be explored; however, the above is the core concept behind routing and creating a Multi-Page SPA application in React.
+   > One thing to note, since we now use Components as different pages in the application (and not like other Components we have worked with before) it is quite common to store them in a folder named "pages" or "screens". You do not need to name the "pages" and can stick to having a folder called "components".
+   > Having a separate "pages" folder with the Component that are loaded by the router makes it clearer what kind of Components these are and that you use these Component in conjunction with the Router.
+   > You can have other Components within the application that are not loaded by the Router but which you instead use in other Component's JSX code and these can be kept in the "components" folder as we have done in the past. This will help make it clearer to distinguish between the different types of Component files you have within your application.
+   > Now that you have routing implemented within the React application, there is one issue. There is no way to navigate the different route paths other than changing the URL manually. Whilst you might sometimes do that but it is often common to have links on the page which you can click to take you somewhere else.
+
+   Working with Links (Flawed Approach) Example:
+      src/components/MainHeader.js:
+         import React from 'react';
+         const MainHeader = () => {
+            return(
+               <header>
+                  <nav>
+                     <ul>
+                        <li><a href="/welcome">Welcome</a></li>
+                        <li><a href="/products">Products</a></li>
+                     </ul>
+                  </nav>
+               </header>
+            );
+         };
+         export default MainHeader;
+      src/App.js:
+         import React from 'react';
+         import { Route } from 'react-router-dom';
+         import MainHeader from './components/MainHeader';
+         import Welcome from './pages/Welcome';
+         import Products from './pages/Products';
+         const App = () => {
+            return (
+               <div>
+                  <MainHeader />
+                  <main>
+                     <Route path="/welcome"><Welcome /></Route>
+                     <Route path="/products"><Products /></Route>
+                  </main>
+               </div>
+            );
+         };
+
+   > The above is one way in which you can create a navigation link to your application and whenever you click the link it will update the URL and allow you to navigate the different routes without having to write the URL manually in the browser. However, there is a big flaw with the above approach.
+   > This actually loads a new page sending a new request using the browsers default behaviour with links. This will cause a brand new HTML file being loaded each time you click a link (and can be seen in the browsers developer tools network tab). While this works for navigation it also means that you leave the single-page application and start a new one whenever you click on one of the navigation links.
+   > Any application state will be lost whenever the page refreshes which is not ideal. This goes against building a single page application which will cause a sub-optimal user experience.
+   > It would be better if the default browser 's sending a request for a new HTML page would be prevented. You could write your own code for this by adding click event listeners on the <a> link tags and prevent the default and manually get the react router to load the correct Component. However, you do not need to do this manually.
+
+   Working with Link (React Router Approach) Example:
+      src/components/MainHeader.js:
+         import React from 'react';
+         import { Link } from 'react-router-dom';
+         import classes from './MainHeader.module.css';
+         const MainHeader = () => {
+            return(
+               <header className={classes.header}>
+                  <nav>
+                     <ul>
+                        <li><Link to="/welcome">Welcome</Link></li>
+                        <li><Link to="/products">Products</Link></li>
+                     </ul>
+                  </nav>
+               </header>
+            );
+         };
+
+   > There is another Component you can import from the 'react-router-dom' called 'Link'. The 'Link' Component does what it's name implies i.e. it allows you to create a link. You can replace the <a> tag with the <Link /> Component and replace the "href" attribute with the "to" prop. The Link Component expects a "to" prop which should hold the link path to navigate to when the link is clicked.
+   > Visually you will receive the same output as before; however, you will notice that the page no longer reloads or sends a new request for a new HTML page.
+   > The Links Component are still <a> tags at the end of the day but React Router will actually listen to clicks on the Link Component, prevent the browser default, manually update the URL for you so that it looks like you are switching pages and finally change what is displayed on the screen creating this fake navigation which is what you want for your Multi-Page SPA.
+   > You no longer lose any state while giving the user an illusion of switching between different pages. This is how you want to use routing in your React application.
+   > Another problem we now have is that when it comes to navigation we often want to highlight the active links within the navigation.
+
+   Using React Router's NavLink Example:
+      src/components/MainHeader.module.css:
+         ...
+         .header a:hover,
+         .header a:active,
+         .header a.active {
+            color: #95bcf0;
+            padding-bottom: 0.25rem;
+            border-bottom: 4px solid #95bcf0;
+         }
+      src/components/MainHeader.js:
+         import React from 'react';
+         import { NavLink } from 'react-router-dom';
+         import classes from './MainHeader.module.css';
+         const MainHeader = () => {
+            return(
+               <header className={classes.header}>
+                  <nav>
+                     <ul>
+                        <li><NavLink activeClassName={classes.active} to="/welcome">Welcome</NavLink></li>
+                        <li><NavLink activeClassName={classes.active} to="/products">Products</NavLink></li>
+                     </ul>
+                  </nav>
+               </header>
+            );
+         };
+
+   > React Router provides another feature. Instead of using the regular 'Link' Component you can import and use the 'NavLink' Component instead.
+   > The 'NavLink' Component works exactly like the 'Link' Component but it also does more. The NavLink Component will set a CSS class on the active anchor (<a> tag) item. You need to use the 'activeClassName' prop to tell the 'NavLink' which class it should add on the active link.
+   > In the above example the module.css file contains a style for the ".header a.active" i.e. this style targets anchor elements that have the class name of "active". The 'NavLink' will conditionally add the "active" class using the 'activeClassName' prop whenever the 'NavLink' is active which will trigger the "active" link styling.
+   > This is a nice additional feature you would want to have with a lot of application you would build. This is made simple using the NavLink feature provided by React Router (i.e. without having to write your own code).
