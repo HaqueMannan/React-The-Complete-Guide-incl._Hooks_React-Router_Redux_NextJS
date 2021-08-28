@@ -5,6 +5,7 @@ Building a Multi-Page SPA with React Router - Summary:
 4. Using 'Switch' and 'exact' for Configuring Routes
 5. Working with Nested Routes
 6. Redirecting the User
+7. Not Found Page
 
 ------------------------------------------------------------------------------------
 1. What is Routing & Installing React Router:
@@ -368,3 +369,48 @@ Building a Multi-Page SPA with React Router - Summary:
 
    > Import the 'Redirect' Component from the 'react-router-dom' package. If the 'Redirect' Component gets rendered it will do what the name implies i.e. redirect the user somewhere else. The 'Redirect' Component requires a 'to' prop which should be the value to the URL it should redirect the user to.
    > In the above example, if a user was to visit "domain-name.com/" this will redirect the user to the "domain-name.com/welcome" page instead of showing the page with no rendered content. The 'exact' prop is important in this example because every route starts with "/" which will end up causing an infinite loop breaking the application.
+
+------------------------------------------------------------------------------------
+7. Not Found Page:
+------------------------------------------------------------------------------------
+   > When a user enters a URL that is not defined within your application routes you would want to display some kind of 404 Error Page (i.e. page not found).
+
+   src/pages/NotFound:
+      import React from 'react';
+      const NotFound = () => {
+         return (
+            <div className="centered">
+               <p>404 Page Not Found</p>
+            </div>
+         );
+      };
+      export default NotFound;
+   src/App.js:
+      import React from 'react';
+      import { Route, Switch, Redirect } from 'react-router-dom';
+      import AllQuotes from './pages/AllQuotes';
+      import QuoteDetail from './pages/QuoteDetail';
+      import NewQuote from './pages/NewQuote';
+      import Layout from './components/layout/Layout';
+      import NotFound from './pages/NotFound';
+      const App = () => {
+         return (
+            <div>
+               <Layout>
+                  <Switch>
+                     <Route exact path="/"><Redirect to="/quotes" /></Route>
+                     <Route exact path="/quotes"><AllQuotes /></Route>
+                     <Route path="/quotes/:quoteId"><QuoteDetail /></Route>
+                     <Route path="/new-quote"><NewQuote /></Route>
+                     <Route path="*"><NotFound /></Route>
+                  </Switch>
+               </Layout>
+            </div>
+         );
+      };
+      export default App;
+
+   > When defining all the routes the application supports in the Route Switch statement, whenever there is no single match it would leave the switch statement and hence nothing shows up on the screen.
+   > Therefore, to show a fallback 404 Not Found Page, the typical approach is to add a final route at the end which looks at no other route matched (i.e. where you match all other incoming requests).
+   > The 'path' is set to the asterisk (*) wildcard. This signifies to React Router that any path should match this route which is why this route must be placed last so that it does not consume the request to one of the actual routes you have.
+   > If you had no matches up to the last Route then you would want to match all routes to this final route in order to render the 404 Page Not Found page to the screen. For example navigating to "domain-name.com/id" will display the 404 Page Not Found instead of a blank screen which is a common requirement for applications.
