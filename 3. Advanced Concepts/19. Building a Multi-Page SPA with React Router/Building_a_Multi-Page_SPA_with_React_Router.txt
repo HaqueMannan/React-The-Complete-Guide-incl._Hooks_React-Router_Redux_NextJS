@@ -7,6 +7,7 @@ Building a Multi-Page SPA with React Router - Summary:
 6. Redirecting the User
 7. Implementing Not Found Page
 8. Implementing Programmatic (Imperative) Navigation
+9. Preventing Possible Unwanted Route Transitions with the 'Prompt' Component
 
 ------------------------------------------------------------------------------------
 1. What is Routing & Installing React Router:
@@ -447,3 +448,44 @@ Building a Multi-Page SPA with React Router - Summary:
    > The difference between the two methods is that the '.push()' method allows you to to go back using the browsers back button to the page you are coming from while the '.replace()' method you cannot.
    > Therefore, the '.replace()' method is like a redirect while the '.push()' method is adding a new page to the page history.
    > Both methods will navigate the user programmatically; however, the method you wish to use depends on whether you would want to allow the user to go back to the previous page using the back button or to redirect the user to a new page.
+
+------------------------------------------------------------------------------------
+9. Preventing Possible Unwanted Route Transitions with the 'Prompt' Component:
+------------------------------------------------------------------------------------
+   > You may notice on some applications that if you were entering data on a form and accidentally swiped away or pressed the back button (which typically causes the entered data to be lost) is prevented by a prompt. This prompt asks you if you really want to navigate away from the page. This prompt prevents you from accidentally navigating away from the form (i.e. prevents unwanted route transitions).
+
+   Prompt Component Preventing Unwanted Navigation Example:
+      src/components/quotes/QuoteForm.js:
+         import React, { Fragment, useRef, useState } from 'react';
+         import { Prompt } from 'react-router-dom';
+         ...
+         const QuoteForm = (props) => {
+            const [isEntering, setIsEntering] = useState(false);
+            ...
+            function submitFormHandler(event) { ... };
+            const formFocusedHandler = () => { setIsEntering(true) };
+            const finishEnteringHandler = () => { setIsEntering(false) };
+            return (
+               <Fragment>
+                  <Prompt when={isEntering} message={(location) => 'Are you sure you want to leave? All your entered data will be lost!'} />
+                  <Card>
+                     <Form>
+                        ...
+                        <div className={classes.actions}>
+                           <button className="btn" onClick={finishEnteringHandler}>Add Quote</button>
+                        </div>
+                     </Form>
+                  </Card>
+               </Fragment>
+            );
+         };
+         export default QuoteForm;
+
+   > Import the 'Prompt' Component from the 'react-router-dom' package. This Component will automatically watch if the user navigates away and if a certain condition is met it will show a warning before it allows the user to leave the page.
+   > The 'onFocus' prop allows you to see whether the form is in focus. The 'onFocus' prop can trigger some function on this onFocus event. You can then use the 'useState' Hook from React to create a state that will manage this state to check if the form is in focus.
+   > Showing a user when the user tries to leave the form (maybe accidentally) is straight forward using the 'Prompt' Component.
+   > The 'Prompt' Component needs two props; a 'when' prop which should be a boolean value defining when to show the prompt if the user has changed the URL and a 'message' prop to display the prompt message.
+   > The 'message' prop takes in a function which should return a string to display to the user when they try to leave. This function receives a location object as an argument/parameter which provides information about the page the user is trying to go to. This will allow you to add the path of the page the user is trying to navigate to.
+   > In the above example, the Prompt Component will display a prompt message whenever the form was focused and the user tries to navigate away from the page. The user can select the 'Cancel' button to cancel the navigation or the 'OK' button to continue with navigating away from the page.
+   > Note that when the user finishes entering the data on a form and wants to submit that form the 'isEntering' state needs to be set to false to prevent the prompt from triggering when submitting the form (the 'isEntering' is used for the 'Prompt' Component 'when' prop boolean trigger value).
+   > Note that the "finishEnteringHandler" function will execute before the "submitFormHandler" function so that the state is updated before the submission function is executed which will stop the Prompt from appearing and the reason for having a separate function.
