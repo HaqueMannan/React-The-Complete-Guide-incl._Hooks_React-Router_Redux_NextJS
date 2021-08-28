@@ -9,6 +9,7 @@ Building a Multi-Page SPA with React Router - Summary:
 8. Implementing Programmatic (Imperative) Navigation
 9. Preventing Possible Unwanted Route Transitions with the 'Prompt' Component
 10. Working with Query Parameters
+11. Getting Creative with Nested Routes
 
 ------------------------------------------------------------------------------------
 1. What is Routing & Installing React Router:
@@ -542,3 +543,40 @@ Building a Multi-Page SPA with React Router - Summary:
    > The 'search' parameter on the location object holds the Query Parameter data of the loaded page which is held in a string. The default JavaScript 'URLSearchParams()' constructor function makes it easy to work with URL search parameters by converting the data into a JavaScript Class object that can be stored in a variable. The 'location.search' string is passed as an argument to this constructor function.
    > You can now use this JavaScript Object to extract search parameter by its key to get its value (e.g. "sort" key will give the value of "asc" or "desc"). This is a more convenient way of extracting values from the URL's Query Parameters using the '.get()' method which takes in the parameter key you wish to extract the value for.
    > This is how you can work with Query Parameters in URLs within your application routes and pages.
+
+------------------------------------------------------------------------------------
+11. Getting Creative with Nested Routes:
+------------------------------------------------------------------------------------
+   > You can use the Nested Routes Feature to conditionally render different content based on the URL without you having to manage some complex state as React Router can do this for you.
+
+   Conditionally Loading with Nested Routes Example:
+      src/pages/QuoteDetail.js:
+         import React, { Fragment } from 'react';
+         import { useParams, Route, Link } from 'react-router-dom';
+         import Comments from '../components/comments/Comments';
+         import HighlightedQuote from '../components/quotes/HighlightedQuote';
+         const DUMMY_QUOTES = [
+            { id: 'q1', author: 'Alex', text: 'Learning React is fun!' },
+            { id: 'q2', author: 'Beth', text: 'Learning React is great!' },
+         ];
+         const QuoteDetail = () => {
+            const params = useParams();
+            const quote = DUMMY_QUOTES.find(quote => quote.id === params.quoteId);
+            if(!quote) { return(<p>No Quote Found!</p>) };
+            return (
+               <Fragment>
+                  <HighlightedQuote text={quote.text} author={quote.author} />
+                  <Route path={`/quotes/${params.quoteId}`} exact>
+                     <div className="centered">
+                        <Link className="btn--flat" to={`/quotes/${params.quoteId}/comments`}>Load Comments</Link>
+                     </div>
+                  </Route>
+                  <Route path="/quotes/:quoteId/comments"><Comments /></Route>
+               </Fragment>
+            );
+         };
+         export default QuoteDetail;
+
+   > The first nested Route will check whether the route has only the "quoteId" in the URL and if so it will load the JSX code between the <Route> tags i.e. the "Load Comments" div element i.e. link button.
+   > The 'Link' Component is used to forward the user to the '/comments' route for the current "quoteId" page which will now render the page without the "Load Comments" link button.
+   > This allows you to conditionally render content to the page based on the URL using React Router's Nested Routes feature without the need for any complex state.
