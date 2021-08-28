@@ -8,6 +8,7 @@ Building a Multi-Page SPA with React Router - Summary:
 7. Implementing Not Found Page
 8. Implementing Programmatic (Imperative) Navigation
 9. Preventing Possible Unwanted Route Transitions with the 'Prompt' Component
+10. Working with Query Parameters
 
 ------------------------------------------------------------------------------------
 1. What is Routing & Installing React Router:
@@ -448,6 +449,7 @@ Building a Multi-Page SPA with React Router - Summary:
    > The difference between the two methods is that the '.push()' method allows you to to go back using the browsers back button to the page you are coming from while the '.replace()' method you cannot.
    > Therefore, the '.replace()' method is like a redirect while the '.push()' method is adding a new page to the page history.
    > Both methods will navigate the user programmatically; however, the method you wish to use depends on whether you would want to allow the user to go back to the previous page using the back button or to redirect the user to a new page.
+   > The '.push()' or '.replace()' methods will cause the Component to re-evaluate and re-render the page because React Router will see that the page history has changed and the Component should re-evaluate and re-render the page even if it is the page you are currently on. This is a useful mechanism which you can use to your advantage (especially when it comes to Query Parameters).
 
 ------------------------------------------------------------------------------------
 9. Preventing Possible Unwanted Route Transitions with the 'Prompt' Component:
@@ -489,3 +491,54 @@ Building a Multi-Page SPA with React Router - Summary:
    > In the above example, the Prompt Component will display a prompt message whenever the form was focused and the user tries to navigate away from the page. The user can select the 'Cancel' button to cancel the navigation or the 'OK' button to continue with navigating away from the page.
    > Note that when the user finishes entering the data on a form and wants to submit that form the 'isEntering' state needs to be set to false to prevent the prompt from triggering when submitting the form (the 'isEntering' is used for the 'Prompt' Component 'when' prop boolean trigger value).
    > Note that the "finishEnteringHandler" function will execute before the "submitFormHandler" function so that the state is updated before the submission function is executed which will stop the Prompt from appearing and the reason for having a separate function.
+
+------------------------------------------------------------------------------------
+10. Working with Query Parameters:
+------------------------------------------------------------------------------------
+   > Query Parameters are special parameters which you find on some URLs at the end of the URL path.
+   > Query Parameters are seen by a question mark followed by parameter pairs (e.g. "domain-name.com/quotes?sort=asc").
+   > Query Parameters pass extra data into the page that was loaded.
+   > The difference between Query Parameters and Route Parameters is that Route Parameters are mandatory in the URL route matching. Query Parameters are optional and has no effect on the route matching.
+   > Whichever route is matched has access to the Query Parameter data to, for example, change the behaviour of the page that was loaded (e.g. sort the list of quotes in ascending/descending order which requires some sorting functionality within the application code).
+
+   Working with Query Parameters Example:
+      src/components/quotes/QuoteList.js:
+         import React, { Fragment } from 'react';
+         import { useHistory, useLocation } from 'react-router-dom';
+         import QuoteItem from './QuoteItem';
+         import classes from './QuoteList.module.css';
+         const sortQuotes = (quotes, ascending) => {
+            return quotes.sort((quoteA, quoteB) => {
+               if (ascending) {
+                  return quoteA.id > quoteB.id ? 1 : -1;
+               } else {
+                  return quoteA.id < quoteB.id ? 1 : -1;
+               };
+            });
+         };
+         const QuoteList = (props) => {
+            const history = useHistory();
+            const location = useLocation();
+            const queryParams = new URLSearchParams(location.search);
+            const isSortingAscending = queryParams.get('sort') === 'asc';
+            const sortedQuotes = sortQuotes(props.quotes, isSortingAscending);
+            const changeSortingHandler = () => { history.push('/quotes?sort=' + (isSortingAscending ? 'desc' : 'asc')) };
+            return (
+               <Fragment>
+                  <div className={classes.sorting}>
+                     <button onClick={changeSortingHandler}>Sort {isSortingAscending ? 'Descending' : 'Ascending'}</button>
+                  </div>
+                  <ul className={classes.list}>
+                     {sortedQuotes.map((quote) => (
+                        <QuoteItem key={quote.id} id={quote.id} author={quote.author} text={quote.text}/>
+                     ))}
+                  </ul>
+               </Fragment>
+            );
+         };
+         export default QuoteList;
+
+   > The 'useHistory' Hook provides access an object that allows you to manage and change the URL. The 'useLocation' Hook provides access to an object which has information about the currently loaded URL. Both Hooks provided by the 'react-router-dom' library.
+   > The 'search' parameter on the location object holds the Query Parameter data of the loaded page which is held in a string. The default JavaScript 'URLSearchParams()' constructor function makes it easy to work with URL search parameters by converting the data into a JavaScript Class object that can be stored in a variable. The 'location.search' string is passed as an argument to this constructor function.
+   > You can now use this JavaScript Object to extract search parameter by its key to get its value (e.g. "sort" key will give the value of "asc" or "desc"). This is a more convenient way of extracting values from the URL's Query Parameters using the '.get()' method which takes in the parameter key you wish to extract the value for.
+   > This is how you can work with Query Parameters in URLs within your application routes and pages.
