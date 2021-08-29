@@ -10,6 +10,7 @@ Building a Multi-Page SPA with React Router - Summary:
 9. Preventing Possible Unwanted Route Transitions with the 'Prompt' Component
 10. Working with Query Parameters
 11. Getting Creative with Nested Routes
+12. Writing More Flexible Routing Code
 
 ------------------------------------------------------------------------------------
 1. What is Routing & Installing React Router:
@@ -580,3 +581,94 @@ Building a Multi-Page SPA with React Router - Summary:
    > The first nested Route will check whether the route has only the "quoteId" in the URL and if so it will load the JSX code between the <Route> tags i.e. the "Load Comments" div element i.e. link button.
    > The 'Link' Component is used to forward the user to the '/comments' route for the current "quoteId" page which will now render the page without the "Load Comments" link button.
    > This allows you to conditionally render content to the page based on the URL using React Router's Nested Routes feature without the need for any complex state.
+
+------------------------------------------------------------------------------------
+12. Writing More Flexible Routing Code:
+------------------------------------------------------------------------------------
+   > React Router helps with constructing nested paths and navigating to more complex URLs.
+   > Currently we have seen how to manually build nested routes strings. However, the downside of this approach is that if you wanted to change the parent URL string path then you would also have to go through all other nested links and update the path string as well. This is not flexible approach.
+   > React Router provides Custom Hooks that allow you to find out which URL the Component was rendered from. Therefore, you do not need to repeat that path in URL string for the nested route.
+
+   Flexible Routing Example:
+      src/App.js:
+         import React from 'react';
+         import { Route, Switch, Redirect } from 'react-router-dom';
+         import AllQuotes from './pages/AllQuotes';
+         import QuoteDetail from './pages/QuoteDetail';
+         import NewQuote from './pages/NewQuote';
+         import Layout from './components/layout/Layout';
+         import NotFound from './pages/NotFound';
+         const App = () => {
+            return (
+               <div>
+                  <Layout>
+                     <Switch>
+                        <Route exact path="/"><Redirect to="/quotes" /></Route>
+                        <Route exact path="/quotes"><AllQuotes /></Route>
+                        <Route path="/quotes/:quoteId"><QuoteDetail /></Route>
+                        <Route path="/new-quote"><NewQuote /></Route>
+                        <Route path="*"><NotFound /></Route>
+                     </Switch>
+                  </Layout>
+               </div>
+            );
+         };
+         export default App;
+      src/pages/QuoteDetail.js:
+         import React, { Fragment } from 'react';
+         import { useParams, Route, Link } from 'react-router-dom';
+         import Comments from '../components/comments/Comments';
+         import HighlightedQuote from '../components/quotes/HighlightedQuote';
+         const DUMMY_QUOTES = [
+            { id: 'q1', author: 'Alex', text: 'Learning React is fun!' },
+            { id: 'q2', author: 'Beth', text: 'Learning React is great!' },
+         ];
+         const QuoteDetail = () => {
+            const params = useParams();
+            const quote = DUMMY_QUOTES.find(quote => quote.id === params.quoteId);
+            if(!quote) { return(<p>No Quote Found!</p>) };
+            return (
+               <Fragment>
+                  <HighlightedQuote text={quote.text} author={quote.author} />
+                  <Route path={match.path} exact>
+                     <div className="centered">
+                        <Link className="btn--flat" to={`${match.url}/comments`}>Load Comments</Link>
+                     </div>
+                  </Route>
+                  <Route path="${match.path}/comments"><Comments /></Route>
+               </Fragment>
+            );
+         };
+         export default QuoteDetail;
+
+   > Import the 'useRouteMatch' Hook from the 'react-router-dom' package. This custom Hook is similar to the 'useLocation' Hook but it provides access to an object which holds more information about the currently loaded route (i.e. some internally managed data that React Router is aware of).
+   > You can use the useRouteMatch object to construct the nested route paths dynamically.
+   > The 'path' property provides the path defined by you in React Router files including the placeholder and query parameters. The 'url' property provides the full actual navigated URL in the browser. The 'params' property provides an object of passed in parameters in the navigated URL path.
+   > You have the same behaviour as before but without having to write a concrete path string in the nested route. Instead we are extracting the path from the existing route definition. Therefore, if you now change the root routes, you do not need to go and change all the nested routes resulting in less manual code refactoring work.
+
+   > React Router allows you to use an alternative description of the destination i.e. a Link should lead to a path defined as either a string or a programmatic navigation path.
+   > Below is an example of using a programmatic path object for a navigation Link in contrast to using a string value.
+      - const changeSortingHandler = () => { history.push(`${location.pathname}?sort=${(isSortingAscending ? 'desc' : 'asc')}`) };
+
+   Programmatic Navigation Link Path Object Example:
+      src/components/quotes/QuoteList.js:
+         ...
+         const QuoteList = (props) => {
+            const history = useHistory();
+            const location = useLocation();
+            const queryParams = new URLSearchParams(location.search);
+            const isSortingAscending = queryParams.get('sort') === 'asc';
+            const sortedQuotes = sortQuotes(props.quotes, isSortingAscending);
+            const changeSortingHandler = () => {
+               history.push({
+                  pathname: location.pathname,
+                  search: `?sort=${(isSortingAscending ? 'desc' : 'asc')}`
+               });
+            };
+            ...
+         };
+         export default QuoteList;
+
+   > Besides using a string you can also use an object. The object describes the target destination. This object wants a 'pathname' property which describes the path to navigate to. The 'search' property allows you to add a Query Parameter - it expects a string which you can use a template literal to dynamically add the Query Parameter value instead of hardcoding the value.
+   > The Path and Query Parameter are now separated into two different properties which makes the navigation link's target destination code more readable especially with more complex routes.
+   > Either approach will work and is entirely up to you as a developer which syntax to use for your navigation links. This is another convenience feature provided by React Router.
