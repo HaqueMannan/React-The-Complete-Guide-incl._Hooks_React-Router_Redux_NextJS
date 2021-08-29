@@ -1,0 +1,14 @@
+Deploying React Apps - Summary:
+1. Deployment Steps
+
+------------------------------------------------------------------------------------
+1. Deployment Steps:
+------------------------------------------------------------------------------------
+   > There are a couple of steps you would need to go through when you deploy or re-deploy your React Application to a live web server:
+      1. Develop your application code
+      2. Test your application code
+      3. Optimise your application code
+      4. Build your application for production (using a build script)
+      5. Upload production code (i.e. from step 4) to a live Server.
+      6. Configure Server (i.e. configure the web hosting provider's offerings)
+   > Following these steps will allow you to deploy your application to the web for the whole world to use.
