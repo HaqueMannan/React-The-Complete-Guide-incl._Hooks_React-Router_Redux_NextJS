@@ -1,5 +1,7 @@
 Deploying React Apps - Summary:
 1. Deployment Steps
+2. Adding Lazy Loading Optimisation
+3. Building the Code for Production
 
 ------------------------------------------------------------------------------------
 1. Deployment Steps:
@@ -12,3 +14,69 @@ Deploying React Apps - Summary:
       5. Upload production code (i.e. from step 4) to a live Server.
       6. Configure Server (i.e. configure the web hosting provider's offerings)
    > Following these steps will allow you to deploy your application to the web for the whole world to use.
+
+------------------------------------------------------------------------------------
+2. Adding Lazy Loading Optimisation:
+------------------------------------------------------------------------------------
+   > Once you have developed and tested your application code and are happy with what your have built you are then ready to move onto the next step of optimising your application code.
+   > Optimisation does not mean only that you should write your code using best practices and so on but rather that it includes looking at the performance improvements which you can consider.
+   > A performance improvements can include something like using React 'memo' to avoid unnecessary component re-render cycles.
+   > Another very important optimising concept is called "Lazy Loading". "Lazy Loading" means that you load certain chunks of your code only when that code is needed. It is super important to keep in mind that with a React Single Page Application, you in the end build one big JavaScript code bundle and this entire bundle needs to be downloaded by ever visitor of your website in order to use the website.
+   > Therefore, a visitor of the website needs to wait for all the code to be downloaded before they see something on the screen and the web application is useable.
+   > You would want to make sure that this initial code bundle to be downloaded is as small as possible and certain part of your code is only downloaded if you actually visit the part of the page.
+   > "Lazy Loading" is all about splitting your code into multiple chunks/bundles which are then only downloaded when they are needed.
+   > "Lazy Loading" is easy to implement if you are using routing because you can split your code by route so that a code for a specific route is only downloaded when that route is visited.
+   > Below is an example of how you could implement "Lazy Loading" into your application.
+
+   Lazy Loading Example:
+      src/App.js:
+         import React, { Suspense } from 'react';
+         import { Route, Switch, Redirect } from 'react-router-dom';
+         import Layout from './components/layout/Layout';
+         import LoadingSpinner from './components/UI/LoadingSpinner';
+         const AllQuotes = React.lazy(() => import('./pages/AllQuotes'));
+         const QuoteDetail = React.lazy(() => import('./pages/QuoteDetail'));
+         const NewQuote = React.lazy(() => import('./pages/NewQuote'));
+         const NotFound = React.lazy(() => import('./pages/NotFound'));
+         const App = () => {
+            return (
+               <div>
+                  <Layout>
+                     <Suspense fallback={<div><LoadingSpinner/></div>}>
+                        <Switch>
+                           <Route exact path="/"><Redirect to="/quotes" /></Route>
+                           <Route exact path="/quotes"><AllQuotes /></Route>
+                           <Route path="/quotes/:quoteId"><QuoteDetail /></Route>
+                           <Route path="/new-quote"><NewQuote /></Route>
+                           <Route path="*"><NotFound /></Route>
+                        </Switch>
+                     </Suspense>
+                  </Layout>
+               </div>
+            );
+         };
+         export default App;
+
+   > The '.lazy()' method is built into the React library which allows you to implement "Lazy Loading" i.e. code splitting. This method wants a function (you can define this outside or use a inline function) which resolves to a dynamic import. This is a modern JavaScript syntax that is supported by the Create-React-App project setup.
+   > In the anonymous function you call the import as a function passing in the path of the import as the argument.
+   > The result is stored in a const variable. In the above example this is named "NewQuote" because it is used to load the "NewQuote" Component from this import location.
+   > The function passed to 'React.lazy()' will only be executed by React when the "NewQuote" Component is needed. This is the key difference to the imports i.e. it will not be executed in advance to download the code in advance but only when it is needed. This therefore creates a separate code chunk which is only downloaded when the "NewQuote" page is visited.
+   > While the "<NewQuote />" Component is used in the App.js file when defining and setting up the the routes of the application, the Component is only resolved and loaded dynamically thanks to React's "Lazy Loading" using the anonymous function passed to it. The other imports would be downloaded when the application loads.
+   > This alone will not be enough to setup "Lazy Loading". The problem with Lazy Loading is that the download could take a couple of milliseconds/seconds to complete. Whilst downloading the code React is not able to continue and therefore you need to define a fallback UI (i.e. some fallback content that can be shown if the download takes a bit longer to complete).
+   > Import the 'Suspense' Component from the React library. This is a special Component provided by the React library which allows you to wrap the code where you use 'React.lazy()'. The 'Suspense' Component requires a fallback prop which expects some JSX code as a value which will show up as the fallback UI while the chunk of code is being downloaded via lazy loading.
+   > Now that you have "Lazy Loading" implemented you will notice in the browsers developer tools network tab when you now visit the "NewQuote" page you will see a request being sent to the server to download the Lazy Loaded code chunk from the server.
+   > You can use "Lazy Loading" for whichever pages you wish to load whenever the route is loaded allowing for a more optimised application in terms of performance.
+   > "Lazy Loading" can be an important building block of an application because it makes the initial code bundles smaller. For smaller application it is totally optional to implement "Lazy Loading" optimisation. However, for larger application with lots of pages where all the pages then also have a lot of Components and complex logic attached, in such applications "Lazy Loading" can really make the initial loading of your website much faster.
+
+------------------------------------------------------------------------------------
+3. Building the Code for Production:
+------------------------------------------------------------------------------------
+   > Having completed the deployment steps 1 to 3, you are now ready to build your production code bundle.
+   > You can run a script which takes all your development code and convert it to JavaScript code that the browser understands and code that is as small and bundled up as possible.
+   > In the package.json file you will see a couple of scripts which are baked into the Create-React-App project setup (e.g. "start", "build", "test", etc).
+   > The 'npm start' command runs a script under the hood that transforms your code so that it runs in the browser but does not optimise your code and it also spins up a development server which hosts the development code. This command is used when you are developing and testing your application code.
+   > The 'npm run build' command will transform your code but optimise and shrink the code bundle as much as possible and will not start a server. This is the command you would need to run in the terminal while cd to your project directory whenever you want to build your production code.
+   > This will create a 'build' folder in your project which will contain the bundled production code for your application. This is the folder you would need to move onto your server as part of step 5 of the deployment steps.
+   > You should never change the code inside of the build folder. The files in this folder will be overwritten automatically whenever you re-run the "npm run build" in the terminal.
+   > You should change the code only in the "src" and "public" folder which is where your development code lives.
+   > The "static" folder inside of the "build" folder is the location that contains all the optimised, bundled and browser ready JavaScript application code.
