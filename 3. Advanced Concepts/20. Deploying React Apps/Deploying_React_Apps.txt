@@ -2,6 +2,7 @@ Deploying React Apps - Summary:
 1. Deployment Steps
 2. Adding Lazy Loading Optimisation
 3. Building the Code for Production
+4. Deployment (Uploading Files) to a Server and Exploring Routing Issues
 
 ------------------------------------------------------------------------------------
 1. Deployment Steps:
@@ -80,3 +81,36 @@ Deploying React Apps - Summary:
    > You should never change the code inside of the build folder. The files in this folder will be overwritten automatically whenever you re-run the "npm run build" in the terminal.
    > You should change the code only in the "src" and "public" folder which is where your development code lives.
    > The "static" folder inside of the "build" folder is the location that contains all the optimised, bundled and browser ready JavaScript application code.
+
+------------------------------------------------------------------------------------
+4. Deployment (Uploading Files) to a Server and Exploring Routing Issues:
+------------------------------------------------------------------------------------
+   > Now that you have built your production code the next step is to move that production code to a server (i.e. upload to some hosting provider so that it is made available to visitors to all over th world).
+   > Important Note: a Single Page Application is a static website. This means that it is only made up of HTML, CSS and browser side JavaScript. There are no server side code involved.
+   > The JavaScript is not node.js code it is browser side JavaScript code. Therefore, this code executes inside of the browser. Hence the entire build folder contains no code needed at all to be executed on a server (i.e. no NodeJS, PHP, Python, C#, etc).
+   > You could build your own backend i.e. your own API instead of using Firebase (which has been used in the example codes as a dummy API) but this is entirely different story. However, when it comes to just a React application it is just a static website with no server side code involved.
+   > Therefore, when you want to deploy such a React Single Page Application you need a Static Site Host. You do not need a hosting provider that allows you to run server side code.
+   > You can Google for Static Website Hosting Providers to find the best hosting website for you application. You can use any hosting provider and are not limited to Firebase (even if you used their database for the backend  API for your application).
+   > You would want to upload only the "build" folder and its content to the hosting server.
+
+   > It is important to understand that there is a difference between server-side and client-side routing.
+   > We use React Router to define routes and load different Components based on the URL. However, it is really important to understand that all this code executes in the browser. React Router is a browser side package (it is even called 'react-router-dom'). It has a look at the URL and changes what the user sees on the screen after the React app was loaded by the browser.
+   > When you enter a URL and hit enter this does not happen in one step. Instead you have a Server and a Client.
+
+   [/some-route]----->[Server][Production Ready Code]--------
+      |                                                     |
+   (Request)                           (Response - HTML, CSS, JS React Code)
+      |                                                     |
+      ------[Client (User)]<-------------------------[/some-route]
+
+   > The Client is the user using the browser while the Server is a remote machine which hosts your production-ready React code (this code does not live on the users machine).
+   > If a user visits your page by entering the domain (and maybe some path thereafter), this sends a request to the server for the website. This URL contains the full URL that was entered in the user's browser.
+   > When the request hits the server, the server sends back a response which contains all the HTML, CSS and also the React JavaScript code (code built and upload to the server).
+   > The React Router code contains the browser routing code which will have a look at the path (the part of the URL after the domain) evaluate it and bring the correct component to the screen. This only happens once the response is received.
+   > The URL which the user entered with the specific path e.g. "domain-name.com/some-route" is also part of the requests i.e. the request that reaches the servers contains the full URL path. By default the server will look for different files which it would return as a response for the different URLs. This is how servers typically work.
+   > When hosting Single Page Applications you want to ignore the additional path after the domain-name on the server and always return the same response no matter which path the user targets. This is required so that the React application will start up and it is the React application and React Router which will take another look at that URL and then render the correct content on the screen. Therefore, the server needs to ignore that path.
+   > By default the server does not ignore the path after the domain-name. Therefore, you need to configure your servers so that it does ignore the additional paths in the URL. You will need to look up the documentation related to the specific hosting provider chosen and how to configure the server (In the case of Firebase it is very easy because using their CLI will ask whether to ignore the path i.e. re-write all urls to index.html?).
+   > Therefore no matter which kind of URL request was sent to the server it always returns the same HTML file which in turn requests always the same JavaScript code no matter what the URL was.
+   > This is the final important step in the deployment steps (i.e. step 6 configuring the server).
+   > Once you have uploaded your files (deployed) to the server and have configured your server on the hosting platform you now have a React application that is accessible to anyone on the web.
+   > For more information related to deployment of a Create-React-App Project visit https://create-react-app.dev/docs/deployment/.
