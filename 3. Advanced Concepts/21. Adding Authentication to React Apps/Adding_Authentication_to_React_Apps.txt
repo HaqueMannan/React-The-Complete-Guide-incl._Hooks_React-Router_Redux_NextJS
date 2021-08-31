@@ -1,5 +1,6 @@
 Adding Authentication to React Apps - Summary:
 1. Introduction to Authentication (the What, How & Why?)
+2. Adding User Signup & Login
 
 ------------------------------------------------------------------------------------
 1. Introduction to Authentication (the What, How & Why?):
@@ -33,3 +34,81 @@ Adding Authentication to React Apps - Summary:
    > Even though the server has not stored the identifier (as it would with Server-Side Sessions approach) the server is still able to verify that the token was created by the server and was not faked. Only the server knows the key and the incoming token attached to the request for some protected resource can be validates by the server i.e. the server can check if that token could be created by the server.
    > This approach allows for decoupling of frontend and backend.
    > When working with "Authentication Tokens", these tokens are typically created in the "JSON Web Token" Format (JWT). Those "tokens" are really just long strings which are constructed by an algorithm that encodes data into a string (with help of a private key, only known by the server).You can learn more about JSON Web Tokens (JWTs) on this link https://jwt.io/.
+
+------------------------------------------------------------------------------------
+2. Adding User Signup & Login:
+------------------------------------------------------------------------------------
+   > To learn about authentication we will use the Google Firebase service which has a easy authentication API. You can use any backend and are not limited to Firebase but the implementation of authentication will vary from provider to provider. However this will provide the necessary knowledge to understand how you could implement authentication.
+   > Login to your Firebase account and for a project overview sidebar you will notice a "Authentication" option under the Build options. You need to unlock authentication for your project in order to use authentication in your application. Click on the "Get Started" button.
+   > You should be redirected to a screen which will provide various different authentication options. To simulate your own API with your own database select the "Email/Password" Authentication method and "Enable" the option (do not enable the "Email link (passwordless signin)" option). Once that is done you can now signup new users and then login with user accounts.
+   > Your application should have some signup to allow users to signup to your application with an email and password combination. The signup form should be used to extract entered values and then check whether the user is in a login or signup mode and if within signup mode, send the data across to the backend database via the appropriate API endpoint for registering a new user.
+   > You should validate the user input on both the client and server side before setting up a new user to your application. This is to ensure valid data are passed in as well as to prevent duplicate accounts being setup within the systems users backend.
+   > Firestore documentations shows how you can use their REST API to signup new users - https://cloud.google.com/identity-platform/docs/use-rest-api#section-create-email-password.
+   > the '[API-KEY]' should be replaced with your firebase project API Key provided by Firebase. You get the API key from going into your project and clicking on the gear icon and selecting Project Settings. Under Your Project you will see the Web API Key for your Firebase project.
+   > You can use the Fetch API to send a HTTP POST request to the Firebase API endpoint to post a new user sign up data to the firebase store (i.e. backend database).
+   > You will see all signed up users with their email and password in the Firebase application Authentication under the Users tab.
+   > You should always provide some feedback to the user when signing up or logging into your application for a better user experience (especially when something goes wrong). Firebase provides an error message property on the response object which you can use to print to the screen or drill into the error message and provide your own custom error messages.
+   > The Login form should submit a HTTP request to a different REST API endpoint which validates users against the backend database (https://cloud.google.com/identity-platform/docs/use-rest-api#section-sign-in-email-password). The Login endpoint is exactly the same format as the Signup endpoint but just with a different URL to distinguish between the two operations.
+   > Both the Signup and Login responses provide a response which contains an idToken. This idToken will be importantly for the signed in users future requests to protected resources. If you get this kind of response then you would know that the user has validly signed into their account because a idToken is only provided by the Firebase backend on successful login.
+   > Below is an example of a Signup and Login Form that shares the same fetch code logic but provides different outputs depending on the response provided from the API endpoints.
+
+   Adding Signup & Login Example:
+      import React, { useState, useRef } from 'react';
+      import classes from './AuthForm.module.css';
+      const AuthForm = () => {
+         const emailInputRef = useRef();
+         const passwordInputRef = useRef();
+         const [isLogin, setIsLogin] = useState(true);
+         const [isLoading, setIsLoading] = useState(false);
+         const switchAuthModeHandler = () => { setIsLogin((prevState) => !prevState) };
+         const submitHandler = (event) => {
+            event.preventDefault();
+            const enteredEmail = emailInputRef.current.value;
+            const enteredPassword = passwordInputRef.current.value;
+            // Optional: Add Validation
+            setIsLoading(true);
+            let url;
+            if(isLogin) {
+               url = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAv_ELkr2S7sOfDKPi1d9Jd39kmLFzRvHo'
+            } else {
+               url = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyAv_ELkr2S7sOfDKPi1d9Jd39kmLFzRvHo'
+            };
+            fetch(url, {
+               method: 'post',
+               body: JSON.stringify({ email: enteredEmail, password: enteredPassword, returnSecureToken: true }),
+               headers: { 'Content-Type': 'application/json' }
+            }).then(res => {
+               setIsLoading(false);
+               if(res.ok) { return res.json() } else {
+                  return res.json().then(data => {
+                     let errorMessage = 'Authentication Failed!';
+                     if(data && data.error && data.error.message) { errorMessage = data.error.message };
+                     throw new Error(errorMessage);
+                  });
+               };
+            }).then(data => { console.log(data) }).catch(err => { alert(err.message) });
+         };
+         return (
+            <section className={classes.auth}>
+               <h1>{isLogin ? 'Login' : 'Sign Up'}</h1>
+               <form onSubmit={submitHandler}>
+                  <div className={classes.control}>
+                     <label htmlFor='email'>Your Email</label>
+                     <input type='email' id='email' required ref={emailInputRef} />
+                  </div>
+                  <div className={classes.control}>
+                     <label htmlFor='password'>Your Password</label>
+                     <input type='password' id='password' required ref={passwordInputRef} />
+                  </div>
+                  <div className={classes.actions}>
+                     {!isLoading && <button>{isLogin ? 'Login' : 'Create Account'}</button>}
+                     {isLoading && <p>Sending Request...</p>}
+                     <button type='button' className={classes.toggle} onClick={switchAuthModeHandler}>
+                        {isLogin ? 'Create new account' : 'Login with existing account'}
+                     </button>
+                  </div>
+               </form>
+            </section>
+         );
+      };
+      export default AuthForm;
