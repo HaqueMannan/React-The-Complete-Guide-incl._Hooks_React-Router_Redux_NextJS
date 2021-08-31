@@ -1,6 +1,7 @@
 Adding Authentication to React Apps - Summary:
 1. Introduction to Authentication (the What, How & Why?)
 2. Adding User Signup & Login
+3. Managing the Auth State with Context
 
 ------------------------------------------------------------------------------------
 1. Introduction to Authentication (the What, How & Why?):
@@ -53,62 +54,161 @@ Adding Authentication to React Apps - Summary:
    > Below is an example of a Signup and Login Form that shares the same fetch code logic but provides different outputs depending on the response provided from the API endpoints.
 
    Adding Signup & Login Example:
-      import React, { useState, useRef } from 'react';
-      import classes from './AuthForm.module.css';
-      const AuthForm = () => {
-         const emailInputRef = useRef();
-         const passwordInputRef = useRef();
-         const [isLogin, setIsLogin] = useState(true);
-         const [isLoading, setIsLoading] = useState(false);
-         const switchAuthModeHandler = () => { setIsLogin((prevState) => !prevState) };
-         const submitHandler = (event) => {
-            event.preventDefault();
-            const enteredEmail = emailInputRef.current.value;
-            const enteredPassword = passwordInputRef.current.value;
-            // Optional: Add Validation
-            setIsLoading(true);
-            let url;
-            if(isLogin) {
-               url = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAv_ELkr2S7sOfDKPi1d9Jd39kmLFzRvHo'
-            } else {
-               url = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyAv_ELkr2S7sOfDKPi1d9Jd39kmLFzRvHo'
-            };
-            fetch(url, {
-               method: 'post',
-               body: JSON.stringify({ email: enteredEmail, password: enteredPassword, returnSecureToken: true }),
-               headers: { 'Content-Type': 'application/json' }
-            }).then(res => {
-               setIsLoading(false);
-               if(res.ok) { return res.json() } else {
-                  return res.json().then(data => {
-                     let errorMessage = 'Authentication Failed!';
-                     if(data && data.error && data.error.message) { errorMessage = data.error.message };
-                     throw new Error(errorMessage);
-                  });
+      src/components/Auth/AuthForm.js:
+         import React, { useState, useRef } from 'react';
+         import classes from './AuthForm.module.css';
+         const AuthForm = () => {
+            const emailInputRef = useRef();
+            const passwordInputRef = useRef();
+            const [isLogin, setIsLogin] = useState(true);
+            const [isLoading, setIsLoading] = useState(false);
+            const switchAuthModeHandler = () => { setIsLogin((prevState) => !prevState) };
+            const submitHandler = (event) => {
+               event.preventDefault();
+               const enteredEmail = emailInputRef.current.value;
+               const enteredPassword = passwordInputRef.current.value;
+               // Optional: Add Validation
+               setIsLoading(true);
+               let url;
+               if(isLogin) {
+                  url = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAv_ELkr2S7sOfDKPi1d9Jd39kmLFzRvHo'
+               } else {
+                  url = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyAv_ELkr2S7sOfDKPi1d9Jd39kmLFzRvHo'
                };
-            }).then(data => { console.log(data) }).catch(err => { alert(err.message) });
+               fetch(url, {
+                  method: 'post',
+                  body: JSON.stringify({ email: enteredEmail, password: enteredPassword, returnSecureToken: true }),
+                  headers: { 'Content-Type': 'application/json' }
+               }).then(res => {
+                  setIsLoading(false);
+                  if(res.ok) { return res.json() } else {
+                     return res.json().then(data => {
+                        let errorMessage = 'Authentication Failed!';
+                        if(data && data.error && data.error.message) { errorMessage = data.error.message };
+                        throw new Error(errorMessage);
+                     });
+                  };
+               }).then(data => { console.log(data) }).catch(err => { alert(err.message) });
+            };
+            return (
+               <section className={classes.auth}>
+                  <h1>{isLogin ? 'Login' : 'Sign Up'}</h1>
+                  <form onSubmit={submitHandler}>
+                     <div className={classes.control}>
+                        <label htmlFor='email'>Your Email</label>
+                        <input type='email' id='email' required ref={emailInputRef} />
+                     </div>
+                     <div className={classes.control}>
+                        <label htmlFor='password'>Your Password</label>
+                        <input type='password' id='password' required ref={passwordInputRef} />
+                     </div>
+                     <div className={classes.actions}>
+                        {!isLoading && <button>{isLogin ? 'Login' : 'Create Account'}</button>}
+                        {isLoading && <p>Sending Request...</p>}
+                        <button type='button' className={classes.toggle} onClick={switchAuthModeHandler}>
+                           {isLogin ? 'Create new account' : 'Login with existing account'}
+                        </button>
+                     </div>
+                  </form>
+               </section>
+            );
          };
-         return (
-            <section className={classes.auth}>
-               <h1>{isLogin ? 'Login' : 'Sign Up'}</h1>
-               <form onSubmit={submitHandler}>
-                  <div className={classes.control}>
-                     <label htmlFor='email'>Your Email</label>
-                     <input type='email' id='email' required ref={emailInputRef} />
-                  </div>
-                  <div className={classes.control}>
-                     <label htmlFor='password'>Your Password</label>
-                     <input type='password' id='password' required ref={passwordInputRef} />
-                  </div>
-                  <div className={classes.actions}>
-                     {!isLoading && <button>{isLogin ? 'Login' : 'Create Account'}</button>}
-                     {isLoading && <p>Sending Request...</p>}
-                     <button type='button' className={classes.toggle} onClick={switchAuthModeHandler}>
-                        {isLogin ? 'Create new account' : 'Login with existing account'}
-                     </button>
-                  </div>
-               </form>
-            </section>
+         export default AuthForm;
+
+------------------------------------------------------------------------------------
+3. Managing the Auth State with Context:
+------------------------------------------------------------------------------------
+   > When a user has signed in and is authenticated you need to store this authentication token somewhere in the running React application where it can be used from all kinds of Components. For example, the header Component would need it to display menu items applicable for the logged in user as well as other areas of the application. Therefore, the token should be stored in an App-Wide State.
+   > There are two main options for managing App-Wide State: the Context API or Redux. It is entirely up to you which two option you prefer for your project.
+   > Below is an example using the Context API to store the authentication token.
+
+   Managing Auth State with Context API Example:
+      src/store/auth-context.js:
+         import React, { useState } from 'react';
+         const AuthContext = React.createContext({
+            token: '',
+            isLoggedIn: false,
+            login: (token) => {},
+            logout: () => {}
+         });
+         export const AuthContextProvider = (props) => {
+            const [token, setToken] = useState(null);
+            const userIsLoggedIn = !!token;
+            const loginHandler = (token) => { setToken(token) };
+            const logoutHandler = () => { setToken(null) };
+            const contextValue = {
+               token: token,
+               isLoggedIn: userIsLoggedIn,
+               login: loginHandler,
+               logout: logoutHandler
+            };
+            return(
+               <AuthContext.Provider value={contextValue}>{props.children}</AuthContext.Provider>
+            );
+         };
+         export default AuthContext;
+      src/index.js:
+         import React from 'react';
+         import ReactDOM from 'react-dom';
+         import { BrowserRouter } from 'react-router-dom';
+         import './index.css';
+         import App from './App';
+         import { AuthContextProvider } from './store/auth-context';
+         ReactDOM.render(
+            <React.StrictMode>
+               <AuthContextProvider>
+                  <BrowserRouter>
+                     <App />
+                  </BrowserRouter>
+               </AuthContextProvider>
+            </React.StrictMode>,
+            document.getElementById('root')
          );
-      };
-      export default AuthForm;
+      src/components/Auth/AuthForm.js:
+         import React, { useState, useRef, useContext } from 'react';
+         import AuthContext from '../../store/auth-context';
+         ...
+         const AuthForm = () => {
+            ...
+            const authCtx = useContext(AuthContext);
+            ...
+            const submitHandler = (event) => {
+               ...
+               fetch(url, {...
+               }).then(res => {
+                  ...
+               }).then(data => {
+                  authCtx.login(data.idToken);
+               }).catch(err => {
+                  alert(err.message);
+               });
+            };
+            return(...);
+         };
+         export default AuthForm;
+      src/components/Layout/MainNavigation.js:
+         import React, { useContext } from 'react';
+         import { Link } from 'react-router-dom';
+         import AuthContext from '../../store/auth-context';
+         import classes from './MainNavigation.module.css';
+         const MainNavigation = () => {
+            const authCtx = useContext(AuthContext);
+            const isLoggedIn = authCtx.isLoggedIn;
+            return (
+               <header className={classes.header}>
+                  <Link to='/'><div className={classes.logo}>React Auth</div></Link>
+                  <nav>
+                     <ul>
+                        {!isLoggedIn && <li><Link to='/auth'>Login</Link></li>}
+                        {isLoggedIn && <li><Link to='/profile'>Profile</Link></li>}
+                        {isLoggedIn && <li><button>Logout</button></li>}
+                     </ul>
+                  </nav>
+               </header>
+            );
+         };
+         export default MainNavigation;
+
+   > The AuthForm can now use this Context to store the authentication token as a global state when the user successfully logs into the application with valid credentials.
+   > The token context can then be used in other Components to change the UI based on the logged in user for example the Layout MainNavigation Component can update the navigation header items depending on the logged in state.
+   > This is the first important step in the correct direction for providing some form of authentication and protection to your application.
