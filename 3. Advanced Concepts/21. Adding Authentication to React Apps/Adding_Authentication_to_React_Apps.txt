@@ -3,16 +3,17 @@ Adding Authentication to React Apps - Summary:
 2. Adding User Signup & Login
 3. Managing the Auth State with Context
 4. Using the Token for Requests to Protected Resources
+5. Adding Logout
 
 ------------------------------------------------------------------------------------
 1. Introduction to Authentication (the What, How & Why?):
 ------------------------------------------------------------------------------------
    > Authentication is needed if content should be protected (i.e. not accessible by everyone).
-   > Protected content can mean different things. Sometimes you would have pages on your site that should be locked if users are not authenticated for example a user's change password page. Proected content could also be data that you are storing to a backend database i.e. API enpoints which the React application might be sending requests on certain pages that should be locked for non-authenticated users. There are many other examples for what proected content could mean for your application.
-   > Therefore, authentication is all about making your application secure from unauthoised access and does not necessarily have to be in relation to pages but also protected endpoint API URLs to prevent any unaythorised user access/changes to the database.
+   > Protected content can mean different things. Sometimes you would have pages on your site that should be locked if users are not authenticated for example a user's change password page. Protected content could also be data that you are storing to a backend database i.e. API endpoints which the React application might be sending requests on certain pages that should be locked for non-authenticated users. There are many other examples for what protected content could mean for your application.
+   > Therefore, authentication is all about making your application secure from unauthorised access and does not necessarily have to be in relation to pages but also protected endpoint API URLs to prevent any unauthorised user access/changes to the database.
    > Now that we know why we need authentication, how does authentication work in general?
    > Authentication in general is a two-step process: 1) Get Access/Permission and 2) Send request to the protected resource(s).
-   > To get the permission you always provide your credentials on a login form. This data is sent to a server to lookup a database to match the username and password combination stored on the database. Only if the credentials are valid the server will grant permission to the restricted resource content. You can send more requests to other secure enpoints with the permission attached. This is how authenticated generally works.
+   > To get the permission you always provide your credentials on a login form. This data is sent to a server to lookup a database to match the username and password combination stored on the database. Only if the credentials are valid the server will grant permission to the restricted resource content. You can send more requests to other secure endpoints with the permission attached. This is how authenticated generally works.
 
    Getting Permission:
                --------------Request with User Credentials---------------
@@ -26,13 +27,13 @@ Adding Authentication to React Apps - Summary:
       1) Working with Server-Side sessions
       2) Working with Authentication Tokens
 
-   > Server-Side Sesssions are a traditional approach of handling authentication and are a great approach for handling authentication. Once a server grants you access that server stores a unique identifier for the specific client (i.e. the user who was granted access). Therefore, every visitor of a website who authenticates has their own identifier stored on the server. This identifier is also sent back to the client.
+   > Server-Side Sessions are a traditional approach of handling authentication and are a great approach for handling authentication. Once a server grants you access that server stores a unique identifier for the specific client (i.e. the user who was granted access). Therefore, every visitor of a website who authenticates has their own identifier stored on the server. This identifier is also sent back to the client.
    > Both Server and Client knows this identifier. This identifier is attached to future requests to the server and since the server knows this identifier it cannot be faked.
    > Server-Side Sessions work great if your backend and frontend are tightly coupled. The one disadvantage of this approach is where you have decoupled ends i.e. the frontend is served on server A and the backend API is on server B then there is no tight coupling. You may want an API that should be used by many websites then the API cannot be tightly coupled and focused on one specific front end and instead needs to stay flexible. Therefore, you do not want to store an identifier on a server. The server should be stateless i.e. it should not store this kind of data about the connected clients.
    > You may have to deal with decoupled frontend and backend situations especially when building Single Page Applications.
 
    > Authentication Tokens are the same as Server-Side Sessions but with one key difference. The client sends their credentials to a server and the server validates the credential combination, if valid the server creates a permission token which is a very long string with some data encoded into that string (using some algorithm). The token can be decoded back into the individual pieces of data.
-   > The token is generated by the server using a specific algorithm along with a key which is used for hashing that data into a string which is only known by the server and not by the client. The token is not stored by the server but it is sent back to the client but only the server knows how to create that token because of the key that is involved to create the token. The client can use this token to attach it to future requrests to grant permission to protected resources on the server.
+   > The token is generated by the server using a specific algorithm along with a key which is used for hashing that data into a string which is only known by the server and not by the client. The token is not stored by the server but it is sent back to the client but only the server knows how to create that token because of the key that is involved to create the token. The client can use this token to attach it to future requests to grant permission to protected resources on the server.
    > Even though the server has not stored the identifier (as it would with Server-Side Sessions approach) the server is still able to verify that the token was created by the server and was not faked. Only the server knows the key and the incoming token attached to the request for some protected resource can be validates by the server i.e. the server can check if that token could be created by the server.
    > This approach allows for decoupling of frontend and backend.
    > When working with "Authentication Tokens", these tokens are typically created in the "JSON Web Token" Format (JWT). Those "tokens" are really just long strings which are constructed by an algorithm that encodes data into a string (with help of a private key, only known by the server).You can learn more about JSON Web Tokens (JWTs) on this link https://jwt.io/.
@@ -273,3 +274,36 @@ Adding Authentication to React Apps - Summary:
    > You would know that this works by trying to login using the old password which should throw an invalid password error. Only when using the new password should the user be able to login successfully.
    > It will depend on the API endpoint of how the token should be added. In the above example the token was added in the request body but for other endpoints you may be required to add the token as a query parameter to the URL or the token to the request body's headers for example "headers: { Authorization: 'Bearer AIzaSyAv_ELkr2S7sOfDKPi1d9Jd39kmLFzRvHo' }" - it all depends on the API you are using.
    > If you are building your own API then it would depend on you how you define your API and how you expect to receive the token. However, when working with Third Party API (like Firebase) you would need to view their documentations on how they implemented their API rules.
+
+------------------------------------------------------------------------------------
+5. Adding Logout:
+------------------------------------------------------------------------------------
+   > At the moment you are able to login a user using the login form which will store the token id in the global state when a user has successfully logged into the application. You now need a way to log a user out of the application and update the state of the stored token.
+   > The server does not store any information about the client for the logged in user using the Token Authentication approach (unlike with the Server-Side Sessions approach). Therefore, you do not need to send any requests to the server because the server does not know or care about logged in users. Hence, the state needs to be updated when logging out the user i.e. clearing the stored token.
+
+   Adding Logout Example:
+      src/components/Layout/MainNavigation.js:
+         import React, { useContext } from 'react';
+         import { Link } from 'react-router-dom';
+         import AuthContext from '../../store/auth-context';
+         import classes from './MainNavigation.module.css';
+         const MainNavigation = () => {
+            const authCtx = useContext(AuthContext);
+            const isLoggedIn = authCtx.isLoggedIn;
+            const logoutHandler = () => { authCtx.logout() };
+            return (
+               <header className={classes.header}>
+                  <Link to='/'><div className={classes.logo}>React Auth</div></Link>
+                  <nav>
+                     <ul>
+                        {!isLoggedIn && <li><Link to='/auth'>Login</Link></li>}
+                        {isLoggedIn && <li><Link to='/profile'>Profile</Link></li>}
+                        {isLoggedIn && <li><button onClick={logoutHandler}>Logout</button></li>}
+                     </ul>
+                  </nav>
+               </header>
+            );
+         };
+         export default MainNavigation;
+
+   > In the above example, the "logoutHandler" function calls on the AuthContext's "logout" function which updates the global App-Wide "token" state to an empty string. The "Logout" button's "onClick" event is linked to this function to trigger the call whenever the logout button is clicked by the user which will update what is displayed on the screen UI.
