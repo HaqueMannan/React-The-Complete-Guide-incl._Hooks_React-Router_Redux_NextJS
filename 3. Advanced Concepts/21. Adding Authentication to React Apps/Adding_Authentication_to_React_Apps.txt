@@ -2,6 +2,7 @@ Adding Authentication to React Apps - Summary:
 1. Introduction to Authentication (the What, How & Why?)
 2. Adding User Signup & Login
 3. Managing the Auth State with Context
+4. Using the Token for Requests to Protected Resources
 
 ------------------------------------------------------------------------------------
 1. Introduction to Authentication (the What, How & Why?):
@@ -212,3 +213,63 @@ Adding Authentication to React Apps - Summary:
    > The AuthForm can now use this Context to store the authentication token as a global state when the user successfully logs into the application with valid credentials.
    > The token context can then be used in other Components to change the UI based on the logged in user for example the Layout MainNavigation Component can update the navigation header items depending on the logged in state.
    > This is the first important step in the correct direction for providing some form of authentication and protection to your application.
+
+------------------------------------------------------------------------------------
+4. Using the Token for Requests to Protected Resources:
+------------------------------------------------------------------------------------
+   > Below is an example of how you can send the Token as part of your request body to an API endpoint to access some form of protected resource. In this example, we allow a logged in user to change their password by passing a HTTP request to the API providing the details from the form for the new password but also passing along the users Token Id.
+   > The Token Id provides authentication and protection to the user as it should only be known by the system and the logged in user and cannot be faked by someone who should not have access to changing that users account password or to the protected API route.
+   > The documentation on how to change the password using the Firebase API can be found at https://cloud.google.com/identity-platform/docs/use-rest-api?hl=en#section-change-password.
+   > Note: in firebase within the Realtime Database you could enforce authentication rules of your own within the rules tab of your project's Realtime Database. But for this demonstration the API is much easier to implement as Firebase has created the route and rules for updating a user account password.
+
+   Using Token for Requests to Protected Resources Example:
+      src/components/Profile/ProfileForm.js:
+         import React, { useRef, useState, useContext } from 'react';
+         import { useHistory } from 'react-router-dom';
+         import AuthContext from '../../store/auth-context';
+         import classes from './ProfileForm.module.css';
+         const ProfileForm = () => {
+            const history = useHistory();
+            const newPasswordInputRef = useRef();
+            const [isLoading, setIsLoading] = useState(false);
+            const authCtx = useContext(AuthContext);
+            const submitHandler = (event) => {
+               event.preventDefault();
+               const enteredNewPassword = newPasswordInputRef.current.value;
+               // Optional: Add Validation
+               setIsLoading(true);
+               fetch('https://identitytoolkit.googleapis.com/v1/accounts:update?key=AIzaSyAv_ELkr2S7sOfDKPi1d9Jd39kmLFzRvHo', {
+                  method: 'post',
+                  body: JSON.stringify({ idToken: authCtx.token, password: enteredNewPassword, returnSecureToken: false }),
+                  headers: { 'Content-Type': 'application/json' }
+               }).then(res => {
+                  setIsLoading(false);
+                  if(res.ok) { return res.json() } else {
+                     return res.json().then(data => {
+                        let errorMessage = 'Authentication Failed!';
+                        if(data && data.error && data.error.message) { errorMessage = data.error.message };
+                        throw new Error(errorMessage);
+                     });
+                  };
+               }).then(data => { history.replace('/') }).catch(err => { alert(err.message) });
+            };
+            return (
+               <form className={classes.form} onSubmit={submitHandler}>
+                  <div className={classes.control}>
+                     <label htmlFor='new-password'>New Password</label>
+                     <input type='password' id='new-password' ref={newPasswordInputRef} />
+                  </div>
+                  <div className={classes.action}>
+                     {!isLoading && <button>Change Password</button>}
+                     {isLoading && <p>Updating Password...</p>}
+                  </div>
+               </form>
+            );
+         };
+         export default ProfileForm;
+
+   > This API endpoint provides no response data due to the 'returnSecureToken' set to false. However, you would receive a response e.g. a 200 status code to indicate a success response. In this scenario you would want to redirect the user away from this page to indicate a successful update of their password. The redirect can be achieved by using the useHistory Hook from React Router.
+   > Note: you could let the user stay on the page and display some form of success message instead and do not necessarily need to redirect the user.
+   > You would know that this works by trying to login using the old password which should throw an invalid password error. Only when using the new password should the user be able to login successfully.
+   > It will depend on the API endpoint of how the token should be added. In the above example the token was added in the request body but for other endpoints you may be required to add the token as a query parameter to the URL or the token to the request body's headers for example "headers: { Authorization: 'Bearer AIzaSyAv_ELkr2S7sOfDKPi1d9Jd39kmLFzRvHo' }" - it all depends on the API you are using.
+   > If you are building your own API then it would depend on you how you define your API and how you expect to receive the token. However, when working with Third Party API (like Firebase) you would need to view their documentations on how they implemented their API rules.
