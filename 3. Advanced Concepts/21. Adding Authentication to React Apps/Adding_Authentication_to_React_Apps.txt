@@ -4,6 +4,7 @@ Adding Authentication to React Apps - Summary:
 3. Managing the Auth State with Context
 4. Using the Token for Requests to Protected Resources
 5. Adding Logout
+6. Protecting Frontend Pages with Route Guards
 
 ------------------------------------------------------------------------------------
 1. Introduction to Authentication (the What, How & Why?):
@@ -307,3 +308,42 @@ Adding Authentication to React Apps - Summary:
          export default MainNavigation;
 
    > In the above example, the "logoutHandler" function calls on the AuthContext's "logout" function which updates the global App-Wide "token" state to an empty string. The "Logout" button's "onClick" event is linked to this function to trigger the call whenever the logout button is clicked by the user which will update what is displayed on the screen UI.
+
+------------------------------------------------------------------------------------
+6. Protecting Frontend Pages with Route Guards:
+------------------------------------------------------------------------------------
+   > You may wish to protect certain routes from being navigated to whether within the application or manually in the URL for example the ProfileForm Component i.e. Change Password Page should not be accessible to any users who is not logged into the application.
+   > While it may not be a problem or cause any harm with a page like this as it requires a token id to successfully change the password of a user account; however, you may still want to prevent users from visiting this page if they have not already logged into their account.
+   > This can be solved by adding a feature called Navigation Guards. This feature is all about dynamically changing the route configuration based on whether the user is logged in or not.
+   > The routes can only be visited by the defined routes in the App.js file. If you render the routes conditionally, only under certain conditions will a user be able to visit a certain route if that condition is true. Therefore, you can use the current authentication status of a user as the condition for certain routes. This will prevent users accessing certain page whether navigated via the application links or manually in the URL.
+
+   Protecting Frontend Pages with Route Guards:
+      src/App.js:
+         import React, { useContext } from 'react';
+         import { Switch, Route, Redirect } from 'react-router-dom';
+         import Layout from './components/Layout/Layout';
+         import UserProfile from './components/Profile/UserProfile';
+         import AuthPage from './pages/AuthPage';
+         import HomePage from './pages/HomePage';
+         import AuthContext from './store/auth-context';
+         function App() {
+            const authCtx = useContext(AuthContext);
+            return (
+               <Layout>
+                  <Switch>
+                     <Route path='/' exact><HomePage /></Route>
+                     {!authCtx.isLoggedIn && <Route path='/auth'><AuthPage /></Route>}
+                     <Route path='/profile'>
+                        {authCtx.isLoggedIn && <UserProfile />}
+                        {!authCtx.isLoggedIn && <Redirect to="/auth" />}
+                     </Route>
+                     <Route path="*"><Redirect to="/" /></Route>
+                  </Switch>
+               </Layout>
+            );
+         };
+         export default App;
+
+   > In the above example, using the AuthContext the "Profile" page is conditionally rendered if the user is logged into the application or redirected to the auth page if not logged in creating a form of Navigation Guard.
+   > The Route configuration is simply a Component that is being rendered and therefore we can conditionally render the Route Components. This is a standard way of solving this problem by proving a route guard.
+   > You can get really creative here and fine tune the Route configuration as you need it based on the authentication status.
