@@ -6,6 +6,7 @@ Adding Authentication to React Apps - Summary:
 5. Adding Logout
 6. Protecting Frontend Pages with Route Guards
 7. Persisting the User Authentication Status:
+8. Adding Auto-Logout
 
 ------------------------------------------------------------------------------------
 1. Introduction to Authentication (the What, How & Why?):
@@ -388,4 +389,105 @@ Adding Authentication to React Apps - Summary:
    > You do not need the useEffect Hook because localStorage is a synchronous API. The initial value for the token is retrieved once by React when the State is first initialised. If the Component re-runs thereafter the initial run you won't overwrite any state changes with that token.
    > You can view the localStorage items within the Browser in the Developer Tools Application Tab under Local Storage.
    > This now creates the persistence of the user login even if the page is reloaded or the user manually enters a URL path in the browser.
+
+------------------------------------------------------------------------------------
+8. Adding Auto-Logout:
+------------------------------------------------------------------------------------
    > The token expires after one hour and so you would want to also make sure that the user is automatically logged out when the token expires i.e. automatically remove the token from local storage after one hour. Therefore, you would want to store the expiration time in local storage in order to set the timer correctly for the remaining duration correctly even after reloading the page.
+   > Below is a example code for adding an auto-logout logic to the authentication context using the Browser's Local Storage mechanism.
+
+   Adding Auto-Logout Example:
+      src/store/auth-context.js:
+         import React, { useState, useEffect, useCallback } from 'react';
+         let logoutTimer;
+         const AuthContext = React.createContext({ token: '', isLoggedIn: false, login: (token) => {}, logout: () => {} });
+         const calculateRemainingTime = (expirationTime) => {
+            const currentTime = new Date().getTime();
+            const adjExpirationTime = new Date(expirationTime).getTime();
+            const remainingExpiration = adjExpirationTime - currentTime
+            return remainingExpiration;
+         };
+         const retrieveStoredToken = () => {
+            const storedToken = localStorage.getItem('token');
+            const storedExpirationDate = localStorage.getItem('expirationTime');
+            const remainingTime = calculateRemainingTime(storedExpirationDate);
+            if(remainingTime <= 60000) {
+               localStorage.removeItem('token');
+               localStorage.removeItem('expirationTime');
+               return null;
+            };
+            return { token: storedToken, duration: remainingTime };
+         };
+         export const AuthContextProvider = (props) => {
+            const tokenData = retrieveStoredToken();
+            let initialToken;
+            if(tokenData) { initialToken = tokenData.token };
+            const [token, setToken] = useState(initialToken);
+            const userIsLoggedIn = !!token;
+            const logoutHandler = useCallback(() => {
+               setToken(null);
+               localStorage.removeItem('token');
+               localStorage.removeItem('expirationTime');
+               if(logoutHandler) {
+                  clearTimeout(logoutTimer)
+               };
+            }, []);
+            const loginHandler = (token, expirationTime) => {
+               setToken(token);
+               localStorage.setItem('token', token);
+               localStorage.setItem('expirationTime', expirationTime);
+               const remainingTime = calculateRemainingTime(expirationTime);
+               logoutTimer = setTimeout(logoutHandler, remainingTime);
+            };
+            useEffect(() => {
+               if(tokenData) {
+                  // console.log(tokenData.duration);    // Only see the duration time reducing if the user is automatically logged in for testing the useEffect.
+                  logoutTimer = setTimeout(logoutHandler, tokenData.duration);
+               };
+            }, [tokenData, logoutHandler]);
+            const contextValue = { token: token, isLoggedIn: userIsLoggedIn, login: loginHandler, logout: logoutHandler };
+            return(<AuthContext.Provider value={contextValue}>{props.children}</AuthContext.Provider>);
+         };
+         export default AuthContext;
+      src/components/Auth/AuthForm.js:
+         ...
+         const AuthForm = () => {
+            ...
+            const switchAuthModeHandler = () => { ... };
+            const submitHandler = (event) => {
+               ...
+               fetch(url, {
+                  method: 'post',
+                  body: JSON.stringify({ email: enteredEmail, password: enteredPassword, returnSecureToken: true }),
+                  headers: { 'Content-Type': 'application/json' }
+               }).then(res => {
+                  ...
+               }).then(data => {
+                  const expirationTime = new Date(new Date().getTime() + (+data.expiresIn * 1000));
+                  authCtx.login(data.idToken, expirationTime.toISOString());
+                  history.replace('/');
+               }).catch(err => {
+                  alert(err.message);
+               });
+            };
+            return (...);
+         };
+         export default AuthForm;
+
+   > The calculateRemainingTime function is used as a helper function outside the Component to help correctly calculate the token expiration time. It returns the time in milliseconds to use in the '.setTimeout()' JavaScript function. You can get the current time by calling JavaScript 'new Date()' date class which will provide the current date/time stamp. The .getTime() will return only the time which is what you would be interested in.
+   > The "expirationTime" would be a string and so would need to be converted into a Date class object in order to correctly calculate the remaining time in milliseconds.
+   > The "loginHandler" function needs to be switched around with the "logoutHandler" function so that you can call "setTimeout()" function to pass in the "logoutHandler" function as a pointer so that this is called when the timer runs out. The second argument to the "setTimeout()" function is the time remaining. This will automatically log the user out when the time has expired.
+   > The 'expiresIn' Payload response data is a string value. To convert this into a number in JavaScript we can add the plus sign in (+) front which will convert the string value to a number. You would multiply by 1000 to convert the seconds into milliseconds which is expected by the setTimeout() method.
+   > To test whether the auto-logout is working you could temporarily change the setTimeout to 3 seconds in the auth-context.js file (i.e. 'setTimeout(logoutHandler, 3000)') which will allow you to see the auto-logout working after 3 seconds of logging into the application to make sure everything is working.
+   > If the "logoutTimer" is set as global variable which stores the setTimeout value when logging in a user. When the user clicks the logout button it will check whether the logoutTimer is set and clear this on the logout button using the 'clearTimeout()' function passing in the "logoutTimer" timer as the argument/parameter. This will clear the timer if a timer was set on the logout button event.
+   > The "retrieveStoredToken" helper function checks local storage for an expiration time and re-calculates the remaining time on any page reloads. If the remaining time is less than or equal to 1minute (i.e. 60000 milliseconds then you would not want to re-log the user into the application and also would want to delete the token and expirationTime data if stored in local storage).
+   > The useEffect Hook is used to handle the side effect creation of the logoutTimer when the page reloads. This is to ensure when we log a user in automatically that the timer is set to automatically logout the user with the correct remaining time.
+   > Using the useEffect which requires the "logoutHandler" function as a dependency required the useCallback Hook to prevent an infinite loop on "logoutHandler" function (i.e. unnecessarily re-creating the function on the Component re-execution/re-evaluation cycles).
+   > The useCallback does not need any dependencies because localStorage is browser built-in functions, the setToken is a state updating function which is guaranteed by React that the function will never change and logout timer is a global variable which also is outside of the React re-evaluation/re-rendering flow. Therefore, the useCallback on the logoutHandler callback function does not require any dependencies.
+
+------------------------------------------------------------------------------------
+Conclusion:
+------------------------------------------------------------------------------------
+   > This should demonstrate how you can add some form of authentication to your application using Firebase. There are many ways of adding authentication and protection to protected routes using Authentication Tokens. The way you would implement authentication for your application will depend on the backend API you use for your project or your own created API.
+   > You should now have a fundamental understanding of Authentication and what is required to setup protections for your application or what needs to be considered when building your application.
+   > Note that there are many ways in which you can implement authentication with login/logout mechanism and protecting your routes with Route Guarding. The example provided is a demonstration of one such way using the Firebase API endpoints as an easy implementation to demonstrate Authentication in practice.
