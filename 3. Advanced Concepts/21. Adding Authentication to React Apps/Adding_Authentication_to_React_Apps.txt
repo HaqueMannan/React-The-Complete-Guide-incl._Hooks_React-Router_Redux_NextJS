@@ -5,6 +5,7 @@ Adding Authentication to React Apps - Summary:
 4. Using the Token for Requests to Protected Resources
 5. Adding Logout
 6. Protecting Frontend Pages with Route Guards
+7. Persisting the User Authentication Status:
 
 ------------------------------------------------------------------------------------
 1. Introduction to Authentication (the What, How & Why?):
@@ -347,3 +348,44 @@ Adding Authentication to React Apps - Summary:
    > In the above example, using the AuthContext the "Profile" page is conditionally rendered if the user is logged into the application or redirected to the auth page if not logged in creating a form of Navigation Guard.
    > The Route configuration is simply a Component that is being rendered and therefore we can conditionally render the Route Components. This is a standard way of solving this problem by proving a route guard.
    > You can get really creative here and fine tune the Route configuration as you need it based on the authentication status.
+
+------------------------------------------------------------------------------------
+7. Persisting the User Authentication Status:
+------------------------------------------------------------------------------------
+   > Currently there is one big problem. At the moment whenever you reload the application or manually enter a URL (which also causes a reload of the application) you use the authentication status. This makes sense because you restart the React application and is how the Browser works. However, this also means all of the context is lost resulting in the initial state.
+   > You would typically want to keep a user logged in for a particular period of time (or when they logout).
+   > It is important to understand that the token that is provided by the Firebase store has a duration which is provided as the API response payloads 'expiresIn' property. This is provided when a user is logged in using the Firebase API endpoint for logging in. The token provided by Firebase will expire in one hour by default which is a security mechanism.
+   > Important Note: you can refresh this with the refreshToken property (which is a little advance and not covered here but you can read up the documentation found on https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password).
+   > You need to store the token somewhere outside of the React state. Browser do have storage mechanisms which you could use for example cookies and local storage. You can read an article on the comparison between the two storage mechanisms on https://academind.com/tutorials/localstorage-vs-cookies-xss/.
+   > Using local storage is fine in development and will only be a problem if your page is vulnerable to Cross-Site Scripting attacks (ig you have Cross-Site Scripting attacks issues then you already have a problem with your application security in general).
+
+   Persisting the User Authentication Status Example:
+      src/store/auth-context.js:
+         import React, { useState } from 'react';
+         const AuthContext = React.createContext({ token: '', isLoggedIn: false, login: (token) => {}, logout: () => {} });
+         export const AuthContextProvider = (props) => {
+            const initialToken = localStorage.getItem('token');
+            const [token, setToken] = useState(initialToken);
+            const userIsLoggedIn = !!token;
+            const loginHandler = (token) => {
+               setToken(token);
+               localStorage.setItem('token', token);
+            };
+            const logoutHandler = () => {
+               setToken(null);
+               localStorage.removeItem('token');
+            };
+            const contextValue = { token: token, isLoggedIn: userIsLoggedIn, login: loginHandler, logout: logoutHandler };
+            return(<AuthContext.Provider value={contextValue}>{props.children}</AuthContext.Provider>);
+         };
+         export default AuthContext;
+
+   > When the user logs into the application you want to store the token not just inside of the state but also in the Browser's storage. When the user logs out you also want to clear that data in the Browser's storage. In addition when the page loads you want to look into the storage and if a token is found then you want to use that token without forcing the user to re-login by sending a new login request.
+   > The 'localStorage.setItem()' is an API that is built into the Browser (similar to the fetch API provided by the Browser) that you can call to store simple data into local storage. The .setItem() method expects a key:value pair to store the data in local storage.
+   > Local Storage is only able to store basic primitive data like strings or numbers. If you want to store an object you would need to convert it to JSON first using JSON.stringify() method which will convert the object to a string representation.
+   > You can use either '.clear()' or '.removeItem()' methods on the localStorage API object. The former clears the whole local storage while the latter removes a particular item (retrenched by its key) from the local storage.
+   > The .getItem() method is used to retrieve a value from local storage by referencing the key for the item you wish to retrieve.
+   > You do not need the useEffect Hook because localStorage is a synchronous API. The initial value for the token is retrieved once by React when the State is first initialised. If the Component re-runs thereafter the initial run you won't overwrite any state changes with that token.
+   > You can view the localStorage items within the Browser in the Developer Tools Application Tab under Local Storage.
+   > This now creates the persistence of the user login even if the page is reloaded or the user manually enters a URL path in the browser.
+   > The token expires after one hour and so you would want to also make sure that the user is automatically logged out when the token expires i.e. automatically remove the token from local storage after one hour. Therefore, you would want to store the expiration time in local storage in order to set the timer correctly for the remaining duration correctly even after reloading the page.
