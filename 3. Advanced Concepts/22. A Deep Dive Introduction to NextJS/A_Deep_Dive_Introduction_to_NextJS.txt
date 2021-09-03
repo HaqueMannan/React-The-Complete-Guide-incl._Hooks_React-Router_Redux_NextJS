@@ -1,5 +1,6 @@
 A Deep Dive Introduction into Next.js - Summary:
 1. What Is and Why Use Next.js?
+2. Creating a New NextJS Project App and Analysing the Project Setup
 
 ------------------------------------------------------------------------------------
 1. What Is and Why Use Next.js?:
@@ -35,3 +36,28 @@ A Deep Dive Introduction into Next.js - Summary:
          - This makes it easy to add code for storing data to a database/files, retrieving data, adding authentication, etc. using NextJS.
          - Therefore, can do not need to build a standalone REST API project but can stay in one NextJS project (you would need to have some NodeJS coding knowledge but that is a requirement for building on the backend) where you have all the client side code (React UI) and also blend in your backend API code.
    > There are more features but the three mentioned above are the core/key features of NextJS and why you would want to use this framework to build a production React application.
+
+------------------------------------------------------------------------------------
+2. Creating a New NextJS Project App and Analysing the Project Setup:
+------------------------------------------------------------------------------------
+   > To create a NextJS project you would need to run one simple command in the terminal (cd to the path you want to create and store the new NextJS project directory):
+
+   Install NextJS with NPM Command:
+      $: npx create-next-app
+
+   > To run the command you need NodeJS installed on your machine which you can download and install from their website (https://nodejs.org/en/). This comes with the Node Package Manager which allows you to install files from the web using the npm install command.
+   > NextJS uses NodeJS under the hood to run JavaScript code on a machine i.e. server; for example, the server side rendering uses NodeJS. Therefore, it is a pre-requisite for NextJS projects.
+   > Alternatively, if you have Yarn (https://yarnpkg.com/) installed as a Package Manager you can use the yarn command instead to install the NextJS project files.
+   > After answering a few basic questions about the application it will create a new NextJS project directory within the directory path you ran the terminal command from.
+   > Once the base NextJS project has been created with all of the core required dependencies you can run the following command to start your development server.
+
+   Running NextJS Development Server Command:
+      $: npm run dev
+
+   > You are now ready to start building your NextJS application using the IDE of your choice (e.g. Open the NextJS project folder Visual Studio). Let us now analyse the different folders that make up the NextJS project:
+      - The "styles" folder contains all of the CSS files of the project
+      - The "public" folder contains all of the public assets/resources of the project (e.g. images, logos, etc.)
+         > You will notice that there is no "index.html" file which we see in a React project. NextJS has built-in pre-rendering and while it gives you a single page application, that single page is dynamically pre-rendered when a request reaches the server so that an initial page with content is served (i.e. NextJS allows us to determine when a page should be pre-rendered).
+      - The "pages" folder is the most important folder. This is where you would setup the file base routing i.e. this is where you would define the different pages that should make up the application.
+   > You can delete the boilerplate template codes such as "Home.module.css" file (from the "styles" folder), the "api" folder and the "index.js" file (from the "pages" folder).
+   > You now have a starting NextJS directory to build out your NextJS application code.
