@@ -1,6 +1,7 @@
 A Deep Dive Introduction into Next.js - Summary:
 1. What Is and Why Use Next.js?
 2. Creating a New NextJS Project App and Analysing the Project Setup
+3. Adding Pages, Nested Paths & Pages, Dynamic Pages (with Parameters) and Extracting Dynamic Parameter Values
 
 ------------------------------------------------------------------------------------
 1. What Is and Why Use Next.js?:
@@ -61,3 +62,89 @@ A Deep Dive Introduction into Next.js - Summary:
       - The "pages" folder is the most important folder. This is where you would setup the file base routing i.e. this is where you would define the different pages that should make up the application.
    > You can delete the boilerplate template codes such as "Home.module.css" file (from the "styles" folder), the "api" folder and the "index.js" file (from the "pages" folder).
    > You now have a starting NextJS directory to build out your NextJS application code.
+
+------------------------------------------------------------------------------------
+3. Adding Pages, Nested Paths & Pages, Dynamic Pages (with Parameters) and Extracting Dynamic Parameter Values:
+------------------------------------------------------------------------------------
+   > In NextJS ,if you wanted to build a simple website with three kinds of pages (e.g. a root/landing page, a list item page and a detail page for the listed item), to build this kind of structure in NextJS you would create three files in the "pages" folder.
+   > The 'index.js' file is the root page. Therefore, if a URL reached "www.domain-name.com/" then the 'index.js' file will be loaded. This is in line with standard websites where the 'index.html' file is served if a request targets the root domain name only (i.e. "/"). It is important to note that 'index' is a special name reserved for the root domain.
+   > The "news.js" file will be loaded if the URL reached "www.domain-name.com/news". The pathname after the forward slash will be the JavaScript file name and in this example it was "/news" which will server the "news.js" file.
+   > What goes inside of these pages are the React Components that should be loaded for that specific page. Therefore, you can add a Component functions as you would using React.
+
+   Adding a Page Example:
+      pages/index.js:
+         function HomePage() {
+            return <h1>The Home Page</h1>;
+         };
+         export default HomePage;
+or
+      pages/Home.js:
+         const HomePage = () => {
+            return <h1>The Home Page</h1>;
+         };
+         export default HomePage;
+
+   > You can use either function expressions syntax when creating functions in JavaScript.
+   > You must 'export default' the Component so that NextJS is able to find the Component code.
+   > Inside of the Component you must return JSX code just as you would do in React Components.
+   > NextJS projects support modern React development whereby you do not need to define 'import React from 'react';' because it does this for you behind the scenes and therefore can be omitted.
+   > Running th dev server and going to "http://localhost:3000/" will load the HomePage Component. Inspecting the Page Source you should notice that the HTML page is not an empty skeleton but rather it contains actual page content. This is an important difference to a standard React application where the page is not pre-rendered on the server.
+   > The HTML code you see is the actual HTML code returned back by the server. The advantage of this is that you do not see any flickering of the page while you wait for the the response and in addition it is viewable for SEO.
+   > This is how you can get started by creating pages and routing in NestJS without any extra setup because it works out of the box.
+   > There is an important alternative you should be aware of when it comes to organising your files and folders. Folders also act as path segments and it is entirely up to you how you want to organise your file/paths structure.
+
+   Adding a Page Alternative Example:
+      pages/news/index.js:
+         function NewsPage() {
+            return <h1>The News Page</h1>;
+         };
+         export default NewsPage;
+
+   > You could create a subfolder inside of the pages folder and name that folder the path segment name (i.e. route), for example "news". Within this folder you can now hold the "index.js" file which will be served whenever a user navigates to "www.domain-name.com/news" path segment.
+
+   Nested Paths & Routes Example:
+      pages/news/detail.js:
+         function DetailPage() {
+            return <h1>The Detail Page</h1>;
+         };
+         export default DetailPage;
+or
+      pages/news/detail/index.js:
+         function DetailPage() {
+            return <h1>The Detail Page</h1>;
+         };
+         export default DetailPage;
+
+   > If you want to create nested paths/routes it is important to created nested segments folders. Therefore, if you wanted to create a route for "www.domain-name.com/news/detail" you would need to create a "news" folder inside of the "pages" folder and the root page for the "/news" route will be served the 'index.js' while the "/news/detail" will be served the "detail.js" file located inside the sub folder.
+   > Alternatively, you could also create a subfolder inside of the "news" folder and call it "detail" which will hold the 'index.js' file for the "DetailPage" Component which will also create the nested path route segment for "www.domain-name.com/news/detail".
+   > You may realise a problem with this approach when it comes to dynamically loading content on the detail page i.e. to reuse the DetailPage Component but output different results for different news content. Hardcoding the identifier is not very realistic. Instead you want to create a so-called dynamic page whether the path segment to the concrete path can be dynamic.
+
+   Dynamic Page with Parameters Example:
+      pages/news/[newsID].js:
+         function DetailPage() {
+            return <h1>The Detail Page</h1>;
+         };
+         export default DetailPage;
+
+   > The square brackets in front of the file extension is a special syntax within the file name which is understood by NextJS to mean that the page is a dynamic page.
+   > This allows you to load the same page no matter what the concrete value is but inside of the page you have access to that dynamic value (i.e. parameter) in the path so that you can fetch the data for that parameter.
+   > The identifier name inside the square brackets is entirely up to you.
+   > If a person visits "www.domain-name.com/news/detail" or "www.domain-name.com/news/something-important" or anything else after the "news/" will be served the same "[newsID].js" page. This is how you can add dynamic paths and another key feature to NextJS. It is a feature that allows you to build truly dynamic and flexible websites with NextJS.
+   > How can you now extract this entered path/parameter value inside of the Component so that you can for example fetch the correct news item from a database when a user visits this page?
+
+   Extracting Dynamic Parameter Values Example:
+      import { useRouter } from 'next-router';
+      function DetailPage() {
+         const router = useRouter();
+         console.log(router.query.newID);
+         return <h1>The Detail Page</h1>;
+      };
+      export default DetailPage;
+
+   > NextJS provides a special React Hook you can use to extract dynamic parameter values from the visited URL for the Component file. This works for React Function Components.
+   > Important Note: there is also an alternative for React class-based Components i.e. using a Higher Order Component that you can wrap around your Components.
+   > The next/router is a sub-package which exposes routing specific functionality.
+   > The 'useRouter' Hook is a regular React Hook (just one that is not built into React but a custom Hook built by the NextJS team). You can call this Hook and get access to a router object which you can store in a variable.
+   > On the router object you get certain pieces of properties and methods which you can call. For example, you have methods for programmatic navigation as well as access to values encoded in the URL. The 'query' property gives access to a nested object and on this 'query' property you would have the identifier which you chose between the square brackets in the dynamic pages Component file name.
+   > In the above example ".newsID" (from "[newsID].js") is a property held on the ".query" property object. This will hold the concrete value in the URL for the dynamic segment for which the page was visited.
+   > The 'useRouter' Hook runs twice because it runs immediately when the page is first rendered (at this point it does not know what is in the URL) but once it has the URL information the Component is rendered again and then you will have the concrete value for the dynamic parameter. This is just how this Hook works and hence the console prints 'undefined' and then the concrete value from the URL.
