@@ -60,7 +60,15 @@ A Deep Dive Introduction into Next.js - Summary:
       - The "styles" folder contains all of the CSS files of the project
       - The "public" folder contains all of the public assets/resources of the project (e.g. images, logos, etc.)
          > You will notice that there is no "index.html" file which we see in a React project. NextJS has built-in pre-rendering and while it gives you a single page application, that single page is dynamically pre-rendered when a request reaches the server so that an initial page with content is served (i.e. NextJS allows us to determine when a page should be pre-rendered).
-      - The "pages" folder is the most important folder. This is where you would setup the file base routing i.e. this is where you would define the different pages that should make up the application.
+      - The "pages" folder is the most important folder and a reserved folder name. This is where you would setup the file base routing i.e. this is where you would define the different pages that should make up the application.
+
+      Pages/_app.js:
+         function MyApp({ Component, pageProps }) {
+            return <Component {...pageProps} />
+         };
+         export default MyApp;
+
+   > The _app.js File in the "pages" folder is an important and special file. This is like the root Component which NextJS will render. It receives props and uses Object de-structuring to pull information out of the props and the information it pulls out is a 'Component' prop and 'Page' prop. These props are passed into the 'MyApp' Component automatically by NextJS since NexJS is the thing that is using that specific Component. 'Component' is the prop that holds the actual page content that should be rendered (i.e. it will be different whenever you switch a page). 'Page' is the specific props the page might be getting.
    > You can delete the boilerplate template codes such as "Home.module.css" file (from the "styles" folder), the "api" folder and the "index.js" file (from the "pages" folder).
    > You now have a starting NextJS directory to build out your NextJS application code.
 
@@ -126,8 +134,15 @@ or
             return <h1>The Detail Page</h1>;
          };
          export default DetailPage;
+or
+      pages/news/[newsID]/index.js:
+         function DetailPage() {
+            return <h1>The Detail Page</h1>;
+         };
+         export default DetailPage;
 
    > The square brackets in front of the file extension is a special syntax within the file name which is understood by NextJS to mean that the page is a dynamic page.
+   > Note: You can also have name folder using the square brackets syntax to create a Dynamic Page with Parameters.
    > This allows you to load the same page no matter what the concrete value is but inside of the page you have access to that dynamic value (i.e. parameter) in the path so that you can fetch the data for that parameter.
    > The identifier name inside the square brackets is entirely up to you.
    > If a person visits "www.domain-name.com/news/detail" or "www.domain-name.com/news/something-important" or anything else after the "news/" will be served the same "[newsID].js" page. This is how you can add dynamic paths and another key feature to NextJS. It is a feature that allows you to build truly dynamic and flexible websites with NextJS.
@@ -201,3 +216,29 @@ or
    > This method allows you to combine the best of both worlds. You have a highly interactive and reactive Single Page Application where you can manage and store state across pages and yet if the user was to visit the page as an initial page by just entering the URL in the browser you will also be able to return the finished HTML page here. If the user is already on the news page and click the link the user stays on the Single Page Application.
    > The 'Link' Component creates an anchor tag but it watches for clicks on those anchor tags and if you click on them it prevents the browsers default of sending a request and getting a new HTML page. Instead, it will load the to be loaded Component for you and change the URL so that it looks like you changed the page whilst in reality you stayed in that Single Page Application.
    > Therefore, for internal links in a NextJS application you would want to use the Link Component instead of the anchor tag element because the Link Component provides the best of both worlds.
+
+   Programmatically Navigate to Pages Example:
+      import { useRouter } from 'next/router';
+      import Card from '../ui/Card';
+      import classes from './MeetupItem.module.css';
+      function MeetupItem(props) {
+         const router = useRouter();
+         function showDetailsHandler() {
+            router.push('/' + props.id)
+         };
+         return (
+            <li className={classes.item}>
+               <Card>
+                  <div className={classes.image}><img src={props.image} alt={props.title} /></div>
+                  <div className={classes.content}><h3>{props.title}</h3><address>{props.address}</address></div>
+                  <div className={classes.actions}><button onClick={showDetailsHandler}>Show Details</button></div>
+               </Card>
+            </li>
+         );
+      };
+      export default MeetupItem;
+
+> The 'useRouter' Hook from 'next/router' provides the router object which has different methods you can use. For example the '.push()' method allows you to programmatically navigate to different routes. The '.push()' method pushes a page onto the stack of pages and this is the equivalent to using the 'Link' Component.
+> You can use this alternative if you do not want to use 'Link' but want to programmatically navigate to a different URL page.
+> The '.push()' method takes in string path to which you want to navigate to as an argument/parameter. You can create a dynamic path utilising props and the URL parameters values.
+> In the above example the button has a 'onClick' event which triggers the showDetailsHandler function which programmatically navigates the user to a details page using the passed in props id. It is important to note that you can also create Links 'href' values programmatically as well. But remember that you are not limited to using 'Links' to navigate users to different pages.
