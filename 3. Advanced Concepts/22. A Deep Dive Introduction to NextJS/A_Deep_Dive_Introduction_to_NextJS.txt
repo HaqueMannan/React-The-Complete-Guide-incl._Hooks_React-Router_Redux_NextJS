@@ -4,6 +4,7 @@ A Deep Dive Introduction into Next.js - Summary:
 3. Adding Pages, Nested Paths & Pages, Dynamic Pages (with Parameters) and Extracting Dynamic Parameter Values
 4. Linking Between Pages
 5. How Pre-Rendering Works & The Problems Faced with Pre-Rendering
+6. Data Fetching for Static Pages and Static Site Generation(SSG)
 
 ------------------------------------------------------------------------------------
 1. What Is and Why Use Next.js?:
@@ -263,9 +264,7 @@ or
                // send HTTP request and fetch data
                setLoadedMeetups(DUMMY_MEETUPS);
             }, []);
-            return(
-               <MeetupList  meetups={loadedMeetups} />
-            );
+            return(<MeetupList meetups={loadedMeetups} />);
          };
          export default HomePage;
 
@@ -277,3 +276,76 @@ or
    > NextJS pre-rendering always takes the first render cycle and returns that as the pre-rendered HTML code. NextJS does not wait for the data to be fetched from the server to then return the fully pre-rendered page.
    > This is a very important problem to understand properly when it comes to pre-rendering; but thankfully, NextJS has solutions to this problem. There are more core features built into NextJS to help you with this precise problem where you want to pre-render a page with data but with data for which you have to wait to be retrieved. You need to tell NextJS when you are done waiting.
    > How can you fetch data for pre-rendering? This is what we will explore in the next few sections.
+
+------------------------------------------------------------------------------------
+6. Data Fetching for Static Pages and Static Site Generation(SSG):
+------------------------------------------------------------------------------------
+   > NextJS has a built-in page pre-rendering feature but it has a flaw of rendering a snapshot of the HTML page after the first component render cycle as its content which might be missing crucial data.
+   > While the built-in pre-rendering feature might be theoretically good for SEO it might not always be the case.
+   > After the pre-rendered HTML page is received, React will actually take over and the page is 'Hydrated' (as this process is called) which means React will turn the page into a Single Page Application. The page is then updated by React inside the browser and not on the server. Therefore, you have a fully interactive page with all the data you need handled by React (e.g. useEffect fetching data and populating the list on screen).
+   > If you want to pre-render a page with data so that the initial returned HTML code already contains the data you need to fine tune and configure the built-in pre-rendering process.
+   > NextJS provides two forms of pre-rendering which you can use for controlling how the page should be rendered:
+      1) Static Site Generation (SSG)
+      2) Server Side Rendering (SSR)
+   > The two forms of pre-rendering may sound similar but the code runs at different points in time.
+
+   Static Site Generation (SSG):
+   > This is the approach you should typically use for your application pre-rendering.
+   > A page Component is pre-rendered when you build the application for production using the 'npm run build' script. With Static Generation the page is not pre-rendered on the fly on the server when a request reaches the server but instead it is pre-rendered when you as the developer build your application for production.
+   > This means that after the application is deployed the pre-rendered page does not change (at least not by default).
+   > If the data is updated and you know that the pre-rendered page needs to change then you would need to start the build process again and redeploy again with the new Static Pages.
+   > This may sound worse than it actually is because for a lot of applications pages content do not change all the time and if it should change frequently then there are alternative (i.e. Server Side Rendering).
+   > If you need to wait for data (adding data fetching to a page Component) you can do so by exporting a special function called 'getStaticProps' from inside of your Page Component file. This only works for Page Component files (Components located inside of the "pages" folder) and not in other Component files.
+   > The exported function must be called 'getStaticProps' because it is a reserved name that NextJS would look for a function with that name when building the project for production. If it finds functions with this name in the Page Component files it will execute this function during the pre-rendering process.
+   > Therefore, it does not directly call the Component function and use the returned JSX snapshot as the HTML content but instead it will first call the 'getStaticProps' function before it calls the Page Component function.
+   > The 'getStaticProps' functions job is to prepare props for the page and these props could then contain the data the page needs.
+   > The 'getStaticProps' function is allowed to be asynchronous and can return a promise. NexyJS will then wait for the promise to resolve (i.e. it waits until the data is loaded) and then it will return the props for the Page Component function. This allows data to be loaded before the Component can be rendered with the required data.
+   > In the 'getStaticProps' function you can run any code that would normally only run on a server e.g. accessing a file server or securely connecting to a database. Any code you write in this function will never execute on the client side simply because the code is executed during the build process not on the server and not on the client. Therefore, the code will never visit the client or server.
+
+   Static Site Generation (SSG) Example:
+      src/pages/index.js:
+         import MeetupList from '../components/meetups/MeetupList';
+         function HomePage(props) {
+            return(<MeetupList meetups={props.meetups} />);
+         };
+         export function getStaticProps(){
+            // fetch data from an API
+            return {
+               props: {
+                  meetups: DUMMY_MEETUPS
+               }
+            };
+         };
+         export default HomePage;
+
+   > The 'getStaticProps' function must always return an object. On this object you can configure a lot of things but most importantly you typically set a 'props' property (and must be named 'props'). The 'props' property holds another object which will be the 'props' object you receive in your Page Component function.
+   > The structure of the props object is entirely up to you. In the above example there is a "meetup" key which holds the "DUMMY_MEETUPS" data.
+   > The props data will be loaded and prepared in the 'getStaticProps' function and then they would be set as 'props' for the Page Component function (e.g. "function HomePage(props)").
+   > Therefore, you no longer need to manage state using useState or retrieve the data from a database using useEffect because the data now comes via 'props' that is passed from the 'getStaticProps' function.
+   > This is how you can move the data fetching away from the client-side to the build process. If you now view the page source of the pre-rendered HTML page you should no longer see an empty unordered list. The HTML page contains the full HTML code for what is displayed on the page which is great for SEO.
+   > The data is no longer fetched in a second Component render cycle on the client but now initial before the page is pre-rendered during the build process.
+   > SSG is one of the main key features of NextJS. The 'getStaticProps' is a function you would use a lot with NextJS projects.
+
+   Running the NPM Build Script Command:
+      $: npm run build
+
+   > This is the script you would run within your terminal while cd in your NextJS project directory location. You would run this script before deploying your project onto your production server when you are ready to deploy your NextJS project. A new folder called '.next' will be created in the project containing the optimised production code ready to be deployed to a production server.
+   > In the terminal once the command has completed its execution you will see a list of Page it created during the build process. These are the Static Pages for your application code. You will also notice it also generates a 404 Page (for invalid URLs) for you.
+   > Each page has a dot next to the name. A filled dot denotes a Statically Generated Site (i.e. SSG) page which was automatically generated as a HTML. An empty dot denotes a Static Generated page.
+   > A Static Generation is almost similar to a Statically Generated Site but the only difference is that there are no initial props (i.e. no initial data that was fetched).
+   > Page Components which have the 'getStaticProps' function will be a SSG Page and will be denoted with a filled dot.
+   > The potential problems that you can face when using the 'getStaticProps' function is that for some websites (depending on what you are doing) the data could be outdated. In the above example, if you add more meetups to the database, the pre-generated page would not know about the new data. If there are no client side data-fetching then you would only see the outdated data being displayed and this can be a problem.
+   > You can always re-build the site and redeploy when the data changes and for some websites like personal blogs this is a great alternative because data does not change too frequently.
+   > If data does change more frequently there is an extra property you could add to the returned object from the 'getStaticProps' function. The 'revalidate' property unlocks a feature called incremental Static Generation. This property requires a number which is the number of seconds NextJS will wait until it regenerates the page for an incoming request.
+
+   Static Site Generation (SSG) with Server Revalidate SSG Generations Example:
+      export function getStaticProps(){
+         return {
+            props: {
+               meetups: DUMMY_MEETUPS
+            },
+            revalidate: 10
+         };
+      };
+
+   > In the above example, the page will not just be generated during the build process but it will also be generated every couple of seconds on the server (at least if there are requests for the Page Component). The re-generated pages will replace the old pre-generated pages. This will ensure the data is never older than 10 seconds. Therefore, the number you use depends on your data update frequency.

@@ -1,5 +1,3 @@
-import { useState, useEffect } from 'react';
-
 import MeetupList from '../components/meetups/MeetupList';
 
 const DUMMY_MEETUPS = [
@@ -7,17 +5,20 @@ const DUMMY_MEETUPS = [
    { id: 'm2', title: 'A Second Meetup', image: 'https://i0.wp.com/i.pinimg.com/originals/e3/b5/4d/e3b54de6c65ae3b90ac640126d586ed0.jpg', address: 'Coffee Shop in Italy', description: 'This is a second meetup'}
 ];
 
-function HomePage() {
-   const [loadedMeetups, setLoadedMeetups] = useState([]);
-
-   useEffect(() => {
-      // send HTTP request and fetch data
-      setLoadedMeetups(DUMMY_MEETUPS);
-   }, []);
-
+function HomePage(props) {
    return(
-      <MeetupList  meetups={loadedMeetups} />
+      <MeetupList meetups={props.meetups} />
    );
 };
 
+// Static Site Generation (SSG):
+export function getStaticProps(){
+   // fetch data from an API
+   return {
+      props: {
+         meetups: DUMMY_MEETUPS
+      },
+      revalidate: 10    // Re-validate the SSG every 10 seconds
+   };
+};
 export default HomePage;
