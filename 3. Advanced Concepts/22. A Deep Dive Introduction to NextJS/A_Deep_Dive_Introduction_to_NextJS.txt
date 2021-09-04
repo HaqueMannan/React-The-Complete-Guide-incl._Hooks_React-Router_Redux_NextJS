@@ -2,6 +2,7 @@ A Deep Dive Introduction into Next.js - Summary:
 1. What Is and Why Use Next.js?
 2. Creating a New NextJS Project App and Analysing the Project Setup
 3. Adding Pages, Nested Paths & Pages, Dynamic Pages (with Parameters) and Extracting Dynamic Parameter Values
+4. Linking Between Pages
 
 ------------------------------------------------------------------------------------
 1. What Is and Why Use Next.js?:
@@ -26,7 +27,7 @@ A Deep Dive Introduction into Next.js - Summary:
          - NextJS blends client-side and server-side code together. This on its own is probably already a strong benefit/reason for why you might want to use NextJS for building React Projects instead of just ReactJS.
       2) File-Based Routing:
          - In traditional React you do not have a router, instead you give an illusion of having multiple pages. When you navigate around and load different pages then that is the job of a router (typically using React Router). The router basically watches the URL and when it changes it basically prevents the browser's default behaviour of sending a request to some backend server. Instead, it renders different content on the page (i.e. Components) with React.
-         - Routing is basically changing what is visible on the screen based on the URL without sending a extra request to a server because you stay in that single page application which is typically built with React.
+         - Routing is basically changing what is visible on the screen based on the URL without sending a extra request to a server because you stay in that Single Page Application which is typically built with React.
          - In React, Routing is setup in code and while it is not bad or wrong it is extra code which you have to write. Then often, you end up storing your Components that act as pages in a separate folder which kind of replicates your routes setup in code (e.g. if your have three pages setup as pages in code you would then have three page Components in the pages Component folder).
          - NextJS gets rid of that in-code route definition. Instead, you define pages and routes with files and folders instead of code. NextJS applications have a special pages folder (which has to be named pages) and then you are structuring that folder to define the routes and path you page supports.
          - This allows you to get rid of extra code i.e. less code, less work and highly understandable concept (i.e. similar to how you started with web development using vanilla HTML, CSS and JavaScript files).
@@ -133,13 +134,14 @@ or
    > How can you now extract this entered path/parameter value inside of the Component so that you can for example fetch the correct news item from a database when a user visits this page?
 
    Extracting Dynamic Parameter Values Example:
-      import { useRouter } from 'next-router';
-      function DetailPage() {
-         const router = useRouter();
-         console.log(router.query.newID);
-         return <h1>The Detail Page</h1>;
-      };
-      export default DetailPage;
+      pages/news/[newsID].js:
+         import { useRouter } from 'next/router';
+         function DetailPage() {
+            const router = useRouter();
+            console.log(router.query.newID);
+            return <h1>The Detail Page</h1>;
+         };
+         export default DetailPage;
 
    > NextJS provides a special React Hook you can use to extract dynamic parameter values from the visited URL for the Component file. This works for React Function Components.
    > Important Note: there is also an alternative for React class-based Components i.e. using a Higher Order Component that you can wrap around your Components.
@@ -148,3 +150,54 @@ or
    > On the router object you get certain pieces of properties and methods which you can call. For example, you have methods for programmatic navigation as well as access to values encoded in the URL. The 'query' property gives access to a nested object and on this 'query' property you would have the identifier which you chose between the square brackets in the dynamic pages Component file name.
    > In the above example ".newsID" (from "[newsID].js") is a property held on the ".query" property object. This will hold the concrete value in the URL for the dynamic segment for which the page was visited.
    > The 'useRouter' Hook runs twice because it runs immediately when the page is first rendered (at this point it does not know what is in the URL) but once it has the URL information the Component is rendered again and then you will have the concrete value for the dynamic parameter. This is just how this Hook works and hence the console prints 'undefined' and then the concrete value from the URL.
+
+------------------------------------------------------------------------------------
+4. Linking Between Pages:
+------------------------------------------------------------------------------------
+   > Currently the user always has to enter the URL manually in the browser to render a page for the NextJS application. This is not how users would use websites instead there are links that allow users to navigate around.
+
+   Linking Between Pages Example:
+      pages/news/index.js:
+         import { Fragment } from 'react';
+         function NewsPage() {
+            return(
+               <Fragment>
+                  <h1>The News Page</h1>
+                  <ul>
+                     <li><a href="news/nextjs-is-a-framework"><li>NextJS is a Framework</li></a><li>
+                     <li><a href="news/reactjs-is-a-library"><li>React JS is a Library</li></a><li>
+                  </ul>
+               </Fragment>
+            );
+         };
+         export default NewsPage;
+
+   > React Fragment is used to wrap sibling Component without having to use a <div> element unnecessarily to overcome JSX limitation of returning a single parent element.
+   > In vanilla HTML you would use anchor tags to wrap around your element to create a link and the <a> element has a 'href' property which points to the URL path to navigate to when the link is clicked.
+   > The list could be generated dynamically by mapping some array data into JSX elements (the above is just hardcoding values for simple demonstration to focus on navigation feature in NextJS).
+   > While this would work in NextJS, this syntax is the second best way to navigate of navigating around in a NextJS App. This method always sends a new request to the server and gets back a new HTML page. While it works it has the disadvantage i.e. you no longer have a Single Page Application and are always sending a new request to the backend server to request a new HTML page whenever the user navigates around.
+   > While it is great that we have the pre-rendered pages so that when the user initially visits the website  some content is there right from the start which is great for SEO, but if the user is on the page already and then navigates around on it we want to stay in that Single Page Application because that allows us to preserve the state across pages and give the user a better more reactive user experience. This is one of the reasons for using React. Below is an alternative navigation provided by NextJS:
+
+   Linking Between Pages Alternative Example:
+      pages/news/index.js:
+         import { Fragment } from 'react';
+         import Link from 'next/link';
+         function NewsPage() {
+            return(
+               <Fragment>
+                  <h1>The News Page</h1>
+                  <ul>
+                     <li><Link href="news/nextjs-is-a-framework">NextJS is a Framework</Link><li>
+                     <li><Link href="news/reactjs-is-a-library">React JS is a Library</Link><li>
+                  </ul>
+               </Fragment>
+            );
+         };
+         export default NewsPage;
+
+   > The next/link is a sub-package which exposes linking specific functionality.
+   > The 'Link' Component (a default export) is a special Component which you can use inside of your JSX code to build links. You would use this instead of an anchor element. The 'Link' Component expects a 'href' prop which sets the target destination for the 'Link'. This by default will render an anchor element and everything will continue to work.
+   > The browser no longer refreshes the page when using the Links on the page. The user will instantly go to the page without requesting a new HTML page providing a Single Page Application experience. The visible content on the screen is re-rendered by React instead.
+   > This method allows you to combine the best of both worlds. You have a highly interactive and reactive Single Page Application where you can manage and store state across pages and yet if the user was to visit the page as an initial page by just entering the URL in the browser you will also be able to return the finished HTML page here. If the user is already on the news page and click the link the user stays on the Single Page Application.
+   > The 'Link' Component creates an anchor tag but it watches for clicks on those anchor tags and if you click on them it prevents the browsers default of sending a request and getting a new HTML page. Instead, it will load the to be loaded Component for you and change the URL so that it looks like you changed the page whilst in reality you stayed in that Single Page Application.
+   > Therefore, for internal links in a NextJS application you would want to use the Link Component instead of the anchor tag element because the Link Component provides the best of both worlds.
