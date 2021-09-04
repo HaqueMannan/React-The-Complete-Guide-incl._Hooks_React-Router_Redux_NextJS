@@ -5,6 +5,7 @@ A Deep Dive Introduction into Next.js - Summary:
 4. Linking Between Pages
 5. How Pre-Rendering Works & The Problems Faced with Pre-Rendering
 6. Data Fetching for Static Pages and Static Site Generation(SSG)
+7. Data Fetching for Server Side Rendering (SSR)
 
 ------------------------------------------------------------------------------------
 1. What Is and Why Use Next.js?:
@@ -308,7 +309,7 @@ or
          function HomePage(props) {
             return(<MeetupList meetups={props.meetups} />);
          };
-         export function getStaticProps(){
+         export async function getStaticProps(){
             // fetch data from an API
             return {
                props: {
@@ -339,7 +340,7 @@ or
    > If data does change more frequently there is an extra property you could add to the returned object from the 'getStaticProps' function. The 'revalidate' property unlocks a feature called incremental Static Generation. This property requires a number which is the number of seconds NextJS will wait until it regenerates the page for an incoming request.
 
    Static Site Generation (SSG) with Server Revalidate SSG Generations Example:
-      export function getStaticProps(){
+      export aync function getStaticProps(){
          return {
             props: {
                meetups: DUMMY_MEETUPS
@@ -349,3 +350,34 @@ or
       };
 
    > In the above example, the page will not just be generated during the build process but it will also be generated every couple of seconds on the server (at least if there are requests for the Page Component). The re-generated pages will replace the old pre-generated pages. This will ensure the data is never older than 10 seconds. Therefore, the number you use depends on your data update frequency.
+
+------------------------------------------------------------------------------------
+7. Data Fetching for Server Side Rendering (SSR):
+------------------------------------------------------------------------------------
+   > The 'getStaticProps' function is a very useful function which you can export in your Page Components to ensure that the pre-rendered pages contain data you might need to wait for. The 'revalidate' property ensures that the page is also updated regularly after deployment but sometimes even a regular update is not enough.
+   > Sometimes you really want to update the page for every incoming request i.e. pre-generate the page dynamically on the fly on every request after deployment on the server (not during the build process and not every couple of seconds/minutes/hours duration).
+
+   Server Side Rendering (SSR) Example:
+      export async function getServerSideProps(context) {
+         const req = context.req;
+         const res = context.res;
+         // fetch data from an API
+         return {
+            props: {
+               meetups: DUMMY_MEETUPS
+            }
+         };
+      };
+
+   > The exported 'getServerSideProps' function is a reserved name which NextJS will look for in Page Components. This function will not run during the build process but instead always on the server after deployment.
+   > The 'getServerSideProps' function always returns an object with a 'props' property (the same as the 'getStaticProps' function) because the function is still all about getting props for the Page Component. You can therefore continue to run any code including asynchronous code such as fetching data from the file system or a database, etc. Any code you write here will always run on the server and never on the client.
+   > You can therefore run server side code as well as perform operations that use credentials that should not be exposed to the users. This is because this code only ever runs on the server and not on the client machine so the client will never see this code.
+   > You cannot set a 'revalidate' property on the 'getServerSideProps' function return object because it does not make any sense to have such a property. The 'getServerSideProps' function runs for every incoming server side request so it does not require any revalidation for whatever duration in seconds.
+   > The 'getServerSideProps' function can receive a 'context' argument/parameter (note: you also get access to this parameter with the 'getStaticProps' function). The 'context' argument/parameter has a request object (under 'req' key) as well as the response (under the 'res' key). If you work with NodeJS the 'res' and 'req' keys might look familiar to you.
+   > Having access to the concrete request object can be useful for example when working with authentication and you need to check some session cookie or anything of the sort like this. The request object provides access to all the incoming request and all of its headers and request body if you need that information (i.e. that extra data can be used as extra information required for the code that needs to execute in 'getServerSideProps').
+   > Ultimately, you do not send a response by working on that response object but instead you return the object with the 'props' property key which then holds an object of all the 'props' for the Page Component function to receive. This is how you can use 'getServerSideProps' for preparing that data for the page.
+   > You will notice that everything works the same as before with 'getStaticProps' and you would still receive a HTML page with all the content (i.e. the unordered list with list item elements) in the served page source.
+   > The 'getServerSideProps' may sound better to use because it guarantees to run for every request but that can also be a disadvantage. You would need to wait for the page to be generated on every incoming request because of the (SSR).
+   > If you do not have data that changes frequently or you do not need access to the request object then the 'getStaticProps' (SSG) method is better. The pre-generated static HTML file can be stored and served in a CDN which is simply much faster than regenerating and fetching the data for every incoming request on the server.
+   > Page fetching/loading is faster when working with 'getStaticProps' compared to with 'getServerSideProps' because the static page can be cached and reused instead of being regenerated all the time.
+   > Hence, you should only use the 'getServerSideProps' (SSR) method if you need access to the concrete request object (i.e. 'req') because you do not have access to the request and response in the 'getStaticProps' (SSG) method or that you have data that changes multiple times every second and even the 'revalidate' property on the return object of 'getStaticProps' will not help you.
