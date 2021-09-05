@@ -8,6 +8,7 @@ A Deep Dive Introduction into Next.js - Summary:
 7. Data Fetching for Server Side Rendering (SSR)
 8. Working with Dynamic Params for SSG Data Fetching
 9. Introducing API Routes
+10. Sending HTTP Requests to API Routes & Fetching Data From a Database
 
 ------------------------------------------------------------------------------------
 1. What Is and Why Use Next.js?:
@@ -480,3 +481,110 @@ or
    > You can then do whatever you want inside of the function that you need to do. You can decide whatever data you would expect to receive for the endpoint since it is you page, your project and your API (you can expect whichever data you need).
    > The above example uses object destructuring to extract values from the object to store as individual variable of the same name. You can then save that data to a database as an example of what the API Route.
    > This is how you can build API Routes using NextJS within a single project.
+
+------------------------------------------------------------------------------------
+10. Sending HTTP Requests to API Routes & Fetching Data From a Database:
+------------------------------------------------------------------------------------
+   > Sending a request to an API Route works just as sending a request to any API endpoint within a React application. You would go to the Component Page that uses a form Component to work with the data in order to send that data across to the API endpoint.
+   > Below is a example API Route that sends a HTTP POST request to a mongoDB Atlas backend database.
+
+   API Route File Example:
+      src/pages/api/new-meetup.js:
+         import { MongoClient } from 'mongodb';
+         async function handler(req, res) {
+            if(req.method === 'POST') {
+               const data = req.body;
+               const client = await MongoClient.connect('mongodb+srv://Tester:OXIsMht4XrKqbcpz@cluster0.evwfu.mongodb.net/meetupsDB?retryWrites=true&w=majority');
+               const db = client.db();
+               const meetupsCollection = db.collection('meetups');
+               const result = await meetupsCollection.insertOne(data);
+               console.log(result);
+               client.close();
+               res.status(201).json({ message: 'Meetup Inserted!' });
+            };
+         };
+         export default handler;
+
+   > This API Route uses the mongodb package (use 'npm install mongodb' command in your project to install the package) to interface with the mongoDB database server. MongoDB is a No SQL database.
+   > The client is used to open a connection to the backend database using the credentials (the credentials will stay on the server and NextJS will not expose API Route files to the client). A new database collection is created called "meetups". The 'insertOne' method allows you to pass a JSON object to insert one data into the database collection.
+   > The 'data' comes from the request body which we expect to be a JSON object of the information you want to POST when submitting the Component form (i.e. "{ title, image, address, description }" in this example). Therefore, the 'insertOne' method is passed the whole 'data' object and there is no need to perform object destructuring.
+   > The API Route function closes the client connection and sends back a HTTP response object to the client. The request object holds the status "201" to indicate that something was inserted to the database and a JSON object to be returned with the response containing a "message" key and a success message as the value.
+   > Note: you could add error handling to check whether the connection succeeded and if a data was actually posted to the database; however, for this demonstration we always expect everything to succeed to keep things simple.
+
+   Sending HTTP Request to API Routes Example:
+      src/components/meetups/NewMeetupForm.js:
+         ...
+         function NewMeetupForm(props) {
+            ...
+            function submitHandler(event) {
+               ...
+               const meetupData = { title: enteredTitle, image: enteredImage, address: enteredAddress, description: enteredDescription,
+               };
+               props.onAddMeetup(meetupData);
+            };
+            return (<Card><form className={classes.form} onSubmit={submitHandler}>...</form></Card>);
+         };
+         export default NewMeetupForm;
+      src/pages/new-meetup/index.js:
+         import router, { useRouter } from 'next/router';
+         import NewMeetupForm from '../../components/meetups/NewMeetupForm';
+         function NewMeetupPage() {
+            async function addMeetupHandler(enteredMeetupData) {
+               // console.log(enteredMeetupData);
+               const response = await fetch('/api/new-meetup', {
+                  method: 'POST',
+                  body: JSON.stringify(enteredMeetupData),
+                  headers: {
+                     'Content-Type': 'application/json'
+                  }
+               });
+               const data = await response.json();
+               console.log(data);
+               router.push('/');
+            };
+            return(<NewMeetupForm onAddMeetup={addMeetupHandler} />);
+         };
+         export default NewMeetupPage;
+
+   > In this example, the "NewMeetupPage" Page Component contains the "NewMeetupForm" Component which is the Component holding the necessary data within a form that you would want to use when sending a API request to the API Route endpoint. The "addMeetupHandler" gets the "enteredMeetupData" (i.e. the collection data) from the "NewMeetupForm" Component. Therefore, it is in this function you want to handle sending the request to the API Route.
+   > You can send a request just as you would know it for example using the Fetch API or a third party package like Axios.
+   > Normally, you would pass in a path to the external API such as "https://domain-name.com/apipath" but since this is a internal API which will be hosted by the same server being used to serve the page you can therefore construct a absolute path to send a request to the same server but to a different path on that server. Hence, the path above is "/api/new-meetup" because that is the folder/file structure leading to the API Route file.
+   > NextJS will trigger the function from the API Routes file for you automatically whenever a request is made to this API Route path.
+   > The "enteredMeetupData" can be passed as the request body because it is in the same JSON object format expected by the API function (i.e. the "meetupData" is an object that contains title, image, address and description which is passed onto the "enteredMeetupData").
+   > The JSON object needs to be converted to a string representation which is achieved using the built-in JavaScript 'JSON.stringify' method which is passed as the string JSON data value for the request body. The 'headers:  Content-Type' makes it clear that the request is sending across JSON data.
+   > Eventually, you will get a response and then get data from that response if you want to and then work with that data as you would normally do when working with the Fetch API.
+   > Submitting the New Meetup Form will send a HTTP request using the internal API Route endpoint passing the form data across as JSON data. If MongoDB is connected and working then the API Route should send a request, insert the form data into the database and return a response (which in the above example is logged to the console).
+   > This is how you can use your Pages Components to send HTTP requests to your internal API Routes.
+
+   Fetching Data From a Database Example:
+      src/pages/index.js:
+         import { MongoClient } from 'mongodb';
+         import MeetupList from '../components/meetups/MeetupList';
+         function HomePage(props) {
+            return(<MeetupList meetups={props.meetups} />);
+         };
+         export async function getStaticProps(){
+            const client = await MongoClient.connect('mongodb+srv://Tester:OXIsMht4XrKqbcpz@cluster0.evwfu.mongodb.net/meetupsDB?retryWrites=true&w=majority');
+            const db = client.db();
+            const meetupsCollection = db.collection('meetups');
+            const meetups = await meetupsCollection.find().toArray();
+            client.close();
+            return {
+               props: {
+                  meetups: meetups.map(meetup => ({
+                     id: meetup._id.toString(),
+                     title: meetup.title,
+                     address: meetup.address,
+                     image: meetup.image,
+                  }))
+               },
+               revalidate: 10    // Re-validate the SSG every 10 seconds
+            };
+         };
+
+   > Sending a request to your own API endpoint to fetch data is slightly redundant. Keep in mind the code you write in the 'getStaticPaths' or 'getServerSideProps' functions will only run on the server or during the build time but never in the client. The code in these functions will never be exposed to the client.
+   > If you want to fetch data then you can write the code directly inside of the 'getStaticProps' function or in a helper function that will be executed in the 'getStaticProps' function. Therefore, you do not need to send a request to your own API route and can immediately execute the code in these functions which avoids the extra unnecessary request which would be sent otherwise.
+   > When you import something inside of the Page Component and it is only used inside of the 'getStaticProps' or 'getServerSideProps' function, the imported package will not be part of the client side bundle. Therefore, you can import packages in the Page Component which will only run on the server and NextJS will detect this and not include it within the client side bundle. This is great for bundle size considerations as well as security.
+   > The mongoDB 'find' method allows you to find all records within a collection. MongoDB returns a slightly complex object which cannot be returned as is and so the JavaScript '.map()' method is used to map and transform the array object into a new array object which has the objects transformed to the data format expected by the application. The .toString() is used to convert mongoDB '_id' property which is an object into a usable string.
+   > You now have the application that displays a list of meetups that comes directly from a backend database (rather than from the hardcoded "DUMMY_MEETUPS" data).
+   > This is how you can pre-render data that is actually coming from a database without having to create an internal API Route which is a little redundant. All the code in the 'getStaticProps' will be executed when the page is being pre-generated.
