@@ -6,6 +6,7 @@ A Deep Dive Introduction into Next.js - Summary:
 5. How Pre-Rendering Works & The Problems Faced with Pre-Rendering
 6. Data Fetching for Static Pages and Static Site Generation(SSG)
 7. Data Fetching for Server Side Rendering (SSR)
+8. Working with Dynamic Params for SSG Data Fetching
 
 ------------------------------------------------------------------------------------
 1. What Is and Why Use Next.js?:
@@ -381,3 +382,67 @@ or
    > If you do not have data that changes frequently or you do not need access to the request object then the 'getStaticProps' (SSG) method is better. The pre-generated static HTML file can be stored and served in a CDN which is simply much faster than regenerating and fetching the data for every incoming request on the server.
    > Page fetching/loading is faster when working with 'getStaticProps' compared to with 'getServerSideProps' because the static page can be cached and reused instead of being regenerated all the time.
    > Hence, you should only use the 'getServerSideProps' (SSR) method if you need access to the concrete request object (i.e. 'req') because you do not have access to the request and response in the 'getStaticProps' (SSG) method or that you have data that changes multiple times every second and even the 'revalidate' property on the return object of 'getStaticProps' will not help you.
+
+------------------------------------------------------------------------------------
+8. Working with Dynamic Params for SSG Data Fetching:
+------------------------------------------------------------------------------------
+   > Imagine if you needed to fetch some data based on a parameter encoded in the URL (as a parameter) such as the id of the record you wish to identify and retrieve from a dashboard. The problem you face with fetching data using SSG (or SSR) is that you cannot use the 'useRouter' Hooks (or any Hooks) outside of a Component function. The 'getStaticProps' function is not a Component function this would invalidates the rule for using React Hooks.
+
+   Extracting Parameters in SSG/SSR Data Fetching Example:
+      src/pages/[meetupID]/index.js:
+         import MeetupDetail from '../../components/meetups/MeetupDetail';
+         function MeetupDetails() {
+            return(
+               <MeetupDetail
+                  image="https://image1.jpg"
+                  title="First Meetup"
+                  address="1 Fake Road, Fake City"
+                  description="This is a first meetup"
+               />
+            );
+         };
+         export async function getStaticPaths() {
+            return {
+               paths: [
+                  { params: { meetupID: 'm1'} },
+                  { params: { meetupID: 'm2'} }
+               ]
+            }
+         };
+         export async function getStaticProps(context) {
+            const meetupId = context.params.meetupID;
+            console.log(meetupId);
+            // fetch data for a single meetup
+            return {
+               fallback: false,
+               props: {
+                  meetupData: {
+                     id: meetupId,
+                     image='https://image1.jpg',
+                     title: 'First Meetup',
+                     address: '1 Fake Road, Fake City',
+                     description: 'This is a first meetup'
+                  }
+               }
+            };
+         };
+         export default MeetupDetails;
+
+   > This is not a problem because the 'getStaticProps' and 'getServerSideProps' receive a context argument/parameter which you can use.
+   > The 'context' argument/parameter passed to 'getStaticProps' will not hold the 'request' and 'response' object unlike with 'getServerSideProps'. However, the context argument/parameter will have a 'params' key for either functions.
+   > The 'context.params' is an object where the identifiers between square brackets (e.g. meetupID) will be properties and the values will be the actual values encoded in the URL.
+   > This would then allow the function to retrieve a concrete id which can then be exposed as a prop to the page Component. However, this is not enough to make it work as this will throw an error "getStaticPaths is required for dynamic SSG pages and is missing for [Component File Name]".
+   > The export 'getStaticPaths' is another function NextJS understands and must be exported in the Page Component file if the page is Dynamic and you are using 'getStaticProps'.
+   > The 'getStaticPaths' is not needed for 'getServerSideProps' or if you are not using i.e. exporting either 'getStaticPaths' or 'getServerSideProps' in your Dynamic Page Component function.
+   > The 'getStaticPaths' function can also be an asynchronous function.
+   > Why do you need 'getStaticPaths' with a dynamic page that uses 'getStaticProps'? With 'getStaticProps' a page is pre-generated during the build process and therefore NexJS needs to pre-generate all versions of the dynamic page in advance for all supported IDs. Since the Param is dynamic NextJS needs to know for which ID it should pre-generate the page - how would it pre-generate the page otherwise?
+   > Keep in mind the Dynamic Page Component is not pre-generated when a user visits the page with a specific value in the URL but rather during the build process. Therefore, you need to pre-generate for all the URLs (e.g. all the meetupID values) the users might be entering at runtime. If the user enters an ID that was not pre-generated a page then a 404 page error page will be displayed instead.
+   > Therefore, the 'getStaticPaths' function has the job of returning an object where you describe all the dynamic segment values for which this page should be pre-generated.
+   > The 'getStaticPaths' return object needs a 'paths' key which holds an array which objects for each version of the dynamic page. This object has a 'params' key which then itself is again an object with all the key:value pairs that might lead to the dynamic page.
+   > In the above example there is only one dynamic param path ([meetupID]) which is listed with its concrete id. If the URL have multiple dynamic params path, the 'params' key object will hold a list of each dynamic path as keys with the potential concrete value as its value. This is repeated for all possible dynamic path variations you would wish to pre-generate pages for.
+   > In reality you would not hardcode these values but rather fetch your supported IDs from a database/API and then generate the array dynamically. But for demonstration purposes the above example shows how this return object would look like for each dynamic path you would want to pre-generate a SSG for at the build process.
+   > The 'getStaticPaths' function return object also expects a 'fallback' property which tells NextJS whether the 'paths' array contains all supported parameter values or just some of them. Setting the 'fallback' parameter to false will tell NextJS that the 'paths' array contains all supported meetupID values. If a user enters anything that is not supported the user would see the 404 error page. If you set 'fallback' property to true then NextJS would try to generate a page for the meetupID dynamically on the server for the incoming request.
+   > The 'fallback' is a nice feature because it allows you to pre-generate some of your pages for certain values and then pre-generate the missing values dynamically when requests for them are coming in. This is useful so that you do not have to pre-generate all pages (especially if you have 100 of IDs) but rather pre-generate the most popular pages.
+   > The export of 'getStaticPaths' function must come before the 'getStaticProps' function. This ordering is important because the 'getStaticProps' is executed for every page returned by the 'getStaticPaths' function.
+   > Note that the 'console.log(meetupId)' would be printed in the terminal console and not in the browser JavaScript console because the 'getStaticProps' runs at build time on the server (i.e. on the developer server using NodeJS to run JavaScript code on the server) and not on the client browser.
+   > This concludes how 'getStaticProps' and 'getServerSideProps' works for pre-generating pages rather than using the default built-in pre-rendering of NextJS and how you can configure these functions to work. Note: the return object to these functions have many parameters which you can read up on in the official NextJS documentations for these functions and their return object settings.
