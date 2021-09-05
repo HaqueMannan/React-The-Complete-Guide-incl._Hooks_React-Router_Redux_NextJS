@@ -10,6 +10,7 @@ A Deep Dive Introduction into Next.js - Summary:
 9. Introducing API Routes
 10. Sending HTTP Requests to API Routes & Fetching Data From a Database
 11. Getting Data from a Database to Prepare Pages for SSG
+12. Adding 'Head' Metadata and Deploying NextJS Projects
 
 ------------------------------------------------------------------------------------
 1. What Is and Why Use Next.js?:
@@ -651,3 +652,106 @@ or
    > To convert the id string value into the mongoDB object for id, import 'ObjectId' function from the mongoDB library and wrap it around the string value. This will convert the string value into an ObjectId which mongoDB expects to receive for filtering/searching records by the id.
    > Remember to convert the returned object from mongoDB which contains the ObjectId back into a serialised string otherwise you will see 'Error serializing' message thrown.
    > You now have a pre-generated (on the server) dynamic details pages for each data coming from a backend database.
+
+------------------------------------------------------------------------------------
+12. Adding 'Head' Metadata and Deploying NextJS Projects:
+------------------------------------------------------------------------------------
+   Adding 'Head' Metadata:
+   > Once your NextJS project application is finished and ready to be deployed onto a remote server to be served to the web there is one thing you should always double check on any NextJS project (or web project in general) before deployment and this is checking the Metadata.
+   > The content being visible on the screen is the most important part but we have not added any metadata. If you inspect the rendered HTML code the head section is relatively empty. You would have some meta tags but there are some meta tags missing such as description and page title (which is important for Search Engines).
+   > Adding such <meta /> tags to the <head /> element is something you definitely would want to do when you build a website. Adding such head metadata elements to your pages is relatively simple with NextJS.
+
+   Adding head Metadata Example:
+      src/pages/index.js:
+         import { Fragment } from 'react';
+         import Head from 'next/head';
+         ...
+         function HomePage(props) {
+            return(
+               <Fragment>
+                  <Head>
+                     <title>React Meetups</title>
+                     <meta name="description" content="Browse a huge list of highly active React meetups!" />
+                  </Head>
+                  <MeetupList meetups={props.meetups} />
+               </Fragment>
+            );
+         };
+         export async function getStaticProps(){...};
+         export default HomePage;
+      src/pages/[meetupID]/index.js:
+         import { Fragment } from 'react';
+         import Head from 'next/head';
+         ...
+         function MeetupDetails(props) {
+            return(
+               <Fragment>
+                  <Head>
+                     <title>{props.meetupData.title}</title>
+                     <meta name="description" content={props.meetupData.description} />
+                  </Head>
+                  <MeetupDetail image={props.meetupData.image} title={props.meetupData.title} address={props.meetupData.address} description={props.meetupData.description} />
+               </Fragment>
+            );
+         };
+         export async function getStaticPaths() {...};
+         export async function getStaticProps(context) {...};
+         export default MeetupDetails;
+
+   > Import the 'Head' Component (a special Component) from the 'next/head' sub-package. This is a Component which allows you to add Head elements to the <head> section of your page. Simply add the Component to the returned JSX code for the Page Component file.
+   > Inside of the Head Component (i.e. between the opening and closing tags) you can insert your head elements i.e. all elements you can add to the head element can be added here such as <title />.
+   > You will notice that when visiting the page that has a <title> head metadata, it will display the text on the browsers tab for that visited page. If you view the developer tools and view the Sources or Elements tab for the visited page you should also be able to see the <title> element added to the HTML page code.
+   > The meta tag holds a name and content attributes that are picked up by Search Engines. You can use a meta tag to set a description for the webpage. The content is what will be shown in the Search Engine (such as Google) as the description for the webpage while <title> will be used for the title of the webpage for the returned search results for the page.
+   > You can add metadata for all your pages of your application (with different metadata information related to each page) to help with SEO.
+   > You can also add dynamic header titles metadata using props received from the Page Component for example ("props.meetupData.title" can be used for the Details Page Title). This is super easy using regular JSX code features provided by React. Therefore, you have an option to set hardcoded values as well as dynamic values.
+   > Your NextJS application is now ready for deployment.
+
+   Deploying NextJS Applications:
+   > When it comes to deploying NextJS applications there are different hosting providers you can use and there are different ways of configuring the project as well. For example, you can use environment variables to hold sensitive informations such as database credentials. From a security perspective have your credentials in the server code (i.e. 'getStaticProps', 'getServerSideProps', 'getStaticPaths' functions and API Route files) is perfectly fine because these these files are never exposed to the client.
+   > Vercel (https://vercel.com/) is a great hosting provider for NextJS applications because it is the owned by the same team that developed NextJS. Therefore, it embraces NextJS development and is optimised for NextJS projects. Deploying to Vercel is also extremely simple.
+   > Important Note: Vercel can also be used for other Projects and is not just limited to NextJS projects (but it is a hosting provider optimised for NestJS).
+   > To start deploying, you need to signup with a git repository provider (such as Github, GitLab or BitBucket). With Vercel you will directly link your Git repository which holds your NexJS application source code and then Vercel would get your source code from that repository and deploy the application for you. This means Vercel will build and then deploy and start your project for you. Therefore, you do not need to run any build scripts on your own because Vercel would do that automatically for you.
+   > If you look at the package.json file, you will see an object which has a script key. This holds and object of key:value pairs which define the different scripts (i.e. terminal commands) for the project. Vercel will be able to use these scripts when it deploys your application for you:
+      - The 'npm run dev' command allows you to run a development server to view your application on your local machine during development.
+      - The 'npm run build' command will run the build script to create your production code and optimise the application bundle files for production. A new ".next" folder is created containing the optimised production code.
+         > If you use a different hosting provider which does not build your application code for production you would need to run this command first and upload only the ".next" production file to the hosting provider to deploy your NextJS application. With Vercel you do not need to do this as it does this all for you on their servers.
+      - The 'npm start' command you can start a production server. This is a production server that you can start on a remote machine which you administer yourself to run the server for your NextJS application. That server should stay up and running on that machine as long as you want to expose the application to the world.
+   
+   > A hosting provider is used to host your application on their remote machines which will keep your application production server up and running to be accessed by the whole world.
+   > You can view the different options provided by the hosting provided. Most provider offer a free tier options as well as paid options.
+   > In Vercel when setting up you would point at the Git repository to give Vercel access to the repository, it will ask you which Vercel profile account to select for the project (i.e. Free Tier Account or Paid Tier Account profile) and finally the configuration of how the project should be pulled and built. All the defaults should typically work for your NextJS application. You can setup any environment variable in the configuration step and when ready click the "Deploy" button.
+   > If you have a backend database hosted by another provider (e.g. if using MongoDB Atlas No SQL database provider) you will need to go to the network access to whitelist and allow the hosting provider IP address to access the database otherwise the Vercel hosting provider IP will be denied by the MongoDB. This would mean the application would not be able to send HTTP request to the database server if it does not have permissions to do so and will all depend on the hosting provider of your backend API/database. Ensure to do this first before deploying to Vercel (or any other hosting provider).
+   > You should now have a new NextJS application hosted on the web using Vercel as your hosting provider. People across the world can now use your application.
+
+   Using Fallback Pages and Re-deployment:
+   > You will notice that any requests for which no page was pre-generated before will fail (i.e. new data entered after deployment). Fixing this issue is very simple.
+   > You can set 'fallback' key of the 'getStaticPaths' returned object to 'true' or even better to 'blocking' which tells NextJS that the list of paths being specified in the 'paths' key might not be an exhaustive list. There may be more valid pages (especially when new data are added to the database after deployment).
+   > When 'fallback' is set to 'true' or 'blocking' thn NextJS will not respond with a 404 page if it cannot find the page immediately. Instead it will generate that page on demand and thereafter it can cache the page so that the page is pre-generated when needed.
+   > The difference between a 'true' and 'blocking' value is that 'true' would immediately return an empty page and then pull down the dynamically generated content once that is done (i.e. you will need to handle the case when the page does not have the data yet). However, with 'blocking' the user will not see anything until the page was pre-generated and the finished page will be served and does not require any extra work from the developer.
+
+   Fallback Blocking Example:
+   src/pages/[meetupID]/index.js:
+      export async function getStaticPaths() {
+      const client = await MongoClient.connect('mongodb+srv://Tester:OXIsMht4XrKqbcpz@cluster0.evwfu.mongodb.net/meetupsDB?retryWrites=true&w=majority');
+      const db = client.db();
+      const meetupsCollection = db.collection('meetups');
+      const meetups = await meetupsCollection.find({}, {_id: 1}).toArray();
+      client.close();
+         return {
+            fallback: 'blocking',
+            paths: meetups.map(meetup => ({
+               params: { meetupID: meetup._id.toString() }
+            }))
+         }
+      };
+
+   > To redeploy the change to Vercel or any hosting provider, you would need to create a new snapshot of your project (other hosting providers may need you to run the 'npm run build' script again and upload the new build snapshot if they do not do this automatically for you). You would push new changes to your Git repository provider.
+   > Linking the Git repository to Vercel will allow Vercel to watch the repository main branch and when it detects any changes there it will automatically start building and redeploying the NextJS application. This is a very convenient feature provided by the Vercel provider (i.e. updating your application only requires you to commit new changes to your Git repository and Vercel will handle the build and redeployment automatically for you).
+   > While the page is being redeployed, Vercel will keep you existing application up and running but once it is finished with redeployment the new page will take over.
+   > There are more things you can do with your hosting provider such as creating/linking a custom domain name for your application and configure more options inside of your project.
+
+------------------------------------------------------------------------------------
+Conclusion:
+------------------------------------------------------------------------------------
+   > NextJS has more configuration options for 'getStaticProps' and 'getServerSideProps' return object, there are ways of optimising images with the built-in NextImage Component, you could easily add authentication and add user signup, login and logout and manage sessions with NextJS and many more features you can use with NextJS.
+   > You should now have an overview of the core key features of NextJS which will help you get started building NextJS projects but you can read their documentations for all their other features provided by the NextJS Framework. Hopefully, you can see what NextJS is, why using it might be interesting and how NextJS can simplify building complex React Applications for building Full Stack Applications.
