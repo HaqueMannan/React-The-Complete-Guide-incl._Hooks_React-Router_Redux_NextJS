@@ -7,6 +7,7 @@ A Deep Dive Introduction into Next.js - Summary:
 6. Data Fetching for Static Pages and Static Site Generation(SSG)
 7. Data Fetching for Server Side Rendering (SSR)
 8. Working with Dynamic Params for SSG Data Fetching
+9. Introducing API Routes
 
 ------------------------------------------------------------------------------------
 1. What Is and Why Use Next.js?:
@@ -72,7 +73,7 @@ A Deep Dive Introduction into Next.js - Summary:
          };
          export default MyApp;
 
-   > The _app.js File in the "pages" folder is an important and special file. This is like the root Component which NextJS will render. It receives props and uses Object de-structuring to pull information out of the props and the information it pulls out is a 'Component' prop and 'Page' prop. These props are passed into the 'MyApp' Component automatically by NextJS since NexJS is the thing that is using that specific Component. 'Component' is the prop that holds the actual page content that should be rendered (i.e. it will be different whenever you switch a page). 'Page' is the specific props the page might be getting.
+   > The "_app.js" File in the "pages" folder is an important and special file. This is like the root Component which NextJS will render. It receives props and uses Object de-structuring to pull information out of the props and the information it pulls out is a 'Component' prop and 'Page' prop. These props are passed into the 'MyApp' Component automatically by NextJS since NexJS is the thing that is using that specific Component. 'Component' is the prop that holds the actual page content that should be rendered (i.e. it will be different whenever you switch a page). 'Page' is the specific props the page might be getting.
    > You can delete the boilerplate template codes such as "Home.module.css" file (from the "styles" folder), the "api" folder and the "index.js" file (from the "pages" folder).
    > You now have a starting NextJS directory to build out your NextJS application code.
 
@@ -446,3 +447,36 @@ or
    > The export of 'getStaticPaths' function must come before the 'getStaticProps' function. This ordering is important because the 'getStaticProps' is executed for every page returned by the 'getStaticPaths' function.
    > Note that the 'console.log(meetupId)' would be printed in the terminal console and not in the browser JavaScript console because the 'getStaticProps' runs at build time on the server (i.e. on the developer server using NodeJS to run JavaScript code on the server) and not on the client browser.
    > This concludes how 'getStaticProps' and 'getServerSideProps' works for pre-generating pages rather than using the default built-in pre-rendering of NextJS and how you can configure these functions to work. Note: the return object to these functions have many parameters which you can read up on in the official NextJS documentations for these functions and their return object settings.
+
+------------------------------------------------------------------------------------
+9. Introducing API Routes:
+------------------------------------------------------------------------------------
+   > NextJS makes it easy to build a backend API together with your front-end React Application in the same project which is a major key feature for using the NextJS framework.
+   > API Routes are a special endpoint routes (special pages) which do not return HTML code but which are instead about accepting incoming HTTP requests (e.g. GET, POST, PUT, PATCH, UPDATE, DELETE requests) with JSON data attached to them which then might do whatever you need them to do for example storing the data in a database and then return the JSON data.
+   > Therefore, you could say that API Routes allow you to build your own API end points as part of your NextJS project and then it would be served by the same server as your NextJS Application.
+   > To add API Routes you add a special folder to your pages folder called 'api'. Just as with the "pages" folder the "api" folder must be named "api" and must be contained inside of the "pages" folder. This tells NextJS that the files contained in this folder are API Route files.
+   > The file names inside of the "api" folder will act as path segments in the URL.
+   > The JavaScript files located in the "api" folder must not be React Component functions. The API Routes files are not about defining, rendering or retuning React Components. Instead you will define function that contain server-side code. This is because API Routes will only run on the server, never on the client and will never be exposed to the client. Therefore, you can use credentials inside of an API Routes without compromising them.
+   > These functions are simply triggered whenever a request is sent to the API Routes.
+
+   API Routes File Example
+      src/pages/api/new-meetup.js:
+         function handler(req, res) {
+            if(req.method === 'POST') {
+               const data = req.body;
+               const { title, image, address, description } = data;
+               // Store the incoming data in a database.
+            };
+         };
+         export default handler;
+
+   > The new-meetup JavaScript file functions will execute when the user sends a request to "www.domain-name.com/api/news-meetup"
+   > Often the name of the functions in API Route files is called "handler" but the name is entirely up to you but it is important that the function is exported as the default export.
+   > The API Route function will receive a request ('req') and response ('res') objects as argument/parameters to the function. You might know this from NodeJS and ExpressJS.
+   > The request object holds information about the incoming request while the response object is required for sending back a response to the incoming request.
+   > from the request object you can get information such as the request headers, request body, request method, etc. The 'req.method' property allows you to see what type of request was sent.
+   > In the above example the conditional statement checks the type of request that is sent and only if it is a POST request will the function execute that code block.
+   > The 'req.body' contains the body of the incoming request (i.e. the data of the incoming request).
+   > You can then do whatever you want inside of the function that you need to do. You can decide whatever data you would expect to receive for the endpoint since it is you page, your project and your API (you can expect whichever data you need).
+   > The above example uses object destructuring to extract values from the object to store as individual variable of the same name. You can then save that data to a database as an example of what the API Route.
+   > This is how you can build API Routes using NextJS within a single project.
