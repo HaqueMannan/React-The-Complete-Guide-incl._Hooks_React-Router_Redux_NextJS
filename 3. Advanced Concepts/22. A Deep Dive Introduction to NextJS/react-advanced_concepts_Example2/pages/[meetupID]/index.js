@@ -1,39 +1,52 @@
+import { MongoClient, ObjectId } from 'mongodb';
+
 import MeetupDetail from '../../components/meetups/MeetupDetail';
 
-function MeetupDetails() {
+function MeetupDetails(props) {
    return(
       <MeetupDetail
-         image="https://media.cntraveler.com/photos/5fc6818f3cfe1de2cab79372/4:3/w_4000,h_3000,c_limit/Amsterdam-GettyImages-840603854.jpg"
-         title="First Meetup"
-         address="1 Fake Road, Fake City"
-         description="This is a first meetup"
+         image={props.meetupData.image}
+         title={props.meetupData.title}
+         address={props.meetupData.address}
+         description={props.meetupData.description}
       />
    );
 };
 
 export async function getStaticPaths() {
+   const client = await MongoClient.connect('mongodb+srv://Tester:OXIsMht4XrKqbcpz@cluster0.evwfu.mongodb.net/meetupsDB?retryWrites=true&w=majority');
+   const db = client.db();
+   const meetupsCollection = db.collection('meetups');
+   const meetups = await meetupsCollection.find({}, {_id: 1}).toArray();
+   client.close();
+
    return {
       fallback: false,
-      paths: [
-         { params: { meetupID: 'm1'} },
-         { params: { meetupID: 'm2'} }
-      ]
+      paths: meetups.map(meetup => ({
+         params: { meetupID: meetup._id.toString() }
+      }))
    }
 };
 
 export async function getStaticProps(context) {
    const meetupId = context.params.meetupID;
-   console.log(meetupId);
+   // console.log(meetupId);
 
    // fetch data for a single meetup
+   const client = await MongoClient.connect('mongodb+srv://Tester:OXIsMht4XrKqbcpz@cluster0.evwfu.mongodb.net/meetupsDB?retryWrites=true&w=majority');
+   const db = client.db();
+   const meetupsCollection = db.collection('meetups');
+   const selectedMeetup = await meetupsCollection.findOne({ _id: ObjectId(meetupId) });
+   client.close();
+
    return {
       props: {
          meetupData: {
-            id: meetupId,
-            image: 'https://media.cntraveler.com/photos/5fc6818f3cfe1de2cab79372/4:3/w_4000,h_3000,c_limit/Amsterdam-GettyImages-840603854.jpg',
-            title: 'First Meetup',
-            address: '1 Fake Road, Fake City',
-            description: 'This is a first meetup'
+            id: selectedMeetup._id.toString(),
+            image: selectedMeetup.image,
+            title: selectedMeetup.title,
+            address: selectedMeetup.address,
+            description: selectedMeetup.description
          }
       }
    };
