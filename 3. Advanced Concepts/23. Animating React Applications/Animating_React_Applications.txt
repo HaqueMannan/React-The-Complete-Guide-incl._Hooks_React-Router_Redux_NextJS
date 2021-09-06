@@ -1,0 +1,109 @@
+Animating React Applications - Summary:
+1. Using CSS Transitions and Animations and Their Limitations
+
+------------------------------------------------------------------------------------
+1. Using CSS Transitions and Animations and Their Limitations:
+------------------------------------------------------------------------------------
+   > When working with animations in React Applications there are multiple ways of doing it.
+   > The easiest and straight forward method, which has nothing to do with React, is to use CSS Transitions and Animations.
+
+   CSS Transitions Example:
+      src/components/Modal/Modal.css:
+         .Modal {
+            position: fixed;
+            z-index: 200;
+            border: 1px solid #eee;
+            box-shadow: 0 2px 2px #ccc;
+            background-color: white;
+            padding: 10px;
+            text-align: center;
+            box-sizing: border-box;
+            top: 30%;
+            left: 25%;
+            width: 50%;
+         }
+         .ModalOpen {
+            opacity: 1;
+            transform: translateY(0);
+         }
+         .ModalClosed {
+            opacity: 1;
+            transform: translateY(-100%);
+         }
+
+   > The transition property is a standard CSS property which allows you to specify some CSS properties which should not be applied instantly but instead to be animated over time. It takes in three values, the first is the properties to transition (e.g. all CSS properties), the duration (e.g. 0.3seconds) and finally how the animation should be distributed over the specified time.
+   > The transition will ensure the properties between the ModalOpen and ModalClosed will animate over time causing the Modal to slide in and out when it is open and closed.
+   > Using the CSS Transition property simply tells CSS that whenever any property changes to animate that change/transition and figure out how to do it on its own.
+   > Animating like this is perfectly fine for situations such as the above where there is a easy and clear transition from one property to another. It is important to note the the display property cannot be animated.
+   > If you do not need any more control that this then that is perfectly fine as it utilises native CSS which is more optimised for the task of displaying styles and performing standard simple transition animation.
+
+   CSS Animations Example:
+      .Modal {
+         position: fixed;
+         z-index: 200;
+         border: 1px solid #eee;
+         box-shadow: 0 2px 2px #ccc;
+         background-color: white;
+         padding: 10px;
+         text-align: center;
+         box-sizing: border-box;
+         top: 30%;
+         left: 25%;
+         width: 50%;
+      }
+      .ModalOpen {
+         animation: openModal 0.4s ease-out;
+      }
+      .ModalClosed {
+
+      }
+      @keyframes openModal {
+         0% {
+            opacity: 0;
+            transform: translateY(-100%);
+         };
+         50% {
+            opacity: 1;
+            transform: translateY(20%);
+         };
+         100% {
+            opacity: 1;
+            transform: translateY(0);
+         };
+      }
+
+   > CSS Animations simply allows you to define a bit more complex and controlled animations compared to the CSS Transition property. The CSS Animations is a detailed set of steps to be executed as the animation.
+   > You create so called keyframes (using @keyframes) and give that keyframe a name of your choice. You can then define each step using either from/to or a percentages values.
+   > Each percentage acts as a state which define using normal CSS how the object should look like at the point of time.
+   > You can use the animation property which allows you to define the set of keyframes which should be executed whenever the CSS class is present on an element which also includes being added to an element.
+   > The animation property therefore takes the keyframe animation to use, the duration for the animation, how the animation should be distributed over the specified time and whether the animation should repeat itself or end after a certain iteration. The forwards value will ensure that the animation will end at the 100% state and not back at the 0% state so that it keeps the final animation step styles.
+   > You are controlling the animation with CSS but have more control over the animation compared to the transition property.
+   > CSS animations might give you all that you need to power your applications animations to achieve the certain animation look you are going for and this hs nothing to do with React.
+
+   Limitations:
+   > You will notice by inspecting the Browser's DOM for your application that the Modal and Backdrop <div> elements are always present in the DOM Element Tree but just not visible because you are animating the visibility property using class names and CSS Transitions/Animations.
+   > This means that all your HTML code lives in the DOM which may slow down your page a little, may not be the best case for accessibility requirements and is not very React-ish. Note that it is not a big issue if you use CSS Transitions/Animations as well.
+   > If you want to ensure that you do not show/display the element differently you could use Reacts JSX and the ternary operator to conditionally render the element to the screen or not based on a state value. You can conditionally render a element.
+
+   Conditionally Rendering JSX Elements Example:
+      src/App.js:
+         ...
+         class App extends Component {
+            ...
+            render() {
+               return (
+                  <div className="App">
+                     <h1>React Animations</h1>
+                     {this.state.modalIsOpen ? <Modal show={this.state.modalIsOpen} closed={this.closeModal} /> : null}
+                     {!this.state.modalIsOpen ? <Backdrop show={this.state.modalIsOpen} /> : null}
+                     <button className="Button" onClick={this.showModal}>Open Modal</button>
+                     <h3>Animating Lists</h3>
+                     <List />
+                  </div>
+               );
+            };
+         };
+
+   > While the above conditionally renderers the element into the DOM the problem you will notice is that while there is a animation when the Modal appears in the DOM (i.e. on the screen); however, on closing the Modal there is no out animation but instead the modal is instantly removed.
+   > This reason for this is because React does not wait for re-rendering the JSX and removing the Modal and Backdrop when the state changes for the animation to finish because it is not aware of the animation. It is good that React does not scan elements which are to be removed for possibly running CSS animations which would be a performance nightmare.
+   > This is a limitation you would see when using CSS Transitions and Animations. Transition/Animations in would continue to work but removing elements would remove the element instantaneously without any animation/transition being played. This may give a bad behaviour or look to your application animation.
