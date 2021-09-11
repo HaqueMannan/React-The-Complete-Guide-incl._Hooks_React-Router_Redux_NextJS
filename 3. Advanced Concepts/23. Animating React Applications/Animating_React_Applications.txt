@@ -4,6 +4,7 @@ Animating React Applications - Summary:
 3. Using React Transition Group CSSTransition Component
 4. Customising CSS ClassNames
 5. Using React Transition Group TransitionGroup Component to Animate List Items
+6. Alternative Animation Packages
 
 ------------------------------------------------------------------------------------
 1. Using CSS Transitions and Animations and Their Limitations:
@@ -457,3 +458,12 @@ Animating React Applications - Summary:
    > The TransitionGroup Component sole purpose is to handle multiple items. It determines whenever one element in the list changes (i.e. removed or added) and then manually set the 'in' property on the wrapped Transition/CSS Transition Component so that you do not need to control the in property because you can't with dynamic list elements.
    > Therefore, the management of the 'in' property is the main difference between the TransitionGroup Component and the Transition/CSS Transition Components.
    > You now have a powerful way of animating dynamic list items using the combination the the TransitionGroup Component and either one of Transition or CSSTransition Components.
+
+------------------------------------------------------------------------------------
+6. Alternative Animation Packages:
+------------------------------------------------------------------------------------
+   > There are alternative animation packages to the React Transition Group package for example:
+      - React Motion (https://github.com/chenglou/react-motion). A popular animation package where you simply define the start and end states and do not need to define a timer for the animation. The package tries to emulates real world physics in order to calculate the best timing the animation should take to complete.
+      - React Move (https://react-move.js.org/). This animation package exposes two Components to you which allow you to animate single or group of items. With React Move you always work with objects to describe the state of the animation. It is heavily influenced by the Three.js Transitions library. This is a more complex package to use but if you need more control over the animations to create complex animations, then this is a great alternative.
+      - React Router Transition (https://www.npmjs.com/package/react-router-transition). This is a package to help you create transition between routes. This package builds upon React Motion and provides a AnimatedSwitch Component which does everything a normal React Router Switch does but it also allows you to define 'atEnter', 'atLeave' and 'atActive' and 'className' props to allow you to animate the routing. Animating route transitions can be very tricky to do using the React Transition Group package.
+   > There are many more animation packages out there but the ones listed above are to name a few popular packages.
