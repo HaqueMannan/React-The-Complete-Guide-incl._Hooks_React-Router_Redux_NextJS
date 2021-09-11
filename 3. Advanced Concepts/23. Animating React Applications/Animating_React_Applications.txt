@@ -2,6 +2,7 @@ Animating React Applications - Summary:
 1. Using CSS Transitions and Animations and Their Limitations
 2. Installing React Transition Group and Using the Transition Component
 3. Using React Transition Group CSSTransition Component
+4. Customising CSS ClassNames
 
 ------------------------------------------------------------------------------------
 1. Using CSS Transitions and Animations and Their Limitations:
@@ -343,3 +344,50 @@ Animating React Applications - Summary:
    > The "enter" or "exit" is where you would define the initial styling while the "-active" CSS class is where the animation will get played to perform the transition/animation.
    > The above will now work the same as the previous examples but all done automatically. Note that in above example there is no initial styles required for the "fade-slide-enter" or "fade-slide-exit" classes and would not need to be added to the CSS file. The above is to demonstrate the CSS classes you would need to add to your global or Component specific CSS file.
    > These classes will get added to the wrapped element depending on the state of the transition automatically. You no longer need to manually assign CSS classes and join them together compared to using the Transition Component. Therefore, you would often find yourself using CSSTransition Components compared to the Transition Component because it is more convenient to use and you can control the animation entirely inside of CSS code.
+
+------------------------------------------------------------------------------------
+4. Customising CSS ClassNames:
+------------------------------------------------------------------------------------
+   > By now you know that the CSSTransition Component's "classNames" prop can take in a value to setup a base class name (i.e. trunk of your CSS classes) and the CSSTransition Component will automatically expand this trunk to a couple of different CSS classes.
+   > However, you may want to still use other classes defined in the CSS file so that you do not essentially have to define the different CSS classes (i.e. "-enter", "-enter-active", "-exit" and "-exit-active") for the Trunk.
+   > Not only can you pass in a string value to the "classNames" prop to define the trunk of the class but you can also pass in a JavaScript object instead.
+   > Inside of the JavaScript object you can manually define various CSS classes that should be used for the different states. Therefore, in the object you can define the CSS class names to use for the enter, enterActive, exit, exitActive, appear and appearActive properties.
+
+   Customising CSS ClassNames Example:
+      src/components/Modal/Modal.js:
+         import React from 'react';
+         import CSSTransition from 'react-transition-group/CSSTransition';
+         import './Modal.css';
+         const Modal = (props) => {
+            const animationTiming = { enter: 400, exit: 1000 };
+            return(
+               <CSSTransition
+                  in={props.show}
+                  timeout={animationTiming}
+                  mountOnEnter
+                  unmountOnExit
+                  classNames={{
+                     enter: ''
+                     enterActive: 'ModalOpen'
+                     exit: ''
+                     exitActive: 'ModalClosed'
+                     appear: ''
+                     appearActive: ''
+                  }}
+               >
+                  <div className="Modal">
+                     <h1>A Modal</h1>
+                     <button className="Button" onClick={props.closed}>Dismiss</button>
+                  </div>
+               </CSSTransition>
+            );
+         };
+         export default Modal;
+      src/components/Modal/Modal.css:
+         ...
+         .ModalOpen { animation: openModal 0.4s ease-out forwards; }
+         .ModalClosed { animation: closeModal 1s ease-out forwards; }
+
+   > The appear is used when for the first time something is rendered to the DOM (not when it is done conditionally e.g. a button click but rather when it is hardcoded into the DOM i.e. the element is always there). This is where you can use the appear to animate the element when it is first rendered to the DOM.
+   > You can define the CSS class name for the specific property. This allows you to escape the schema of have the "-enter", "-enter-active" and so on in your CSS code.
+   > With this setup you can define your own CSS classes which should get added/used depending on the various cycle states of the CSSTransition Component. The animation will continue to work the same as the previous examples but now using your own customised CSS class names.

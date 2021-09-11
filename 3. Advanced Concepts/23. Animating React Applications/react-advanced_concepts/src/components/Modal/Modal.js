@@ -28,7 +28,21 @@ const Modal = (props) => {
       //    }}
       // </Transition>
 
-      <CSSTransition in={props.show} timeout={animationTiming} mountOnEnter unmountOnExit classNames="fade-slide">
+      <CSSTransition
+         in={props.show}
+         timeout={animationTiming}
+         mountOnEnter
+         unmountOnExit
+         // classNames="fade-slide"
+         classNames={{
+            enter: '',
+            enterActive: 'ModalOpen',
+            exit: '',
+            exitActive: 'ModalClosed',
+            appear: '',
+            appearActive: ''
+         }}
+      >
          <div className="Modal">
             <h1>A Modal</h1>
             <button className="Button" onClick={props.closed}>Dismiss</button>
