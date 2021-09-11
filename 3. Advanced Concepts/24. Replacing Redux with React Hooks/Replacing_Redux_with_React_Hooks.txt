@@ -1,0 +1,12 @@
+Replacing Redux with React Hooks - Summary:
+1. Why Would You Replace Redux
+
+------------------------------------------------------------------------------------
+1. Why Would You Replace Redux:
+------------------------------------------------------------------------------------
+   > Redux is really great and convenient state management tool to use when you have some global state which are required by multiple Components without the need to pass state across multiple layers of Components just to have the state where it is needed.
+   > There is nothing wrong with using Redux as the state management tool for your projects. You do not need to switch away from Redux at all, but maybe you would want to and why would you?
+   > One reason to replace Redux is to continue to stay within the React world so that you do not need to learn Redux (arguably it is not that difficult to learn)
+   > Another reason could be because you do not want to add the extra Redux and React-Redux library to your project; hence, creating a smaller project bundle. The less libraries you use the less code is shipped when deploying your applications. This could possibly be the better argument for wanting to avoid using Redux. Although, if you have a large applications to begin with then adding the library may not matter.
+   > Finally, you may simply want to explore how you can manage state globally without passing everything through props but also without Redux.
+   > We will explore two different approaches of managing global state using React only tools and when to use which approach.
