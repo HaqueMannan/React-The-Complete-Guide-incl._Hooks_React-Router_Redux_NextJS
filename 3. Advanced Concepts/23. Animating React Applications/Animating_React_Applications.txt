@@ -1,6 +1,7 @@
 Animating React Applications - Summary:
 1. Using CSS Transitions and Animations and Their Limitations
-2. Using ReactTransitionGroup and Transition Component
+2. Installing React Transition Group and Using the Transition Component
+3. Using React Transition Group CSSTransition Component
 
 ------------------------------------------------------------------------------------
 1. Using CSS Transitions and Animations and Their Limitations:
@@ -110,7 +111,7 @@ Animating React Applications - Summary:
    > This is a limitation you would see when using CSS Transitions and Animations. Transition/Animations in would continue to work but removing elements would remove the element instantaneously without any animation/transition being played. This may give a bad behaviour or look to your application animation.
 
 ------------------------------------------------------------------------------------
-2. Using React Transition Group and Transition Component:
+2. Installing React Transition Group and Using the Transition Component:
 ------------------------------------------------------------------------------------
    > The React Transition Group package (https://reactcommunity.org/react-transition-group/) is not an official React package made by the React team. However, it is a package created by the wider react community.
    > This package allows you to smoothly animate elements when they are added and removed to and from the DOM.
@@ -298,3 +299,47 @@ Animating React Applications - Summary:
       - onExited = triggered when entered in the 'EXITED' state
    > These 6 callback functions can run whatever code you want on the callback event. In the above example it simply logs to the JavaScript console on the Browser a text to which callback function was executed. This is a nice feature to add staggered animations when you want to wait for one animation to finish before you start the next animation.
    > These event callbacks provide you with all the control you need to find out what started, what happened and what finished and then time you animations based on that information.
+
+------------------------------------------------------------------------------------
+3. Using React Transition Group CSSTransition Component:
+------------------------------------------------------------------------------------
+   > Sometimes you do not want to control the transition using the function provided to the Transition Component to manually attach CSS based on the Transition state.
+   > Instead, at times you may want to have a couple of pre-defined CSS classes for different animation states and you want to make sure they get attached depending on the state of the animation.
+   > The Transition Component allows you to control all this manually. However, the React Transition Group package also provided a CSSTransition Component as a default export from the 'react-transition-group/CSSTransition' sub-package. The CSSTransition Component allows you to manage animations automatically.
+
+   CSSTransition Component Example:
+      src/components/Modal/Modal.js:
+         import React from 'react';
+         import CSSTransition from 'react-transition-group/CSSTransition';
+         import './Modal.css';
+         const Modal = (props) => {
+            const animationTiming = { enter: 400, exit: 1000 };
+            return(
+               <CSSTransition in={props.show} timeout={animationTiming} mountOnEnter unmountOnExit classNames="fade-slide">
+                  <div className="Modal">
+                     <h1>A Modal</h1>
+                     <button className="Button" onClick={props.closed}>Dismiss</button>
+                  </div>
+               </CSSTransition>
+            );
+         };
+         export default Modal;
+      src/components/Modal/Modal.css:
+         ...
+         /* .fade-slide-enter {} */
+         .fade-slide-enter-active { animation: openModal 0.4s ease-out forwards; }
+         /* .fade-slide-exit {} */
+         .fade-slide-exit-active { animation: closeModal 1s ease-out forwards; }
+
+   > The CSSTransition Component does not use any function between the opening and closing tags (unlike the Transition Component). Instead, you enter the CSS Code btween the CSSTransition tags.
+   > The CSSTransition Component expects a special prop called 'classNames'. This property defines which classes should be added to the wrapped element depending on the state of the transition. It will always keep the classes on the element (in the above example "Modal") but will also merge these defined classes together.
+   > The CSSTransition will automatically cycle through a couple of CSS classes and merge them together to the element the CSSTransition wraps depending on the state of the CSSTransition.
+   > In the above example, there is a "fade-slide" trunk. 
+      - The "-enter" (i.e. "fade-slide-enter") is attached right at the point the time it starts 'ENTERING'.
+      - The "-enter-active" (i.e. "fade-slide-enter-active") is kept attached whilst it is in the 'ENTERING' state.
+      - The "-exit" (i.e. "fade-slide-exit") is attached right at the point the time it starts 'EXITING'.
+      - The "-exit-active" (i.e. "fade-slide-exit-active") is kept attached whilst it is in the 'EXITING' state.
+   > It is your job to add these various classes to your application i.e. in any global CSS file or a file scoped to the Component where you want the classes and styles.
+   > The "enter" or "exit" is where you would define the initial styling while the "-active" CSS class is where the animation will get played to perform the transition/animation.
+   > The above will now work the same as the previous examples but all done automatically. Note that in above example there is no initial styles required for the "fade-slide-enter" or "fade-slide-exit" classes and would not need to be added to the CSS file. The above is to demonstrate the CSS classes you would need to add to your global or Component specific CSS file.
+   > These classes will get added to the wrapped element depending on the state of the transition automatically. You no longer need to manually assign CSS classes and join them together compared to using the Transition Component. Therefore, you would often find yourself using CSSTransition Components compared to the Transition Component because it is more convenient to use and you can control the animation entirely inside of CSS code.
