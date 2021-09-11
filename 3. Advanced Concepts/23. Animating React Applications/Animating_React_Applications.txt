@@ -1,5 +1,6 @@
 Animating React Applications - Summary:
 1. Using CSS Transitions and Animations and Their Limitations
+2. Using ReactTransitionGroup and Transition Component
 
 ------------------------------------------------------------------------------------
 1. Using CSS Transitions and Animations and Their Limitations:
@@ -107,3 +108,193 @@ Animating React Applications - Summary:
    > While the above conditionally renderers the element into the DOM the problem you will notice is that while there is a animation when the Modal appears in the DOM (i.e. on the screen); however, on closing the Modal there is no out animation but instead the modal is instantly removed.
    > This reason for this is because React does not wait for re-rendering the JSX and removing the Modal and Backdrop when the state changes for the animation to finish because it is not aware of the animation. It is good that React does not scan elements which are to be removed for possibly running CSS animations which would be a performance nightmare.
    > This is a limitation you would see when using CSS Transitions and Animations. Transition/Animations in would continue to work but removing elements would remove the element instantaneously without any animation/transition being played. This may give a bad behaviour or look to your application animation.
+
+------------------------------------------------------------------------------------
+2. Using React Transition Group and Transition Component:
+------------------------------------------------------------------------------------
+   > The React Transition Group package (https://reactcommunity.org/react-transition-group/) is not an official React package made by the React team. However, it is a package created by the wider react community.
+   > This package allows you to smoothly animate elements when they are added and removed to and from the DOM.
+   > To install the package in the terminal cd to your project run the following command:
+      $: npm install react-transition-group --save
+   > After installing this package to the project, you will now have access to one important Component exported by the package called Transition.
+   > Import the Transition Component which is a default export from the 'react-transition-group/Transition' sub-package.
+   > You use the Transition Component to wrap the Component you wish to animate.
+
+   Transition Component Example:
+      import Transition from 'react-transition-group/Transition';
+      ...
+      const Component = () => {
+         state = {
+            showBlock: false
+         };
+         render() {
+            <button className="Button" onClick={() => this.setState(prevState => ({showBlock: !prevState.showBlock}))}>Toggle</button>
+            <Transition in={this.state.showBlock} timeout={1000}>
+               {state => <p>{state}</p>}
+            </Transition>
+         };
+      };
+
+   > Adding the Transition Component alone is not enough; however, you can use the Transition Component to control the display (especially the animation) of the element.
+   > The 'in' property decides whether the element wrapped inside of the Transition Component should be shown or not.
+   > The Transition Component manages four internal states: ENTERING, ENTERED, EXITING and EXITED.
+   > You can listen to these states to decide how the element should be shown.
+   > The 'in' prop determines whether or not the wrapped element should be visible or not (in the above example this is linked to the showBlock state i.e. only when it is true show the wrapped element).
+   > The 'timeout' prop is simply a time value which determines how long it should take to switch between the different state (i.e. ENTERING to ENTERED and EXITING to EXITED). This effectively helps control how the animation played between this state transition duration. The number value is interpreted as milliseconds.
+   > Inside of the Transition Component you can render something dynamic with curly brackets because in the Transition Component you should render a function. The Transition Component expects to return a value back from the function. You will notice that the 'EXITED' text appear on screen because this is the state that is printed in the paragraph element provided by the Transition Component.
+   > When you click the button to toggle the state you will notice that the Transition Component state will transition between the 'ENTERING' to 'ENTERED' very briefly and then 'EXITING' to 'EXITED' when the button is clicked. To be precise it transitions between the state for 1000 milliseconds.
+   > This is all the Transition Component does for you. It simply manages this state argument it provides to you in a function you pass as a child of the Transition Component. This managed state property takes the timing you defined into account. You can therefore render your Component inside of the Transition Component function as demonstrated below:
+
+   Further Transition Component Example:
+      render() {
+         <button className="Button" onClick={() => this.setState(prevState => ({showBlock: !prevState.showBlock}))}>Toggle</button>
+         <Transition in={this.state.showBlock} timeout={1000} mountOnEnter unmountOnExit>
+            {state => (
+               <div style={{
+                  backgroundColor: 'red',
+                  width: 100,
+                  height: 100,
+                  margin: 'auto',
+                  transition: 'opacity 1s ease-out',
+                  opacity: state === 'exiting' ? 0 : 1}}
+               ></div>
+            )}
+         </Transition>
+      };
+
+   > You can take advantage of the four managed state to now manipulate the style of your Components depending on the state provided by the Transition Component.
+   > You now have an animation that transitions the opacity when the button is clicked to animate the <div> element entering and exiting on the DOM.
+   > The 'mountOnEnter' prop returns a boolean value to add the wrapped Component to the DOM if the 'in' prop value is true. The 'unmountOnExit' does the vice versa i.e. removes the wrapped element from the DOM if the 'in' prop is not true.
+   > You now have a way to actually apply an animation to an element on entry and exit while also benefiting from the Component being added and removed from the DOM.
+   > The element is removed from DOM when the timeout has completed to change the state from 'EXITING' to 'EXITED' in which case the 'unmountOnExit' will be true to remove the element from the DOM. You are now really telling React to get rid of the Component element after the period with the help of the Transition Component.
+   > Below is another example demonstrating how you can use the Transition Component to animate elements in and out of the DOM.
+
+   Modal Animation Example:
+      src/App.js:
+         import React, { Component } from "react";
+         import Transition from 'react-transition-group/Transition';
+         import "./App.css";
+         import Modal from "./components/Modal/Modal";
+         import Backdrop from "./components/Backdrop/Backdrop";
+         import List from "./components/List/List";
+         class App extends Component {
+            state = { modalIsOpen: false };
+            showModal = () => { this.setState({modalIsOpen: true}) };
+            closeModal = () => { this.setState({modalIsOpen: false}) };
+            render() {
+               return (
+                  <div className="App">
+                     <h1>React Animations</h1>
+                     <Transition in={this.state.modalIsOpen} timeout={300} mountOnEnter unmountOnExit>
+                        {state => (
+                           <Modal show={state} closed={this.closeModal} />
+                        )}
+                     </Transition>
+                     {this.state.modalIsOpen ? <Backdrop show /> : null}
+                     <button className="Button" onClick={this.showModal}>Open Modal</button>
+                     <h3>Animating Lists</h3>
+                     <List />
+                  </div>
+               );
+            };
+         };
+         export default App;
+      src/components/Modal/Modal.js:
+         import React from 'react';
+         import './Modal.css';
+         const Modal = (props) => {
+            const cssClasses = [
+               'Modal',
+               props.show === 'entering' ? 'ModalOpen' : 
+               props.show === 'exiting' ? 'ModalClosed' :
+               null
+            ];
+            return(
+               <div className={cssClasses.join(' ')}>
+                  <h1>A Modal</h1>
+                  <button className="Button" onClick={props.closed}>Dismiss</button>
+               </div>
+            );
+         };
+         export default Modal;
+
+   > The modal can now transition in and out playing the full animation because it can take advantage of the 'state' property provided by the Transition Component. This simply adds a delay before the element is removed from the DOM which gives time to play your animation during the 'EXITING' state before it is removed from the DOM when the state is set to the 'EXITED' state.
+   > This resolves the limitation of using the standard CSS Transition and Animations properties with React applications.
+
+   Nesting Transition Component in Any Component Example:
+      src/App.js:
+         import React, { Component } from "react";
+         import "./App.css";
+         import Modal from "./components/Modal/Modal";
+         import Backdrop from "./components/Backdrop/Backdrop";
+         import List from "./components/List/List";
+         class App extends Component {
+            state = { modalIsOpen: false };
+            showModal = () => { this.setState({modalIsOpen: true}) };
+            closeModal = () => { this.setState({modalIsOpen: false}) };
+            render() {
+               return (
+                  <div className="App">
+                     <h1>React Animations</h1>
+                     <Modal show={this.state.modalIsOpen} closed={this.closeModal} />
+                     {this.state.modalIsOpen ? <Backdrop show /> : null}
+                     <button className="Button" onClick={this.showModal}>Open Modal</button>
+                     <h3>Animating Lists</h3>
+                     <List />
+                  </div>
+               );
+            };
+         };
+         export default App;
+      src/components/Modal/Modal.js:
+         import React from 'react';
+         import Transition from 'react-transition-group/Transition';
+         import './Modal.css';
+         const Modal = (props) => {
+            const animationTiming = { enter: 400, exit: 1000 };
+            return(
+               <Transition in={props.show} timeout={animationTiming} mountOnEnter unmountOnExit>
+                  {state => {
+                     const cssClasses = [
+                        'Modal',
+                        state === 'entering' ? 'ModalOpen' :
+                        state === 'exiting' ? 'ModalClosed' :
+                        null
+                     ];
+                     return(
+                        <div className={cssClasses.join(' ')}>
+                           <h1>A Modal</h1>
+                           <button className="Button" onClick={props.closed}>Dismiss</button>
+                        </div>
+                     );
+                  }}
+               </Transition>
+            );
+         };
+         export default Modal;
+
+   > It is important to note that you can also nest the Transition Component inside any Component you want. This can be seen in the above example whereby the Transition Component is used within the Modal Component.
+   > In App.js the Modal Component is always rendered to the DOM and the "show" property is set to true to false depending on the "modalIsOpen" state value.
+   > The css classes in the Modal Component is now set dynamically inside of the Transition return function. The logic is the same as before but the Transition is now occurring in the Modal Component. The behaviour will be the same as the previous example.
+   > Remember that the timing setup on the Transition Component determines the time it takes to transition between the managed state i.e. how long 'ENTERING' or 'EXITING' state will be held onto before changing to 'ENTERED' or 'EXITED' state. Therefore, if you define a timing shorter than the animation you are playing, this simply will quit the animation pre-emptively because you switched the state too early.
+   > You can create an object which holds the 'enter' and 'exit' properties which can be set to different numeric values in milliseconds. This object can then be passed as the parameter to the Transition Component's 'timeout' prop to define the timeout duration for the two different types of transition. Therefore, you can set different durations for entering and exiting animations and the do not need to be the same duration.
+
+   Transition Events Example:
+      <Transition
+         in={this.state.showBlock}
+         timeout={1000}
+         onEnter={() => console.log('onEnter')}
+         onEntering={() => console.log('onEntering')}
+         onEntered={() => console.log('onEntered')}
+      > { ... }</Transition>
+
+   > Sometimes you would want to execute certain code when the state of the animation finishes and not just change what is rendered to the screen. The Transition Component provides various callbacks functions that you can execute to a transition.
+   > There are 6 transition callback events you can listen to on the Transition Component:
+      - onEnter = triggered right before the 'ENTERING' state
+      - onEntering = triggered when entered the 'ENTERING' state
+      - onEntered = triggered when entered in the 'ENTERED' state
+      - onExit = triggered right before the 'EXITING' state
+      - onExiting = triggered when entered the 'EXITING' state
+      - onExited = triggered when entered in the 'EXITED' state
+   > These 6 callback functions can run whatever code you want on the callback event. In the above example it simply logs to the JavaScript console on the Browser a text to which callback function was executed. This is a nice feature to add staggered animations when you want to wait for one animation to finish before you start the next animation.
+   > These event callbacks provide you with all the control you need to find out what started, what happened and what finished and then time you animations based on that information.
