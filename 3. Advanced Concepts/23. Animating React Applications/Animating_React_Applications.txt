@@ -3,6 +3,7 @@ Animating React Applications - Summary:
 2. Installing React Transition Group and Using the Transition Component
 3. Using React Transition Group CSSTransition Component
 4. Customising CSS ClassNames
+5. Using React Transition Group TransitionGroup Component to Animate List Items
 
 ------------------------------------------------------------------------------------
 1. Using CSS Transitions and Animations and Their Limitations:
@@ -391,3 +392,68 @@ Animating React Applications - Summary:
    > The appear is used when for the first time something is rendered to the DOM (not when it is done conditionally e.g. a button click but rather when it is hardcoded into the DOM i.e. the element is always there). This is where you can use the appear to animate the element when it is first rendered to the DOM.
    > You can define the CSS class name for the specific property. This allows you to escape the schema of have the "-enter", "-enter-active" and so on in your CSS code.
    > With this setup you can define your own CSS classes which should get added/used depending on the various cycle states of the CSSTransition Component. The animation will continue to work the same as the previous examples but now using your own customised CSS class names.
+
+------------------------------------------------------------------------------------
+5. Using React Transition Group TransitionGroup Component to Animate List Items:
+------------------------------------------------------------------------------------
+   > To add animations to lists elements, this cannot be achieved using the Transition or CSSTransition Components alone. Instead, you need to import the named export TransitionGroup Component from the 'react-transition-group/TransitionGroup' sub-package.
+   > The TransitionGroup Component can be used where you output list elements i.e. where you have a dynamic list of elements.
+
+   TransitionGroup Component Example:
+      src/components/List/List.js:
+         import React, { Component } from 'react';
+         import TransitionGroup from 'react-transition-group/TransitionGroup';
+         import CSSTransition from 'react-transition-group/CSSTransition';
+         import './List.css';
+         class List extends Component {
+            state = { items: [1, 2, 3] };
+            addItemHandler = () => {
+               this.setState((prevState) => {
+                  return { items: prevState.items.concat(prevState.items.length + 1) };
+               });
+            };
+            removeItemHandler = (selIndex) => {
+               this.setState((prevState) => {
+                  return { items: prevState.items.filter((item, index) => index !== selIndex) };
+               });
+            };
+            render () {
+               const listItems = this.state.items.map((item, index) => (
+                  <CSSTransition key={index} classNames="fade" timeout={300}>
+                     <li className="ListItem" onClick={() => this.removeItemHandler(index)}>{item}</li>
+                  </CSSTransition>
+               ));
+               return (
+                  <div>
+                     <button className="Button" onClick={this.addItemHandler}>Add Item</button>
+                     <p>Click Item to Remove.</p>
+                     <TransitionGroup component="ul" className="List">{listItems}</TransitionGroup>
+                  </div>
+               );
+            };
+         };
+         export default List;
+      src/components/List/List.css:
+         ...
+         .fade-enter {
+            opacity: 0;
+         }
+         .fade-enter-active {
+            opacity: 1;
+            transition: opacity 0.3s ease-out;
+         }
+         .fade-exit {
+            opacity: 1;
+         }
+         .fade-exit-active {
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
+         }
+
+   > You can replace the <ul> element with the TransitionGroup Component and wrap the list items. By default this would render a <div> element in the place of the TransitionGroup Component. You can define a 'component' property and set its value to 'ul' to replace the default with a unordered list element instead. You can also add a className property as you would on any element.
+   > The TransitionGroup Component can be used to animate list elements but only in conjunction with the Transition or CSSTransition Component. The Transition or CSSTransition Component is used to wrap around the list items.
+   > The 'key' prop needs to move from the list item to the Transition/CSSTransition Component element because it is now the element being looped through.
+   > If using CSSTransition you need to configure the 'classNames' property as well as the timeout property as you have learn it.
+   > The TransitionGroup Component sole purpose is to handle multiple items. It determines whenever one element in the list changes (i.e. removed or added) and then manually set the 'in' property on the wrapped Transition/CSS Transition Component so that you do not need to control the in property because you can't with dynamic list elements.
+   > Therefore, the management of the 'in' property is the main difference between the TransitionGroup Component and the Transition/CSS Transition Components.
+   > You now have a powerful way of animating dynamic list items using the combination the the TransitionGroup Component and either one of Transition or CSSTransition Components.
