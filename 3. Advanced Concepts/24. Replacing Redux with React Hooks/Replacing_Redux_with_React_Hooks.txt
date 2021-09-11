@@ -1,5 +1,6 @@
 Replacing Redux with React Hooks - Summary:
 1. Why Would You Replace Redux
+2. Using Context API and When Not to Use It
 
 ------------------------------------------------------------------------------------
 1. Why Would You Replace Redux:
@@ -10,3 +11,120 @@ Replacing Redux with React Hooks - Summary:
    > Another reason could be because you do not want to add the extra Redux and React-Redux library to your project; hence, creating a smaller project bundle. The less libraries you use the less code is shipped when deploying your applications. This could possibly be the better argument for wanting to avoid using Redux. Although, if you have a large applications to begin with then adding the library may not matter.
    > Finally, you may simply want to explore how you can manage state globally without passing everything through props but also without Redux.
    > We will explore two different approaches of managing global state using React only tools and when to use which approach.
+
+------------------------------------------------------------------------------------
+2. Using Context API and When Not to Use It:
+------------------------------------------------------------------------------------
+   > The Context API is an alternative approach which sometimes can be a correct choice but not always.
+   > Below is an example of using the Context API to pass a products array state to the global context of the whole application.
+
+   Using Context API Example:
+      src/context/products-context.js:
+         import React, { useState } from 'react';
+         export const ProductsContext = React.createContext({ products: [], toggleFav: (id) => {} });
+         export default props => {
+            const [productsList, setProductsList] = useState([
+               { id: 'p1', title: 'Red Scarf', description: 'A pretty red scarf.', isFavourite: false },
+               { id: 'p2', title: 'Blue T-Shirt', description: 'A pretty blue t-shirt.', isFavourite: false },
+               { id: 'p3', title: 'Green Trousers', description: 'A pair of lightly green trousers.', isFavourite: false },
+               { id: 'p4', title: 'Orange Hat', description: 'Street style! An orange hat.', isFavourite: false }
+            ]);
+            const toggleFavourite = (productId) => {
+               setProductsList(currentProdList => {
+                  const prodIndex = currentProdList.findIndex(p => p.id === productId);
+                  const newFavStatus = !currentProdList[prodIndex].isFavourite;
+                  const updatedProducts = [...currentProdList];
+                  updatedProducts[prodIndex] = {
+                     ...currentProdList[prodIndex],
+                     isFavourite: newFavStatus
+                  };
+                  return updatedProducts;
+               });
+            };
+            return(
+               <ProductsContext.Provider value={{products: productsList, toggleFav: toggleFavourite}}>
+                  {props.children}
+               </ProductsContext.Provider>
+            );
+         };
+      src/Index.js:
+         import React from 'react';
+         import ReactDOM from 'react-dom';
+         import { BrowserRouter } from 'react-router-dom';
+         import './index.css';
+         import App from './App';
+         import ProductsProvider from './context/products-context';
+         ReactDOM.render(
+            <React.StrictMode>
+               <ProductsProvider>
+                  <BrowserRouter>
+                     <App />
+                  </BrowserRouter>
+               </ProductsProvider>
+            </React.StrictMode>,
+            document.getElementById('root')
+         );
+      src/containers/Products.js:
+         import React, { useContext } from 'react';
+         import ProductItem from '../components/Products/ProductItem';
+         import { ProductsContext } from '../context/products-context';
+         import './Products.css';
+         const Products = (props) => {
+            const productList = useContext(ProductsContext).products;
+            return (
+               <ul className="products-list">
+                  {productList.map(prod => (
+                     <ProductItem key={prod.id} id={prod.id} title={prod.title} description={prod.description} isFav={prod.isFavourite} />
+                  ))}
+               </ul>
+            );
+         };
+         export default Products;
+      src/containers/Favourites.js:
+         import React, { useContext } from 'react';
+         import FavouriteItem from '../components/Favourites/FavouriteItem';
+         import { ProductsContext } from '../context/products-context';
+         import './Products.css';
+         const Favourites = (props) => {
+            const favouriteProducts = useContext(ProductsContext).products.filter(p => p.isFavourite);
+            let content = <p className="placeholder">Got no favourites yet!</p>;
+            if (favouriteProducts.length > 0) {
+               content = (
+                  <ul className="products-list">
+                     {favouriteProducts.map(prod => (<FavouriteItem key={prod.id} id={prod.id} title={prod.title} description={prod.description}/>))}
+                  </ul>
+               );
+            };
+            return content;
+         };
+         export default Favourites;
+      src/components/Products/ProductItem.js:
+         import React, { useContext } from 'react';
+         import Card from '../UI/Card';
+         import './ProductItem.css';
+         import { ProductsContext } from '../../context/products-context';
+         const ProductItem = (props) => {
+            const toggleFav = useContext(ProductsContext).toggleFav;
+            const toggleFavHandler = () => { toggleFav(props.id) };
+            return (
+               <Card style={{ marginBottom: '1rem' }}>
+                  <div className="product-item">
+                     <h2 className={props.isFav ? 'is-fav' : ''}>{props.title}</h2>
+                     <p>{props.description}</p>
+                     <button className={!props.isFav ? 'button-outline' : ''} onClick={toggleFavHandler}>
+                        {props.isFav ? 'Un-Favourite' : 'Favourite'}
+                     </button>
+                  </div>
+               </Card>
+            );
+         };
+         export default ProductItem;
+
+   > The above example shows how you can use the Context API to create a context to distribute data to different Component. The products are being managed in the products-context.js file and you are accessing the products in the containers/Products.js file which will appear in the containers/Favourite.js Component when the Favourite is toggled for the product.
+   > The state is managed purely with the Context API and without Redux. On first look it looks amazing because we are not using Redux and arguably is not too hard to implement. We basically have now have a store in the context folder and we are using React only features to pass the data around and are able to read and change the store data from anywhere. So what is the downside to this approach?
+   > One huge downside to using the Context API approach comes from a member from the React team. The Context API is great for low frequency updates but not for high frequency updates.
+   > Therefore, if you have something that changes rarely, for example the user authentication status or a page theme, then the Context API approach is perfectly fine to use to manage the global state because this state would not change all the time and as often.
+   > For a high frequency change, for example the above switching the favourites status, where it is highly likely to occur way more often (i.e. anything that is highly likely to change often is considered high frequency), the Context API can work in these cases but in term of performance the Context API is not optimised for that task.
+   > The way that the React Context API works is such that whenever something changes in your context it has not way to cleverly figuring out which Components that uses this context is really converged with the change and which Component are not concerned with the change. Therefore, every Component that uses the context will re-build and re-render when the context updates no matter if it is directly affected or not.
+   > In general the Context API is simply not optimised and not meant to be used as your global state management tool within your application. It is meant for some state (like authentication and page theme) but not for all state within the application because of the missing optimisations and also the missing intent behind the Context API. Hence, it is great for some use cases but not for all situations/cases.
+   > However, there is still a non-Redux alternative for managing global state using only React features and staying within the React world.
