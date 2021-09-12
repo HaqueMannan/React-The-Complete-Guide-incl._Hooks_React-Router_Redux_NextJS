@@ -1,6 +1,7 @@
 Replacing Redux with React Hooks - Summary:
 1. Why Would You Replace Redux
 2. Using Context API and When Not to Use It
+3: Using Custom React Hooks (Creating the Custom Store Hook and Using the Custom Store)
 
 ------------------------------------------------------------------------------------
 1. Why Would You Replace Redux:
@@ -128,3 +129,166 @@ Replacing Redux with React Hooks - Summary:
    > The way that the React Context API works is such that whenever something changes in your context it has not way to cleverly figuring out which Components that uses this context is really converged with the change and which Component are not concerned with the change. Therefore, every Component that uses the context will re-build and re-render when the context updates no matter if it is directly affected or not.
    > In general the Context API is simply not optimised and not meant to be used as your global state management tool within your application. It is meant for some state (like authentication and page theme) but not for all state within the application because of the missing optimisations and also the missing intent behind the Context API. Hence, it is great for some use cases but not for all situations/cases.
    > However, there is still a non-Redux alternative for managing global state using only React features and staying within the React world.
+
+------------------------------------------------------------------------------------
+3: Using Custom React Hooks (Creating the Custom Store Hook and Using the Custom Store):
+------------------------------------------------------------------------------------
+   > You can build your own state management storage solution with just JavaScript, React and React-Hooks and nothing else (including not the Context API).
+
+   Custom React Hook Example:
+      src/hooks-store/store.js:
+         import { useState, useEffect } from 'react';
+         let globalState = {};
+         let listeners = [];
+         let actions = {};
+         export const useStore = () => {
+            const setState = useState(globalState)[1];
+            const dispatch = (actionIdentifier, payload) => {
+               const newState = actions[actionIdentifier](globalState, payload);
+               globalState = {...globalState, ...newState};
+               for (const listener of listeners) {
+                  listener(globalState);
+               };
+            };
+            useEffect(() => {
+               listeners.push(setState);
+               return () => { listeners = listeners.filter(li => li !== setState) };
+            }, [setState]);
+            return [globalState, dispatch];
+         };
+         export const initStore = (userActions, initialState) => {
+            if(initialState) { globalState = { ...globalState, ...initialState } };
+            actions = { ...actions, ...userActions };
+         };
+
+   > The "hooks-store" could be named anything you like and does not have to be named exactly as the example.
+   > The "globalState" variable uses a very generic name because you will be able to use the store for all kinds of state. This variable stores an object.
+   > The "listeners" variable holds an array so that you can listen to changes in the state at various places in the application.
+   > The "actions" variable holds an object and will be used to dispatch actions.
+   > The "useStore" is the Custom React Hook (i.e. it is just a function as with any Custom React Hook). In the Custom React Hook you can use other React Hooks for example the useState Hook.
+   > The useState provides a mechanism whereby it allows you to manage a state and whenever that state updated any Components that uses the useState will re-render. If a Component uses a Custom React Hook and that Custom React Hook uses the useState, the Component that uses the Custom React Hook will re-render when the useState in the Custom React Hook will trigger a re-render. This is what we can take advantage of here.
+   > The "globalState" is defined outside of the Custom React Hook so that it is created globally once when the file is first imported somewhere else. After, any other file that imports from the same store.js file will also use the same state. This is an important idea here i.e. to be able to share data in all files that import from the store.
+   > We are able to share logic and data in the Custom React Hook by managing the data outside the Custom React Hook. If the data was inside of the Hook the data would not be shared i.e. it would be exclusive to each Component.
+   > We are only interested in the second "setState" function that you get from the useState Hook. We are interested in this because whichever this function is called the Component that uses the Custom React Hook will re-render. We will need this later to render the Components when something changes in the store's state.
+   > Listeners should be an array full of functions that we can call to update all the Components that are using the Custom React Hook.
+   > Every Component which uses the Custom React Hook will get its own setState function which is then added the the shared "listeners" array. The "listeners" will therefore grow overtime the more Components we add.
+   > Therefore, the useEffect is used to push the "setState" function to the "listeners" array and the dependencies array is set to empty so that the effect will only run for when a Component that uses the Custom React Hook mounts. We can also add a clean up function here so that we remove the listener from the "listeners" array when the Component unmounts.
+   > The setState is not needed to be added as a dependency in the dependencies array of the useEffect Hook because React guarantees that the useState Hook state updating function will never change for a given Component. So in effectively we have one dependency which never changes and can be omitted. Therefore, the useEffect will only ever run once and will only clean up once.
+   > It is only added due to the linting tool of the code editor is not able to find out that the setState is an updating function because how we extracted it (i.e. "const setState = useState(globalState)[1]").
+   > We have now created the global state and managing the listeners of the state. We now need to be able to change the state. For this we need to be able to dispatch actions in the Component (i.e. the same idea as if you were using Redux).
+   > The "dispatch" is a function which should get an "actionIdentifier" of the action that is being dispatched. We can then reach out to the "actions" array to reach out the concrete actions for the "actionIdentifier" (which is a key of the "actions" object). The action should actually be a function.
+   > Therefore, "actions" should be an object where we have keys which will match the "actionIdentifier" and the value is then a concrete function which is called by adding the opening and closing brackets.
+   > The actions function being called should get the "globalState" which should return a new state (essentially replicating the same logic that occurs in Redux). The new returned state from the action function is then merged with the old state so that the "globalState" should essentially be a copy of the old "globalState" merged with everything in the new state to provide the new "globalState".
+   > Finally, we inform all listeners of the new state update.
+   > The Custom React Hook returns two things the "globalState" and "dispatch". This should look familiar because it is exactly the same thing the built-in useReducer Hook returns (the only difference is that useReducer is not suited for managing state across Components).
+   > The Custom React Hook will be exported so that other Components can now import the Custom React Hook whenever it is needed.
+   > A "initStore" function is also exported. This function would receive some actions which is defined by you as the developer along with an initial state (so that the "globalState" does not have to always be an empty object). We now have a Custom React Hook that can be used to create a concrete store for your application to manage the global state of the application.
+
+   Using Custom React Hook to Create a Concrete Store Example:
+      src/hooks-store/products-store.js:
+         import { initStore } from './store';
+         const configureProductsStore = () => {
+            const actions = {
+               TOGGLE_FAV: (curState, productId) => {
+                  const prodIndex = curState.products.findIndex(p => p.id === productId);
+                  const newFavStatus = !curState.products[prodIndex].isFavourite;
+                  const updatedProducts = [...curState.products];
+                  updatedProducts[prodIndex] = {
+                     ...curState.products[prodIndex],
+                     isFavourite: newFavStatus
+                  };
+                  return { products: updatedProducts };
+               }
+            };
+            initStore(actions, {products: [
+                  { id: 'p1', title: 'Red Scarf', description: 'A pretty red scarf.', isFavourite: false },
+                  { id: 'p2', title: 'Blue T-Shirt', description: 'A pretty blue t-shirt.', isFavourite: false },
+                  { id: 'p3', title: 'Green Trousers', description: 'A pair of lightly green trousers.', isFavourite: false },
+                  { id: 'p4', title: 'Orange Hat', description: 'Street style! An orange hat.', isFavourite: false }
+            ]});
+         };
+         export default configureProductsStore;
+
+   > The above now implements the Custom React Hook to create a new concrete store for "Products". It also sets up an action which will allow you to toggle Favourite Products updating the store state. The Custom React Hook state management can now be used by Components to utilise the global state for Products. How would we use the Custom React Hook Store?
+
+   Using the Custom React Store in a React Application Example:
+      src/index.js:
+         import React from 'react';
+         import ReactDOM from 'react-dom';
+         import { BrowserRouter } from 'react-router-dom';
+         import './index.css';
+         import App from './App';
+         import configureProductsStore from './hooks-store/product-store';
+         configureProductsStore();
+         ReactDOM.render(
+            <React.StrictMode>
+               <BrowserRouter><App /></BrowserRouter>
+            </React.StrictMode>,
+            document.getElementById('root')
+         );
+      src/containers/Products.js:
+         import React from 'react';
+         import ProductItem from '../components/Products/ProductItem';
+         import { useStore } from '../hooks-store/store';
+         import './Products.css';
+         const Products = (props) => {
+            const state = useStore()[0];
+            return (
+               <ul className="products-list">
+                  {state.products.map(prod => (
+                     <ProductItem key={prod.id} id={prod.id} title={prod.title} description={prod.description} isFav={prod.isFavourite} />
+                  ))}
+               </ul>
+            );
+         };
+         export default Products;
+      src/containers/Favourites.js:
+         import React from 'react';
+         import FavouriteItem from '../components/Favourites/FavouriteItem';
+         import { useStore } from '../hooks-store/store';
+         import './Products.css';
+         const Favourites = (props) => {
+            const state = useStore()[0];
+            const favouriteProducts = state.products.filter(p => p.isFavourite);
+            let content = <p className="placeholder">Got no favourites yet!</p>;
+            if (favouriteProducts.length > 0) {
+               content = (
+                  <ul className="products-list">
+                     {favouriteProducts.map(prod => (
+                        <FavouriteItem key={prod.id} id={prod.id} title={prod.title} description={prod.description}/>
+                     ))}
+                  </ul>
+               );
+            };
+            return content;
+         };
+         export default Favourites;
+      src/components/Products/ProductItem.js:
+         import React from 'react';
+         import Card from '../UI/Card';
+         import './ProductItem.css';
+         import { useStore } from '../../hooks-store/store';
+         const ProductItem = (props) => {
+            const dispatch = useStore()[1];
+            const toggleFavHandler = () => { dispatch('TOGGLE_FAV', props.id) };
+            return (
+               <Card style={{ marginBottom: '1rem' }}>
+                  <div className="product-item">
+                     <h2 className={props.isFav ? 'is-fav' : ''}>{props.title}</h2>
+                     <p>{props.description}</p>
+                     <button className={!props.isFav ? 'button-outline' : ''} onClick={toggleFavHandler}>
+                        {props.isFav ? 'Un-Favourite' : 'Favourite'}
+                     </button>
+                  </div>
+               </Card>
+            );
+         };
+         export default ProductItem;
+
+   > In the index.js root file, you would import the concrete store setup function (e.g. "configureProductsStore") and call on the function to setup the initial store.
+   > The benefit of using the Custom React Hook Store is that you do not need to wrap it in some Provider in the index.js file. Simply calling the "configureProductsStore" function will initialise the store which will then setup the global variables (i.e. globalState, listeners and actions) for that store.
+   > If you had more store state slices you would create separate concrete states and import them within the index.js file and then calling on the "configureStore" function to initialise each store state slices for the application. After this the Store is now ready to use in the application Components.
+   > To use the store/state, you simply go to the Component that needs access to the state. Import the useStore Custom React Hook from "store.js" file which will now provide access to the global store and global dispatch functions.
+   > The useState Custom React Hook returns a state and a dispatch function which we can extract from the useState Custom React Hook. However, in the above example we are only interested in the state object and not the dispatch and so can extract the single function from the array.
+   > We know that there is a "products" key in the store because that is what was setup in the "products-store.js" file when initialising the state in the "index.js" file using the "configureProductsStore" function.
+   > Therefore, the Component now have a way to access the global state data as well as dispatch actions to update the global state data as seen in the example above. We now have the same functionality but using a Custom React Hook instead of Redux to manage the global state.
