@@ -1,7 +1,8 @@
 Replacing Redux with React Hooks - Summary:
 1. Why Would You Replace Redux
 2. Using Context API and When Not to Use It
-3: Using Custom React Hooks (Creating the Custom Store Hook and Using the Custom Store)
+3. Using Custom React Hooks (Creating the Custom Store Hook and Using the Custom Store)
+4. Custom Hook Store Summary and Optimising Custom Hook Store
 
 ------------------------------------------------------------------------------------
 1. Why Would You Replace Redux:
@@ -131,7 +132,7 @@ Replacing Redux with React Hooks - Summary:
    > However, there is still a non-Redux alternative for managing global state using only React features and staying within the React world.
 
 ------------------------------------------------------------------------------------
-3: Using Custom React Hooks (Creating the Custom Store Hook and Using the Custom Store):
+3. Using Custom React Hooks (Creating the Custom Store Hook and Using the Custom Store):
 ------------------------------------------------------------------------------------
    > You can build your own state management storage solution with just JavaScript, React and React-Hooks and nothing else (including not the Context API).
 
@@ -187,7 +188,7 @@ Replacing Redux with React Hooks - Summary:
    Using Custom React Hook to Create a Concrete Store Example:
       src/hooks-store/products-store.js:
          import { initStore } from './store';
-         const configureProductsStore = () => {
+         const configureStore = () => {
             const actions = {
                TOGGLE_FAV: (curState, productId) => {
                   const prodIndex = curState.products.findIndex(p => p.id === productId);
@@ -207,7 +208,7 @@ Replacing Redux with React Hooks - Summary:
                   { id: 'p4', title: 'Orange Hat', description: 'Street style! An orange hat.', isFavourite: false }
             ]});
          };
-         export default configureProductsStore;
+         export default configureStore;
 
    > The above now implements the Custom React Hook to create a new concrete store for "Products". It also sets up an action which will allow you to toggle Favourite Products updating the store state. The Custom React Hook state management can now be used by Components to utilise the global state for Products. How would we use the Custom React Hook Store?
 
@@ -292,3 +293,72 @@ Replacing Redux with React Hooks - Summary:
    > The useState Custom React Hook returns a state and a dispatch function which we can extract from the useState Custom React Hook. However, in the above example we are only interested in the state object and not the dispatch and so can extract the single function from the array.
    > We know that there is a "products" key in the store because that is what was setup in the "products-store.js" file when initialising the state in the "index.js" file using the "configureProductsStore" function.
    > Therefore, the Component now have a way to access the global state data as well as dispatch actions to update the global state data as seen in the example above. We now have the same functionality but using a Custom React Hook instead of Redux to manage the global state.
+
+------------------------------------------------------------------------------------
+4. Custom Hook Store Summary and Optimising Custom Hook Store:
+------------------------------------------------------------------------------------
+   > The Custom Hook Store is kind of Redux Store implementation. There are some variables which are not global (i.e. not registered on the windows object) but which do exist in the file. These variables only exist once in the application lifetime and therefore shared in the entire application. Every other file that imports from the "store.js" file will use the same global variable values which are stored there.
+   > In the same file, you would create your own Custom React Hook. It is vital that the variables are declared outside of the Custom Hook. If the global variables were declared inside the Custom React Hook function then every Component which used the Custom Hook Store would use its own values which is not the desired result. Now both the logic and data are being shared.
+   > This implementation allows you to manage some State, Actions and Listeners (Listeners are interested in state changes which are in turn triggered by Actions). This is all managed in the useStore Custom React Hook created.
+   > The dispatch function ensures that whenever the dispatch function is called the global state is updated.
+   > The listener are in the end "setState" calls where we use this feature of the state updating function to re-render an interested Component whenever the state is updated. One listener is registered for each Component with the help of useEffect Hook and unregister the listener when the Component unmounts.
+   > Finally, there is a way to initialise the store using a function that can be called multiple times because it does not replace the global state/actions but instead it always takes the current global state/actions to merge with the new state/actions data. This allows you to create concrete store slices just as you would with Redux and multiple reducers. You just need to ensure to avoid name clashes.
+   > The concrete store will define the actions maps (actions are functions that return a state) available and then uses the "initStore" function to set the initial actions and store slice data when initialising the state slice which will end up being merged in the global store
+   > From anywhere inside of your project you can use that store to wither tap into the state or use the dispatch function to dispatch an action to update the state.
+   > This is roughly the idea of how Redux works behind the scenes but now rebuilt using Custom React Hook saving that extra dependency and keeping within the React world of development.
+
+   Custom Hook Store Optimisation:
+   > You will notice that when we use the Custom Hook and click on a single product to toggle it's favourite status, the Custom Hook will trigger for each ProductItem regardless if only one item changed. You could wrap the React.memo() around the ProductItem Component to make sure they do not re-render if their props did not change. However, this will continue to re-render for each product item.
+   > The reason behind this is because of the Custom React Hook. Each ProductItem is using "useStore()" and in the store we use useState. Whenever the setState is called the Component that uses this Hook will be re-rendered which is the intended default behaviour. This causes each Product to call the useState rendering for each product.
+   > One optimisation you could do with the Custom React Hook Store implementation is to add an argument to the Custom Hook function.
+
+   Custom Hook Optimisation Example:
+      src/hooks-store/store.js:
+         import { useState, useEffect } from 'react';
+         let globalState = {};
+         let listeners = [];
+         let actions = {};
+         export const useStore = (shouldListen = true) => {
+            const setState = useState(globalState)[1];
+            const dispatch = (actionIdentifier, payload) => {
+               const newState = actions[actionIdentifier](globalState, payload);
+               globalState = {...globalState, ...newState};
+               for (const listener of listeners) { listener(globalState) };
+            };
+            useEffect(() => {
+               if(shouldListen) { listeners.push(setState) };
+               return () => { if(shouldListen) { listeners = listeners.filter(li => li !== setState) } };
+            }, [setState, shouldListen]);
+            return [globalState, dispatch];
+         };
+         export const initStore = (userActions, initialState) => {
+            if(initialState) { globalState = { ...globalState, ...initialState } };
+            actions = { ...actions, ...userActions };
+         };
+      src/components/Products/ProductItem.js:
+         import React from 'react';
+         import Card from '../UI/Card';
+         import './ProductItem.css';
+         import { useStore } from '../../hooks-store/store';
+         const ProductItem = React.memo((props) => {
+            console.log('RENDERING');
+            const dispatch = useStore(false)[1];
+            const toggleFavHandler = () => { dispatch('TOGGLE_FAV', props.id) };
+            return (
+               <Card style={{ marginBottom: '1rem' }}>
+                  <div className="product-item">
+                     <h2 className={props.isFav ? 'is-fav' : ''}>{props.title}</h2>
+                     <p>{props.description}</p>
+                     <button className={!props.isFav ? 'button-outline' : ''} onClick={toggleFavHandler}>
+                        {props.isFav ? 'Un-Favourite' : 'Favourite'}
+                     </button>
+                  </div>
+               </Card>
+            );
+         });
+         export default ProductItem;
+
+   > The "shouldListen" argument which has true as its default value can be used to determine whether we would actually want to register or not a listener for the Component using the store. Therefore, if you have a Component which only uses the store to dispatch actions like the "ProductItem" Component then you do not want to listen to changes inside of the Component.
+   > Therefore, only if this value is set to true should a listener be created in the useEffect. The same logic is true to remove a listener only if already listening for changes. Hence, the "shouldListen" is now a dependency for the useEffect Hook.
+   > The dispatch action can now take in a false argument/parameter value if the Component should not create/register a listener in the global listeners array and therefore should not rebuild when the store changes. Therefore, you should only see one "RENDERING" being called whenever a product is marked as a favourite (note that when the product list is being rendered for the first time you would see "RENDERING" for each item but thereafter clicking the Favourite button will only display "RENDERING" once in the browser console).
+   > This is one small optimisation which you could put in place which should also show you the power of Custom Hooks Store system.
