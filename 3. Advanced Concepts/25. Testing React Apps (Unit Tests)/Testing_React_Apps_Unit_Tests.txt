@@ -1,5 +1,6 @@
 Testing React Apps (Unit Tests) - Summary:
 1. What & Why and Understanding Different Kinds of Tests
+2. Understanding the Technical Setup & Involved Tools
 
 ------------------------------------------------------------------------------------
 1. What & Why and Understanding Different Kinds of Tests:
@@ -33,3 +34,108 @@ Testing React Apps (Unit Tests) - Summary:
 
    > So for Unit Tests, what you should test should be the different building blocks that make up your application. You want to make sure to test really small building blocks so that you have small focused tests that only test one main thing. Therefore, you should have a lot of focused tests which would then fail for a clear reason rather than having a few large tests which could fail for all kinds of reasons.
    > The How, is to test the success and error cases that could occur if a user interacts with your application. You also want to test for some rare (but possible) scenarios and results. This will become more clear when you see some example test code.
+
+------------------------------------------------------------------------------------
+2. Understanding the Technical Setup & Involved Tools:
+------------------------------------------------------------------------------------
+   > Now that you have a rough idea why you need tests and that tests are basically code that then test other other code. However, where do you write this code and how do you execute the testing code?
+   > You need extra tools and setup. Specifically, you need a tool for running the test code and asserting the results (i.e. whether the result can be seen as a success or a failure to a given result).
+   > With React application you need a tool for simulating of rendering your React App/Components for those automated tests to then interact with them. So you could say that you need to simulate the browser.
+   > To run the test code and asserting the results you can use a tool called Jest (this is not the only tool but it is a very popular tool for testing React and is easy to use).
+   > To simulate and render the Components and the React App you would typically use the React Testing library as the tool.
+   > Both these tools are already installed and setup for you when you work in a project created with the 'create-react-app'.
+   > In the package.json file you should see the dependency packages already installed.
+
+   Package.json File Testing Dependency Example:
+      package.json:
+         ...
+         "dependencies": {
+            "@testing-library/jest-dom": "^5.14.1",
+            "@testing-library/react": "^11.2.7",
+            "@testing-library/user-event": "^12.8.3",
+         },
+         ...
+
+   > These libraries are part of the newly created React Projects that were created using the 'create-react-app' i.e. installed automatically and setup right out of the box.
+   > While you cannot see 'Jest' in the dependencies list, it is still installed because it is a dependency of the other installed dependency packages.
+   > Therefore, everything is all setup for you to run your tests.
+
+   Running First Test:
+   > Using the standard code that is created by 'create-react-app' you will find a 'App.test.js' file and a 'setupTests.js' file.
+   > The setupTests.js file as the name suggests will do some setup work and you will not need to do anything else with this file (i.e. leave the file as the default).
+   > The 'App.test.js' is more interesting. This is a file that contains some testing code. This is a default test file that comes out of the box (but you can write your own test code from scratch). This file is here to test the App.js Component.
+   > The naming convention is to name your test files like your Component files but with the word of '.test.js' as the file extension.
+
+   Default App.js Test Code Example:
+      src/App.js:
+         import React from 'react';
+         import logo from './logo.svg';
+         import './App.css';
+         function App() {
+            return (
+               <div className="App">
+                  <header className="App-header">
+                     <img src={logo} className="App-logo" alt="logo" />
+                     <p>Edit <code>src/App.js</code> and save to reload.</p>
+                     <a className="App-link" href="https://reactjs.org" target="_blank" rel="noopener noreferrer">Learn React</a>
+                  </header>
+               </div>
+            );
+         };
+         export default App;
+      src/App.test.js:
+         import { render, screen } from '@testing-library/react';
+         import App from './App';
+         test('renders learn react link', () => {
+            render(<App />);
+            const linkElement = screen.getByText(/learn react/i);
+            expect(linkElement).toBeInTheDocument();
+         });
+      package.json:
+         ...
+         "scripts": {
+            "start": "react-scripts start",
+            "build": "react-scripts build",
+            "test": "react-scripts test",
+            "eject": "react-scripts eject"
+         },
+         ...
+
+   > The 'test' is a function that takes two arguments. The first argument is a string description of the test and is entirely up to you what the description should be (but it should help you identify the test in the testing output). The second argument is an anonymous function which contains the actual test code (i.e. the code that would be executed once you run your test).
+   > In the above example, the test code renders (a function from the '@testing-library/react' library) the App Component. It then gets hold of some element on the virtual screen (i.e. simulated browser), in the above the element is identified by the text of "learn react/i" in a case insensitive way (using regular expression) that is rendered inside of it. Finally, it checks if that element actually is in the document.
+   > The test will fail if the element is not found and it will succeed if it is found i.e. asserting the pass/fail of the scenario/test code.
+   > In the above example, the test should pass because there is a <a> element with the text "Learn React" which will match the test case because the regular expression "learn react/i" is case insensitive (i.e. "Learn React" will be matched to "learn react" regardless of casing of the letters).
+   > So how do you run the test? There is a script called 'test' found in the package.json file, a script you can run just as you would have for running the development server.
+   > So by opening the terminal and while navigated to the project directory if you were to run the following command below you can test all your test files in your React application.
+
+   Running Test Command Example:
+      $: npm test
+
+   > The command will start up the testing environment. This may run automatically for you or you may need to press the 'a' key on your keyboard to run all the '.test.js' files in your React application.
+   > This will find all files that contain the '.test.js' extension and execute all test functions that are defined in all those '.test.js' files found. the output of the test files assertions will be displayed in the terminal.
+   > The test output would look something like the below:
+
+   Terminal Test Results Example:
+         PASS  src/App.test.js
+         ✓ renders learn react link (44 ms)
+
+         Test Suites: 1 passed, 1 total
+         Tests:       1 passed, 1 total
+         Snapshots:   0 total
+         Time:        2.71 s
+         Ran all test suites.
+
+         Watch Usage
+         › Press f to run only failed tests.
+         › Press o to only run tests related to changed files.
+         › Press q to quit watch mode.
+         › Press p to filter by a filename regex pattern.
+         › Press t to filter by a test name regex pattern.
+         › Press Enter to trigger a test run.
+
+   > So in the above example, one test ran which passed and you can see all the tests files and test function that was run. You can see the test description "renders learn react link" as defined in the test function first argument/parameter is displayed. Again, this helps you identify the test scenario/file that ran the test code and what scenario it was testing.
+   > By default the testing tool will watch your project directory for any changes to test files and will re-run the test automatically whenever it detects any saved changes.
+   > When a test fails you will see the Test File that failed, the test case that failed, an explanation why the test failed, an output of the actual content that was rendered and finally the testing code and the line of code that failed. As a developer you can either adjust the test or the code that broke.
+   > This is the whole idea behind automated testing and how it works.
+   > To quit the testing, press both the control and c keys on your keyboard together. This will close the testing server.
+   > This is the technical basics of testing your React applications using the tools provided by a 'create-react-app' project.
