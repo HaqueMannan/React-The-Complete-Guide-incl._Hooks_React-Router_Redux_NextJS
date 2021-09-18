@@ -2,6 +2,7 @@ Testing React Apps (Unit Tests) - Summary:
 1. What & Why and Understanding Different Kinds of Tests
 2. Understanding the Technical Setup & Involved Tools
 3. How to Write Test Files
+4. Grouping Tests Together with Test Suites
 
 ------------------------------------------------------------------------------------
 1. What & Why and Understanding Different Kinds of Tests:
@@ -202,3 +203,48 @@ Testing React Apps (Unit Tests) - Summary:
    > The 'expect' function is globally available and does not need to be imported. This is where you can pass your testing result value which can be anything such as a number, string, boolean, etc. (in this example a DOM node). On this result of the 'expect' function you have various matchers methods.
    > In the above example the '.toBeInTheDocument' matcher method checks whether the thing you expect is in the document. You can check for opposites by adding '.not.' for example '.not.toBeInTheDocument' as the method.
    > This is how you can generally write your own test code files in your React projects. The file will automatically be tested by the test script process.
+
+------------------------------------------------------------------------------------
+4. Grouping Tests Together with Test Suites:
+------------------------------------------------------------------------------------
+   > As your application grows you typically will have many tests. To organise and group those different tests you often organise them into different testing suites.
+   > For example, all the tests belonging to one feature or one Component of your application could be grouped into one testing suite.
+   > To create a Testing Suite by using the global 'describe' function.
+   > This takes in two arguments/parameters. The first argument is a description of the suite category to which your tests will belong. The second argument is an anonymous function. In this function you do not write the testing code but you put the different test functions here instead.
+
+   Creating Test Suite Example:
+      src/components/Greeting.test.js:
+         import { render, screen } from '@testing-library/react';
+         import Greeting from './Greeting';
+         describe('Greeting Component', () => {
+            test('renders Hello World! as a text', () => {
+               render(<Greeting />);
+               const helloWorldElement = screen.getByText('Hello World!');
+               expect(helloWorldElement).toBeInTheDocument();
+            });
+            test('renders It is nice ... as a text', () => {
+               render(<Greeting />);
+               const itIsNiceToSeeYouElement = screen.getByText('It is nice', { exact: false });
+               expect(itIsNiceToSeeYouElement).toBeInTheDocument();
+            });
+         };
+
+   > In the above example, we created one suite with one test in it.
+   > You can have multiple suites as well as multiple tests per suite.
+
+   Terminal Test Result Example:
+      PASS  src/components/Greeting.test.js
+      Greeting Component
+         ✓ renders Hello World! as a text (33 ms)
+         ✓ renders It is nice ... as a text (5 ms)
+
+      Test Suites: 1 passed, 1 total
+      Tests:       2 passed, 2 total
+      Snapshots:   0 total
+      Time:        2.001 s
+      Ran all test suites.
+
+      Watch Usage: Press w to show more.
+
+   > If you run the testing server you will see a similar output as before but now the suite name is in the output grouping the tests within that suite. The above example assumes the default 'App.test.js' test file was deleted; hence 1 Test Suite.
+   > As your application grows you definitely would want to group your tests into suits as seen in the above example.
