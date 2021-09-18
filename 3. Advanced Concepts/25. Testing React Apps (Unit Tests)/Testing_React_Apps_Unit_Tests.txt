@@ -3,6 +3,7 @@ Testing React Apps (Unit Tests) - Summary:
 2. Understanding the Technical Setup & Involved Tools
 3. How to Write Test Files
 4. Grouping Tests Together with Test Suites
+5. Testing User Interaction & State
 
 ------------------------------------------------------------------------------------
 1. What & Why and Understanding Different Kinds of Tests:
@@ -248,3 +249,88 @@ Testing React Apps (Unit Tests) - Summary:
 
    > If you run the testing server you will see a similar output as before but now the suite name is in the output grouping the tests within that suite. The above example assumes the default 'App.test.js' test file was deleted; hence 1 Test Suite.
    > As your application grows you definitely would want to group your tests into suits as seen in the above example.
+
+------------------------------------------------------------------------------------
+5. Testing User Interaction & State:
+------------------------------------------------------------------------------------
+   > React Component will typically have some user interaction and changes to the State of that Component. In the below example we explore how you could write a Test Code for testing user interactions and State changes.
+
+   Testing User Interaction & State Example:
+      src/components/Greeting.js:
+         import React, { useState } from 'react';
+         const Greeting = () => {
+            const [changedText, setChangedText] = useState(false);
+            const changedTextHandler = () => { setChangedText(true) };
+            return(
+               <div>
+                  <h2>Hello World!</h2>
+                  {!changedText && <p>It is nice to see you!</p>}
+                  {changedText && <p>Changed!</p>}
+                  <button onClick={changedTextHandler}>Change Text!</button>
+               </div>
+            );
+         };
+         export default Greeting;
+      src/components/Greeting.test.js:
+         import { render, screen } from '@testing-library/react';
+         import userEvent from '@testing-library/user-event';
+         import Greeting from './Greeting';
+         describe('Greeting Component', () => {
+            test('renders "Hello World!" as a text', () => {
+               // Arrange
+               render(<Greeting />);
+               // Assert
+               const helloWorldElement = screen.getByText('Hello World!');
+               expect(helloWorldElement).toBeInTheDocument();
+            });
+            test('renders "It is nice to see you!" if the button was NOT clicked', () => {
+               // Arrange
+               render(<Greeting />);
+               // Assert
+               const outputElement = screen.getByText('It is nice to', { exact: false });
+               expect(outputElement).toBeInTheDocument();
+            });
+            test('renders "Changed!" if the button was clicked', () => {
+               // Arrange
+               render(<Greeting />);
+               // Act
+               const buttonElement = screen.getByRole('button');
+               userEvent.click(buttonElement);
+               // Assert
+               const outputElement = screen.getByText('Changed!');
+               expect(outputElement).toBeInTheDocument();
+            });
+         });
+
+   > In this example the Component has a button which when clicked will change the default paragraph text to a new text. This demonstrates a Component which has user interaction as well as a State being managed in the Component.
+   > In addition to the first test example of checking for an element with the text "Hello World!" we can also add some new test cases for the Greeting Component.
+   > The two new test scenarios you could test are: A) whether the default text if the state did not change yet (i.e. button not clicked) and B) whether the new text is displayed when the button is clicked.
+   > This is important because when writing tests you want to ensure that all possible scenarios are being tested otherwise your testing will not matter because you will never notice any other edge cases passing/failing.
+   > Notice how the test code reads when describing the test cases. The Test Suite description is "Greeting Component", while the test cases begin with 'renders ...". This would therefore read as for example "Greeting Component renders Hello World! as a text" which reads well as the description for the test case that is being asserted. This is how you would typically want to describe test codes so that it reads well (including in the terminal).
+   > In this example, you now need to Act because the test requires an action i.e. the act of clicking the button to change the paragraph text.
+   > You can import 'userEvent' object from '@testing-library/user-event' package (a package which is provided out of the box by 'create-react-app'). This object helps you trigger user events in the Virtual DOM (created by the screen() function). The event methods available on the object are the typical events you would expect to find such as 'clear', 'click', 'dlbClick', etc.
+   > The 'click' method requires the element as an argument/parameter for which you want to simulate a click on. Using the 'screen' object we can call the '.getByRole' method to get an element by its role e.g. a button (demonstrating an alternative way to get an element compared to using the '.getByText' method).
+   > This is how you can test user interactions and state changes in your test code.
+   > There is a fourth test (that may find be hard to identify) for the Greeting Component. What if you as the developer introduced a bug by forgetting to conditionally render the first paragraph (i.e. "<p>It is nice to see you!</p">) so that it is always there. Unfortunately, the tests in the above example would not spot this case and will continue to pass all tests as they continue to work.
+   > If you know the paragraph should not be visible in the DOM when you click the button then you would also need a test this scenario too. Below is the test code for this fourth test scenario which would need adding.
+
+   Fourth Test Scenario For Greeting Component Example:
+      src/components/Greeting.test.js:
+         ...
+         describe('Greeting Component', () => {
+            ...
+            test('does not render "It is nice to see you!" if the button was clicked', () => {
+               // Arrange
+               render(<Greeting />);
+               // Act
+               const buttonElement = screen.getByText('It is nice to', { exact: false });
+               userEvent.click(buttonElement);
+               // Assert
+               const outputElement = screen.queryByText('It is nice to!', { exact: false });
+               expect(outputElement).toBeNull();
+            });
+         });
+
+   > You would use the '.not' method to chain on the assertion to check for the opposite of the '.toBeInTheDocument' method assertion. However, the 'getByText' method will always throw an error whenever it cannot find the searched text in the Virtual DOM which will cause the test to always fail due to the thrown error. The 'queryByText' method can be used instead of the 'getByText' method to test this case scenario.
+   > The 'queryByText' method will simply return 'null' if the element was not found which will allow the test to pass on assertion. Therefore, the 'toBeNull' assertion method can now be used instead of 'toBeInTheDocument' assertion method because the expectation is for the test function to return null if the paragraph is not visible when the button is clicked.
+   > Therefore, this test will now be able to fail if the paragraph text is not being conditionally rendered which will allow you as the developer to correct any bugs you may potentially introduce in the code which you can then fix because the test case will point out this failing test case. This also demonstrates why testing is soo important.
