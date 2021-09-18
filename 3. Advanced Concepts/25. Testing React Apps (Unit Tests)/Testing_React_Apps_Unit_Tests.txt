@@ -1,6 +1,7 @@
 Testing React Apps (Unit Tests) - Summary:
 1. What & Why and Understanding Different Kinds of Tests
 2. Understanding the Technical Setup & Involved Tools
+3. How to Write Test Files
 
 ------------------------------------------------------------------------------------
 1. What & Why and Understanding Different Kinds of Tests:
@@ -139,3 +140,65 @@ Testing React Apps (Unit Tests) - Summary:
    > This is the whole idea behind automated testing and how it works.
    > To quit the testing, press both the control and c keys on your keyboard together. This will close the testing server.
    > This is the technical basics of testing your React applications using the tools provided by a 'create-react-app' project.
+
+------------------------------------------------------------------------------------
+3. How to Write Test Files:
+------------------------------------------------------------------------------------
+   > Below is a Dumb Component which prints a Greeting. We will use this as an example to demonstrate how you can write your own Test Codes yourself.
+
+   Greeting Component Example:
+      src/components/Greeting.js:
+         import React from 'react';
+         const Greeting = () => {
+            return(
+               <div>
+                  <h2>Hello World!</h2>
+                  <p>It is nice to see you!</p>
+               </div>
+            );
+         };
+         export default Greeting;
+      src/App.js:
+         import React from 'react';
+         import './App.css';
+         import Greeting from './components/Greeting';
+         function App() {
+            return (
+               <div className="App"><Greeting /></div>
+            );
+         };
+         export default App;
+
+   > You could write your test code in the App.test.js file and render the Greeting Component from there (or the App Component). However, the convention is to write the test as close as possible to the thing that you want to test. Therefore, if you want to test the Greeting Component and that it is rendering the correct text, you should then create a separate "Greeting.test.js" file in the same folder location as the "Greeting.js" file.
+
+   Greeting.test.js File Example:
+      src/components/Greeting.test.js:
+         import { render, screen } from '@testing-library/react';
+         import Greeting from './Greeting';
+         test('renders Hello World! as a text', () => {
+            // Arrange:
+               render(<Greeting />);
+            // Act:
+               // ... nothing
+            // Assert:
+               const helloWorldElement = screen.getByText('Hello World!');
+               expect(helloWorldElement).toBeInTheDocument();
+         });
+
+   > The 'test' function is globally available and does not need to be imported into every '.test.js' file. This is due to how 'create-react-app' setup a React project which provides this nice feature.
+   > As you seen before the test function receives two argument/parameters.
+   > Generally, the description should briefly describe what the test does. In the above example, it is testing whether the "Hello World" text is printed to the screen.
+   > The second argument must be an anonymous function to be run by the test which contains the actual testing code. In here you typically want to do three things when writing the test code; this is known as the three A's:
+      1) Arrange - setup the test data, test condition and test environment (e.g. render the Component)
+      2) Act - Run the logic that should be tested (e.g. execute a function)
+      3) Assert - Compare the execution results with expected results
+   > This can be seen demonstrated in the above example test code.
+   > Remember you need to import all necessary Component(s), data and external packages that are required for the anonymous testing function as you would for any other file. This is to ensure the anonymous function is executed without throwing errors of its own. In the above example the render function needed to be imported from '@testing-library/react' library as well as the Greeting Component.
+   > The render function takes in JSX code i.e. to create the Component element.
+   > In the above example there is no action required. Typically, you would write code to perform the main action that is interesting to you.
+   > In the above example the assertion will look into the Virtual DOM created by 'screen()' and assert that it expects to see an element with the text of "Hello World!" in the Virtual DOM - which would have been added by the 'render()' function. If it finds an element it succeed else it failed (i.e. similar to the default 'App.test.js' test code example).
+   > The 'screen' object is imported from '@testing-library/react' and has various methods available on it. There are get functions, find functions and query functions. The main difference is when these functions throw errors and if they return a promise or not. For example a get function will throw an error if an element is not found while query functions will not and find functions will return a promise.
+   > The '.getByText' method takes in a string as its argument/parameter which should be the text you are looking for. You can use either a hard coded string or regular expression. Regular Expressions are more flexible when finding strings based on a pattern. The second argument is an object which can configure the search whether it should be an 'exact' match or not (by default this is set to true). If not then letter casing does not matter and it will also look at substrings.
+   > The 'expect' function is globally available and does not need to be imported. This is where you can pass your testing result value which can be anything such as a number, string, boolean, etc. (in this example a DOM node). On this result of the 'expect' function you have various matchers methods.
+   > In the above example the '.toBeInTheDocument' matcher method checks whether the thing you expect is in the document. You can check for opposites by adding '.not.' for example '.not.toBeInTheDocument' as the method.
+   > This is how you can generally write your own test code files in your React projects. The file will automatically be tested by the test script process.
