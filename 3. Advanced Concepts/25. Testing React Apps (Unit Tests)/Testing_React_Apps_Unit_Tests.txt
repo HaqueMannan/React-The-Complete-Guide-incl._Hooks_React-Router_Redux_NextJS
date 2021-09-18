@@ -1,0 +1,35 @@
+Testing React Apps (Unit Tests) - Summary:
+1. What & Why and Understanding Different Kinds of Tests
+
+------------------------------------------------------------------------------------
+1. What & Why and Understanding Different Kinds of Tests:
+------------------------------------------------------------------------------------
+   > Testing the application is error-prone; at least if it is the only kind of testing you do. Simply because it is hard to test all possible combinations and scenarios.
+   > If you have a very complex React application with a lot of different pages and features and then you add a new feature (or change an aspect of an existing feature) you will probably test that change or new feature but you are not going to test all the other parts of your application all the time.
+   > Therefore, you may change something which might break some other feature in your application and since you are not testing everything all the time, that breaking change/bug, might slip through to live production. You may eventually catch the bug later (but it is not guaranteed) and you might catch it too late which may cause some extra work or additional problems.
+   > This is where automated testing steps in. This is not a replacement for manual testing but is is an addition.
+   > With automated testing you write extra code that runs and tests your other code (i.e. the main application code).
+   > This is a standard procedure to do in modern development.
+   > Since you write code that test your entire application automatically, you can always test everything no matter what you changed because you will automatically test the entire application (and doesn't cost a lot of time to do the testing).
+   > You write such automated test scripts that test the different individual building blocks of your application but where you also then test all those building blocks together whenever you make changes to your code. Therefore, instead of testing parts of your application from time to time, you can test the whole application all the time.
+   > Automated testing combined with manual testing will allow you to catch errors way earlier and it allows you to write and ship better code in applications.
+
+   Types of Automated Tests:
+   > There are different kinds of automated testing:
+      - Unit Tests: test the individual building blocks (e.g. functions, components) in isolation.
+      - Integration Tests: test the combination of multiple building blocks.
+      - End-to-End (e2e) Tests: test complete workflow scenarios in the application as the user would experience them.
+   > These are the three main categories of tests which you can write.
+   > Projects typically contain a lot of Unit Tests since you want to test all the units that make up the application. This is the most common and important kind of testing. The idea is that if you test all the individual units in isolation, the overall application will also work.
+   > Integration Tests is used typically to verify the overall application really works when you put all those individual units together. Projects typically contain a couple of Integration Tests but not as many as you would have with Unit Tests.
+   > The e2e Tests are used to test the entire workflow/scenarios such as logging a user in and navigating to a certain page. This testing is to really re-produce what a rea user would do with the webapp i.e. testing the business logic. This is basically what you would also do with manual test but now automated.
+   > Projects typically contain only a few e2e Tests. This is because if the Unit and Integration Tests all pass you can confidently assume the overall application works. The Unit and Integration tests are much more easier to test and are quicker to run and are more focused and way easier to test all possible scenarios compared to thinking of test scenarios if you were testing the application as a whole.
+   > So while e2e Tests are important but can be tests which you can do manually. Business would do this manually which is known as UAT testing.
+
+   What to Test & How to Test:
+   > When you start writing tests, there are two super important questions you have to answer relatively early:
+      - What should you test?
+      - How should you test that?
+
+   > So for Unit Tests, what you should test should be the different building blocks that make up your application. You want to make sure to test really small building blocks so that you have small focused tests that only test one main thing. Therefore, you should have a lot of focused tests which would then fail for a clear reason rather than having a few large tests which could fail for all kinds of reasons.
+   > The How, is to test the success and error cases that could occur if a user interacts with your application. You also want to test for some rare (but possible) scenarios and results. This will become more clear when you see some example test code.
