@@ -5,6 +5,7 @@ Testing React Apps (Unit Tests) - Summary:
 4. Grouping Tests Together with Test Suites
 5. Testing User Interaction & State
 6. Testing Connected Components
+7. Testing Asynchronous Code
 
 ------------------------------------------------------------------------------------
 1. What & Why and Understanding Different Kinds of Tests:
@@ -399,3 +400,113 @@ Testing React Apps (Unit Tests) - Summary:
    > The nice thing about the above example, the previous Greeting Component tests would continue to work and does not require any changes even when using the new Output Component. This is because the 'render()' function really renders the entire Greeting Component tree and does not ignore other Component that are part of the Greeting Components JSX code. Therefore, the Output Component will continue to render a paragraph element.
    > Technically you could call this a Integration Test because more than one unit is involved. However, when dealing with such a wrapper component which does not have its own logic, then Integration Test is not the right term. Testing the conjunction of both "Greeting" and "Output" Components as a Unit Test is perfectly fine.
    > This does not force you to split your test. You might want to split the them if the Output Component becomes more complex and also starts managing State.
+
+------------------------------------------------------------------------------------
+7. Testing Asynchronous Code
+------------------------------------------------------------------------------------
+   > You may have a more complex Component to test whereby the Component has some asynchronous code. The below example explores how you could test the asynchronous code.
+
+   Testing Asynchronous Code Example:
+      src/components/Async.js:
+         import React, { useEffect, useState } from 'react';
+         const Async = () => {
+            const [posts, setPosts] = useState([]);
+            useEffect(() => { 
+               fetch('https://jsonplaceholder.typicode.com/posts')
+                  .then((response) => response.json())
+                  .then((data) => { setPosts(data) });
+            }, []);
+            return (
+               <div>
+                  <ul>{posts.map((post) => ( <li key={post.id}>{post.title}</li> ))}</ul>
+               </div>
+            );
+         };
+         export default Async;
+      src/components/Async.test.js:
+         import { render, screen } from '@testing-library/react';
+         import Async from './Async';
+         describe('Async Component', () => {
+            test('renders posts if request succeeds', () => {
+               render(<Async />);
+               const listItemElements = screen.getAllByRole('listitem');
+               expect(listItemElements).not.toHaveLength(0);
+            });
+         });
+
+   > The Async Component in the above example is not that complex (purpose for demonstration). The Component uses both useState and useEffect so that in the useEffect it sends a http request to the dummy API to fetch some dummy posts and then the posts are set as state here and are rendered out as a list element within the unordered list element.
+   > The "Async.test.js" file is created to create a new test suite to test all the scenarios related to the Async Component. Note that the test server will fail a test file if there are no tests for it ("Your test suite must contain at least one test.")
+   > The 'render' function will "Arrange" to render the Async Component. There are no "Actions" required for the Async Component because rendering is everything you need to do since the Component fetches and set posts automatically due to useEffect and no other actions are required. Finally, we want to "Assert" whether some list items were rendered because if post were fetched correctly then list items will be rendered.
+   > There are various ways to get access to the list items of which the above example uses '.getAllByRole' method. This will let you know if there was some list items on the screen because <li> is a role that HTML elements can assume. To know more about available HTML Roles you can visit W3 page on the topic (https://www.w3.org/TR/html-aria/#docconformance).
+   > The '.getAllByRole' method is used where you know there will be multiple elements of that HTML Role i.e. you would expect more than one <li> element in the list. The '.getByRole' method should be used if there is only one element. If there were more than one element with that specified role the '.getByRole' method would have failed and would not give the assertion you were expecting.
+   > The list items should not have a length of zero. The '.toHaveLength' assertion method allows you to check the length of an array. The '.not' assertion method allows you to check for the opposite of the assertion method that comes after it.
+   > You will typically be able to express your expectation (i.e. assertions) with different combinations of assertion methods available on the 'expect' object.
+   > It is important to understand that the 'screen' 'get' and 'query' methods will instantly look for elements on the screen causing the test to fail. You need to keep in mind asynchronous actions take a while to complete and therefore the elements are not there immediately.
+   > In the above example the posts are rendered initially with an empty array and therefore there are no posts i.e. no list items initially. After the first render cycle the useEffect immediately runs and the fetch request is sent. Once the response is returned, the post state is updated and the Component is re-rendered but now with list items.
+   > This is the problem with the above test code when using the 'getAllByRole' method because this method gets all the items on the screen immediately which initially there are none.
+
+   Correcting Async.test.js Test Case Example:
+      src/components/Async.test.js:
+         import { render, screen } from '@testing-library/react';
+         import Async from './Async';
+         describe('Async Component', () => {
+            test('renders posts if request succeeds', async () => {
+               render(<Async />);
+               const listItemElements = await screen.findAllByRole('listitem');
+               expect(listItemElements).not.toHaveLength(0);
+            });
+         });
+
+   > The simple workaround is to use the 'findAllByRole' method instead. The difference here is that the 'find' methods return a promise. The React testing library will re-evaluate the screen a couple of times until the find query succeeds. Therefore, the test will wait for the asynchronous code to succeed.
+   > The 'findAllByRole' method can be specified a third argument (note that the second argument is an object which can configure the search e.g. whether it should be an 'exact' match or not) which is also an object but where you can set the setTimeout period as well as other options (e.g. 'const listItemElements = screen.findAllByRole('listitem', {}, { timeout: 2000 })').
+   > By default the timeout is set to 1000ms (i.e. one second) and if the list items are not present the test fails.
+   > You can omit the two argument/parameters if you are happy to use the default values.
+   > When using find queries you would need to make the test anonymous function argument/parameter a 'async' function in order to avoid any errors when using 'find' assertion methods. This is because the 'find' methods returns a promise and you need to 'await' the response.
+   > You should now see the test running again but this time with a success because the testing code allows for asynchronous tasks to complete first before evaluating the assertion to determine a pass or fail for the test.
+
+   Terminal Test Results Example:
+      PASS  src/components/Greeting.test.js
+      PASS  src/components/Async.test.js
+
+      Test Suites: 2 passed, 2 total
+      Tests:       5 passed, 5 total
+      Snapshots:   0 total
+      Time:        2.426 s, estimated 3 s
+      Ran all test suites.
+
+   > When there are more than one test suite you will notice that the output no longer provides the test suite description and test descriptions but rather it provides a condensed results. To fix this you could do the following:
+      1) Run the following terminal command using the '--verbose' flag:
+         $: npm test -- --verbose
+      2) Update the package.json file 'test' script to add the '--verbose' flag by default. This will then allow you to use the default 'npm test' command without any additional flags:
+         package.json:
+            ...,
+            "scripts": {
+               ...
+               "test": "react-scripts test --env=jsdom --verbose=true",
+               ...
+            },
+            ...
+
+   Terminal Test Results Example:
+   PASS  src/components/Greeting.test.js
+   Greeting Component
+      ✓ renders "Hello World!" as a text (34 ms)
+      ✓ renders "It is nice to see you!" if the button was NOT clicked (6 ms)
+      ✓ renders "Changed!" if the button was clicked (86 ms)
+      ✓ does not render "It is nice to see you!" if the button was clicked (9 ms)
+
+   PASS  src/components/Async.test.js
+   Async Component
+      ✓ renders posts if request succeeds (551 ms)
+
+   Test Suites: 2 passed, 2 total
+   Tests:       5 passed, 5 total
+   Snapshots:   0 total
+   Time:        2.436 s
+   Ran all test suites.
+
+   Watch Usage: Press w to show more.
+
+   > As you can see from the above the output result will be much more verbose in the return out. If you do not want this option (especially as your test suite may grow in size) you could return to the default behaviour.
+   > The above shows that the async testing code has succeeded i.e. the posts are rendered as expected.
+   > While this works, it is actually still not ideal for testing asynchronous code.
