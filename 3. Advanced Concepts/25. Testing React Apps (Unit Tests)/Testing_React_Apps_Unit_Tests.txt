@@ -6,6 +6,7 @@ Testing React Apps (Unit Tests) - Summary:
 5. Testing User Interaction & State
 6. Testing Connected Components
 7. Testing Asynchronous Code
+8. Working with Mocks
 
 ------------------------------------------------------------------------------------
 1. What & Why and Understanding Different Kinds of Tests:
@@ -510,3 +511,55 @@ Testing React Apps (Unit Tests) - Summary:
    > As you can see from the above the output result will be much more verbose in the return out. If you do not want this option (especially as your test suite may grow in size) you could return to the default behaviour.
    > The above shows that the async testing code has succeeded i.e. the posts are rendered as expected.
    > While this works, it is actually still not ideal for testing asynchronous code.
+
+------------------------------------------------------------------------------------
+8. Working with Mocks:
+------------------------------------------------------------------------------------
+   > While the above example demonstrates a way to test asynchronous code which works, it is not ideal for the scenario for the example scenario. It is not ideal because it is testing HTTP requests to fetch data from an API.
+   > When you run the test server (which you would typically do a lot during development) you generally do not want to send HTTP requests to the servers. This is because a) will cause a lot of network traffic hammering the server with requests (especially if you have a lot of tests with a lot of requests) and b) if you are not fetching data but have some Component that sends a post request to the server, your test may start inserting data into a database or changing things on the server. This is something you do not want to do when testing.
+   > Therefore, generally what you would want to do when writing tests that send HTTP request, you either do not want to send a real request or you want to send it to some fake/testing server. Both are viable approaches. The below demonstrates the former approach i.e. not sending a HTTP request.
+   > One important thing to note when writing testing code is that you do not want to test code which you have not written. Therefore, in the example you do not want to test the HTTP fetch function works correctly and sends a request. The fetch function is not written by you as it is built into the browser. You rely on the browser vendors to have written that code correctly.
+   > Hence, you want to test whether the Component behaves correctly depending on the different outcomes of sending a request. For example, you want to check if the Component behaves correctly once you get the response data and also check whether the Component behaves correctly if it gets an error response. You do not want to check whether technically sending the request succeeds.
+   > Consequently, you would want to replace the fetch function (which is built in the browser) with a so called Mock function. A Mock function is a dummy function that overrides the built in function and a function that does what we want and that does not send a real request. Therefore, when the Component executes during testing you use the dummy mock function.
+   > This is common not just with fetch but also with something like working with local storage where you do not want to trigger changes in the actual storage. This is such a common scenario for which the Jest tool has built-in support for mocking such functions and is fairly easy to do.
+
+   Working with Mocks Example:
+      src/components/Async.test.js:
+         import { render, screen } from '@testing-library/react';
+         import Async from './Async';
+         describe('Async Component', () => {
+            test('renders posts if request succeeds', async () => {
+               window.fetch = jest.fn();
+               window.fetch.mockResolvedValueOnce({
+                  json: async () => [{ id: 'p1', title: 'first post' }]
+               });
+               render(<Async />);
+               const listItemElements = await screen.findAllByRole('listitem');
+               expect(listItemElements).not.toHaveLength(0);
+            });
+         });
+
+   > When you Arrange a test, it is here you want to override the function with your own Mock function.
+   > There is a window object which has the fetch method (this is the same as using the fetch() method which uses window.fetch() behind the scenes). You can now set the 'window.fetch' equal to a new function defined by you.
+   > The 'jest' object is made globally available to you in a 'create-react-app' project. There are a couple of utility methods such as the '.fn' method. The '.fn' method creates a Mock function for you.
+   > The difference to just creating a function on your own is that the Mock function has some addition features which you can use.
+   > This now overrides the built in fetch function with your own dummy function only in your testing code.
+   > You can now use the Mock function and call special methods there. The 'mockResolvedValueOnce' function allows you to set a value that the fetch function should resolve to when it is being called. It should be resolved to something that is then used by the test code.
+   > In the above example, it should resolve to a object that has  a '.json' method. The "json" property should have a async function as its value because the built-in .json() method returns a promise and should be the case for the Mock fetch function. It is then up to you what value you would want to simulate to be returned by the json function. In this example we expect an array because "data" is an array for the API endpoint being mocked.
+   > Therefore, the Mock function is overriding the built-in function with a dummy function where you set the actual return value the dummy function should return with the help of the Jest features. The test server should continue to run and the test code should continue to pass but now with a simulated success case.
+   > The above simulates a success case without actually sending a request to the API. Thus, you are not hammering the API, you are reducing network traffic (and any unnecessary request), avoiding potential problems if the server is down (which the test would fail for that reason which is not something you want to test for) and you can control different outcomes for the Mock function to test different scenarios.
+   > To conclude, using a Mock function is not a bad idea for some test case scenarios.
+
+------------------------------------------------------------------------------------
+Further Learning:
+------------------------------------------------------------------------------------
+   > This was an introduction to testing React Applications.
+   > If you want to learn more about testing you could find dedicated tutorials/courses on the subject but what is worth a look are the official documents of the testing tool being used.
+   > You can find the official documentation on the Jest tool on https://jestjs.io/.
+   > You can find the official documentation on the React Testing Library https://testing-library.com/
+   > Keep in mind when creating a React project using 'create-react-app', all the setup steps for Jest are not required because they are already setup. Also keep in mind that Jest is not a tool focused on React only. Jest is a general JavaScript testing tool of which the documentation represents.
+   > The documentation will provide all the different matchers and assertion methods you could use and the different ways of expression expectations. You can learn more about testing Asynchronous code and Mock function.
+   > When it comes to testing React projects you definitely want to read the documentation on React Testing Library. These documentation provides you with way more learning about testing React projects with that library with example codes.
+   > The Ecosystem section of React Testing Library is interesting as it teaches you about extensions that you can install (some extensions are already part of the default React application created using 'create-react-app'). The 'react-hooks-testing-library' extension is a library not installed by default but it is a library that makes testing React Hooks (especially Custom Hooks) much easier.
+   > These are resources you should dive in as part of your self-learning to understand the tools you are using in your React Projects (i.e. advanced learning).
+   > You should now have a general idea of how testing works in a 'create-react-app' using the default installed Jest and React Testing Library packages.
