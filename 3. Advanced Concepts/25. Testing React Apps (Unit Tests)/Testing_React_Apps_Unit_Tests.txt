@@ -4,6 +4,7 @@ Testing React Apps (Unit Tests) - Summary:
 3. How to Write Test Files
 4. Grouping Tests Together with Test Suites
 5. Testing User Interaction & State
+6. Testing Connected Components
 
 ------------------------------------------------------------------------------------
 1. What & Why and Understanding Different Kinds of Tests:
@@ -334,3 +335,67 @@ Testing React Apps (Unit Tests) - Summary:
    > You would use the '.not' method to chain on the assertion to check for the opposite of the '.toBeInTheDocument' method assertion. However, the 'getByText' method will always throw an error whenever it cannot find the searched text in the Virtual DOM which will cause the test to always fail due to the thrown error. The 'queryByText' method can be used instead of the 'getByText' method to test this case scenario.
    > The 'queryByText' method will simply return 'null' if the element was not found which will allow the test to pass on assertion. Therefore, the 'toBeNull' assertion method can now be used instead of 'toBeInTheDocument' assertion method because the expectation is for the test function to return null if the paragraph is not visible when the button is clicked.
    > Therefore, this test will now be able to fail if the paragraph text is not being conditionally rendered which will allow you as the developer to correct any bugs you may potentially introduce in the code which you can then fix because the test case will point out this failing test case. This also demonstrates why testing is soo important.
+
+------------------------------------------------------------------------------------
+6. Testing Connected Components:
+------------------------------------------------------------------------------------
+   > React Component will often interact with other Components through props. In the below example we explore how you could write a Test Code for testing user interaction between connected Components.
+
+   Testing Connected Components Example:
+      src/components/Output.js:
+         import React from 'react';
+         const Output = (props) => {
+            return(<p>{props.children}</p>);
+         };
+         export default Output;
+      src/components/Greeting.js:
+         import React, { useState } from 'react';
+         import Output from './Output';
+         const Greeting = () => {
+            const [changedText, setChangedText] = useState(false);
+            const changedTextHandler = () => { setChangedText(true) };
+            return(
+               <div>
+                  <h2>Hello World!</h2>
+                  {!changedText && <Output>It is nice to see you!</Output>}
+                  {changedText && <Output>Changed!</Output>}
+                  <button onClick={changedTextHandler}>Change Text!</button>
+               </div>
+            );
+         };
+         export default Greeting;
+      src/components/Greeting.test.js:
+         import { render, screen } from '@testing-library/react';
+         import userEvent from '@testing-library/user-event';
+         import Greeting from './Greeting';
+         describe('Greeting Component', () => {
+            test('renders "Hello World!" as a text', () => {
+               render(<Greeting />);
+               const helloWorldElement = screen.getByText('Hello World!');
+               expect(helloWorldElement).toBeInTheDocument();
+            });
+            test('renders "It is nice to see you!" if the button was NOT clicked', () => {
+               render(<Greeting />);
+               const outputElement = screen.getByText('It is nice to', { exact: false });
+               expect(outputElement).toBeInTheDocument();
+            });
+            test('renders "Changed!" if the button was clicked', () => {
+               render(<Greeting />);
+               const buttonElement = screen.getByRole('button');
+               userEvent.click(buttonElement);
+               const outputElement = screen.getByText('Changed!');
+               expect(outputElement).toBeInTheDocument();
+            });
+            test('does not render "It is nice to see you!" if the button was clicked', () => {
+               render(<Greeting />);
+               const buttonElement = screen.getByText('It is nice to', { exact: false });
+               userEvent.click(buttonElement);
+               const outputElement = screen.queryByText('It is nice to!', { exact: false });
+               expect(outputElement).toBeNull();
+            });
+         });
+
+   > The Output Component is a very simple and redundant Component; however, the purpose is to demonstrate how you could test Components that interact with each other using props.
+   > The nice thing about the above example, the previous Greeting Component tests would continue to work and does not require any changes even when using the new Output Component. This is because the 'render()' function really renders the entire Greeting Component tree and does not ignore other Component that are part of the Greeting Components JSX code. Therefore, the Output Component will continue to render a paragraph element.
+   > Technically you could call this a Integration Test because more than one unit is involved. However, when dealing with such a wrapper component which does not have its own logic, then Integration Test is not the right term. Testing the conjunction of both "Greeting" and "Output" Components as a Unit Test is perfectly fine.
+   > This does not force you to split your test. You might want to split the them if the Output Component becomes more complex and also starts managing State.
