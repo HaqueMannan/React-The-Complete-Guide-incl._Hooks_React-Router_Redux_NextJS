@@ -1,0 +1,85 @@
+React & TypeScript - Summary:
+1. What is TypeScript and How to Install TypeScript
+
+------------------------------------------------------------------------------------
+1. What is TypeScript and How to Install TypeScript:
+------------------------------------------------------------------------------------
+   > TypeScript is a so-called 'superset' to JavaScript. It is a programming language which builds upon and extends JavaScript.
+   > The core programming language remains as JavaScript. Therefore, the base JavaScript syntax you know how to write does not change. TypeScript adds more features to the JavaScript syntax.
+   > Unlike React, TypeScript is not a library for JavaScript i.e. it does not use JavaScript features to build on top of them i.e. build functionality around them. Instead, it extends the core JavaScript syntax.
+   > Most importantly, TypeScript adds static typing to JavaScript and where its name comes from.
+   > JavaScript on its own is a dynamically typed language.
+
+   JavaScript Dynamically Types Language Code Snippet Example:
+      addFunction.js:
+         function add(a, b) {
+            return a + b;
+         };
+         const result = add(2, 5);
+         console.log(result);
+
+   > The above JavaScript code is standard JavaScript which prints the sum of two passed in numbers as argument/parameters to the function.
+   > JavaScript knows the concept of types and has types. In the above example the two values passed into the "add" function are a type number. This is something JavaScript knows on its own without TypeScript. The important thing is that JavaScript is dynamically typed. This means that the function does not expect any particular types but that it will receive two argument/parameters. Therefore, it is not statically typed.
+   > Statically Typed means that the values are announced ahead of time.
+   > JavaScript will take whatever it receives and tries to execute the code and the code happens to execute perfectly fine with numbers.
+   > However, you will also notice that the above function would also work with strings passed as argument/parameters for example "add('2', '5')" will return "25" as a string instead of the expected 7 as a number. This is because the plus operator in JavaScript now does not add the two numbers in a mathematical way but instead joins/concatenates the two strings together.
+   > This demonstrates why JavaScript alone is OK and great but also why JavaScript alone may not always be the best and why having Static Typing could enhance your code and prevent errors such as the above example from occurring.
+   > Therefore, in bigger projects with lots of code files and potentially a lot of people working on the code base, you may sometimes call a function or use an object in an unintended way and run into the problem as demonstrated above because nothing is warning you that it is not how you should be using the function or object.
+   > This is where TypeScript can help you as a developer.
+
+   TypeScript Statically Typed Language Code Snippet Example:
+      addFunction.ts
+         function add(a: number, b: number) {
+            return a + b;
+         };
+         const result = add(2, 5);
+         console.log(result);
+
+   > Note that TypeScript files have an extension of .ts to indicate the file uses TypeScript syntax.
+   > With TypeScript you can add type annotations by simply adding a colon after the parameter followed by the type which should be used by the parameter.
+   > You can use type annotations not only on function parameters but also in many other situations as well.
+   > The IDE will highlight any errors in the code with a squiggly red underline whenever a Type definition is not being followed. This allows you to catch any errors (any unintended use of a function or object) before you run and test the code, for example, providing a string to a parameter which expected a number type as the value.
+   > This allows you to write better code at the end of the day by avoiding such errors and you do not need to track them at runtime because you see such errors when you start writing code.
+   > This is the main positive reason for using TypeScript.
+   > You can see TypeScript being a pre-compiler to JavaScript like SASS/SCSS is for CSS.
+
+   Installing TypeScript:
+   > Now that you know what TypeScript is and how the syntax generally look like, how do you install and use TypeScript?
+   > The official webpage for TypeScript can be found on https://www.typescriptlang.org/ where you can learn more about TypeScript and its features as a language as well as how to install TypeScript.
+   > Run the following command to instal TypeScript locally on your machine. You would need NodeJS and NPM installed on your machine first before running the command:
+
+      $: npm install typescript
+
+   > Running the command while in a project directory in the terminal will install TypeScript to a specific project.
+   > To install TypeScript globally you would need to add the -g (global) flag before typescript (i.e. $: npm install -g typescript).
+   > Often installing TypeScript into a specific project is enough so that TypeScript can be used in that project.
+   > This will create a standard TypeScript Project (note not a React project).
+   > Now that TypeScript has been installed, you can invoke the TypeScript Compiler. This is super important because as you have learnt TypeScript is a superset to JavaScript extending the JavaScript syntax.
+   > It is important to note that TypeScript code does not run in the browser i.e. executing TypeScript code in the browser will fail. Thus, you need to compile TypeScript into regular JavaScript code which the browser understands.
+   > During that compilation process, all the type annotations will be removed because JavaScript does not know those annotations. It is during the compilation step where you will be notified of the errors in addition to the notification you get with the IDE. Hence, the compilation step which will warn you of potential code problems if you have not spotted them already in the IDE warnings.
+   > It is the compiled code that will then run in the browser at the end of the day.
+   > To invoke the compiler you need to run the below command:
+
+      $: npx tsc
+
+   > The compiler will throw an error because it expects a TypeScript configuration file in the project folder that will tell TypeScript which files to compile and what version of JavaScript to compile to. We will dive into this configuration file later in more detail.
+   > You can modify the terminal command to point at the particular TypeScript file (i.e. $: npx tsc addFunction.ts) and the compiler will create a '.js' file version of the '.ts' file that was compiled (i.e addFunction.js).
+   > If there were Type errors in the TypeScript file, the compilation process will display these errors in the terminal. For example, if you used a string value instead of a number then this type error will be displayed. It will still create the compiled JavaScript file because this is the default behaviour i.e. it only warns you of the error but completes the compilation of the JavaScript file.
+
+   Compiled TypeScript File to JavaScript File Example:
+      addFunction.ts
+         function add(a: number, b: number) {
+            return a + b;
+         };
+         const result = add(2, 5);
+         console.log(result);
+      addFunction.js:
+         function add(a, b) {
+            return a + b;
+         };
+         var result = add(2, 5);
+         console.log(result);
+
+   > You will noticed the compiled JavaScript file code is almost exactly the same as the TypeScript file code but without the annotations. You will also notice that the result variable uses var and not const and this is because by default the TypeScript compiler compiles down to ES5 syntax which is recognised by much older web browsers. This can be something that can be overridden with the TypeScript Config file.
+   > Therefore, you can continue to work in the TypeScript file and then compile it to run in the browser, you now have Static Type syntax which can help you against these types of errors.
+   > We can now dive into the core features you need to know when working with TypeScript before exploring how you can use TypeScript with React.
