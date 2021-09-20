@@ -1,5 +1,6 @@
 React & TypeScript - Summary:
 1. What is TypeScript and How to Install TypeScript
+2. Exploring TypeScript Types
 
 ------------------------------------------------------------------------------------
 1. What is TypeScript and How to Install TypeScript:
@@ -83,3 +84,121 @@ React & TypeScript - Summary:
    > You will noticed the compiled JavaScript file code is almost exactly the same as the TypeScript file code but without the annotations. You will also notice that the result variable uses var and not const and this is because by default the TypeScript compiler compiles down to ES5 syntax which is recognised by much older web browsers. This can be something that can be overridden with the TypeScript Config file.
    > Therefore, you can continue to work in the TypeScript file and then compile it to run in the browser, you now have Static Type syntax which can help you against these types of errors.
    > We can now dive into the core features you need to know when working with TypeScript before exploring how you can use TypeScript with React.
+
+------------------------------------------------------------------------------------
+2. Exploring TypeScript Types:
+------------------------------------------------------------------------------------
+   TypeScript Types:
+      1) Primitive Types:
+         - number, string, booleans, null, undefined and symbols
+
+         > To declare a type for a variable you simply add a colon after the variable name followed by the type. For example, 'let age: number' will define the "age" variable with a type of number. Whenever you assign a value to the variable, TypeScript will let you know in the IDE if the value voids the type definition for the variable.
+         > Assigning a type number can include whole and floating point numbers i.e. decimals are included. This is because JavaScript treats numbers as any numerical value including decimal values.
+         > You can assign a value when you declare a variable, for example, 'let age: number = 12' which will also work perfectly fine.
+         > It is important to note that when declaring the type the type name must be in lower case letters i.e. 'number' and not 'Number'. If you used 'Number' this will not error but instead it actually points at the Number object in JavaScript. Therefore, use the lowercase name to point at the primitive type.
+         > Number, Strings and Booleans are the core base primitive types you can assign to variables as well as functions parameters. Note that there are more places where you can set type definitions.
+         > While you can set types of null and undefined, it is not too useful because whenever you later assign a value to a null/undefined variable, the IDE will error as it expects a null/undefined type. There is a slightly different way in which you can use null and undefined which we will see later.
+
+      2) More Complex Types:
+         - arrays and objects
+
+         > To assign a type of an array you simply add opening and closing square brackets. For example, the type ': string[]' will declare an array of strings. You can do this for any other primitive values i.e. for an array of numbers and booleans.
+         > To assign a type for an entire object, TypeScript out of the box without configuration is quite forgiving. By default it allows you to assign any values in a variable because it has a special any type. For example, 'let person' will by default have a type of any which will therefore allow you to set the variable as any value including an object i.e. 'person = { name: 'John', age: 32 }'.
+         > Note that you can explicitly assign a type of any by using ': any' as the type definition. However, this is a fallback type you do not want to use because it defeats the purpose of using TypeScript. Using the type any takes you back to standard JavaScript.
+         > To add a type of object and define the properties the object should have you would use opening and closing curly brackets. For example, ': { name: string, age: number }' will create a object type definition. In this example the properties are given a type definition as well.
+         > Therefore, if you try to create an object that has a property not defined in the object definition then the IDE will throw and error as well as assignment the incorrect type for the particular property.
+         > You can combine array and object definitions to create a more complex type definition. For example, ': { name: string, age: number }[]' will create an assignment of an array of such objects.
+         > This allows you to get a little advanced by combining different TypeScript features and by combining different types.
+
+      3) Function Types and parameters
+         > When you work with function there are different places where types can be assigned.
+         > One place where types can be assigned in functions are the parameters. Just as you can set types for variables you can also assign types to function parameters. For example:
+            function add(a: number, b: number) {
+               return a + b;
+            };
+         > You can also infer a type in the function. In the above add function example, the return value of the sum is inferred a type definition of a number. You can see this inference if you hover over the 'add' function name which the IDE will display the inferred type retuned from the function.
+         > You could explicitly set the type definition for example, 'function add(a: number, b: number): number | string' will explicitly define the return type for the function to be a number or string. You should not do this if you do not have a reason for explicitly defining the function's return value type (Refer to the below about Type Inference and Union Types for an explanation as to why).
+         > Function not only have inputs but it also has outputs; hence a function can have a return type definition.
+            function printOutput(value: any) {
+               console.log(value);
+            };
+         > A function which has not return any value from its codeblock (as demonstrated in the above example) has a special return type definition inferred called void. The type void is comparable to null and undefined but is only used in conjunction with functions. It simply means that the function never returns. Therefore, if you want to work with the returned value from that function, you would work with undefined.
+         > This is the special void type definition to work with returned values from a function that does not returns anything.
+
+   Type Inference:
+      > Remember: Anything at the right side of a colon is a type assignment and not a assignment of a value which is usually a value on the right side of the equal sign.
+      > Typically, in programming you would create a variable and immediately assign an initial value right away in one step. For example, 'let age = 20' will create a variable and assign a number value. If you try to assign a different value for example "twenty" as a string the IDE will throw an error even though you did not specify a type definition.
+      > TypeScript uses its powerful feature of Type Inference. By default TypeScript tries to infer as many types as possible i.e. it tries to know which types are used where without you explicitly stating the type definition. Hence, allowing you to write less code.
+      > You could set your type (e.g. 'let age: number = 20') but it is a little redundant. This is because if you immediately initialised a variable with a value, TypeScript will look at that value that was stored in the variable and then use that value type as an inferred type for the variable. Therefore, if you try to assign a different type thereafter you will receive an error.
+      > It is good practice to embrace the type inference feature i.e. to not unnecessarily specify the type in addition. You can explicitly state the type but it is redundant code and more work from your side.
+
+   Union Types:
+      > Sometimes you would want to allow multiple different types to be assigned to a variable. It is not unrealistic that you could have a variable where both a string as well as a number should be allowed to be stored in that variable. The TypeScript feature of Union allows such type definition.
+      > A Union Type is a type definition that allows more than one type to be assigned.
+      > You would use a pipe symbol (|) after a type definition to add another type after the pipe. You can have as many types as you would like to allow as needed.
+      > Therefore, where a variable has been immediately assigned a variable, it is OK to define the type (i.e. ignoring type inference) if the type is a Union. For example, 'let age: number | string = 20' will now allow both a number or a string to be assigned to the variable.
+      > You can also use a Union anywhere where you have a type assignment and does not need to be used only when you use Type Inference.
+
+   Type Aliases:
+      > The more TypeScript code you write the higher the chances at some point you might be repeating some type definitions.
+      > You can, of course, duplicate the type definition but it is more realistic that you want to avoid duplication. For example, you could type define an object and then use the same object but defined as an array of that object. To avoid this duplicate you can create a so called Type Alias.
+      > Type Alias allows you to define your own base type in which a more complex type definition is stored and then use that type alias instead of repeating the entire type definitions.
+      > You can create a Type Alias by using the 'type' keyword. This is a keyword provided by TypeScript and is not part of standard JavaScript. After the keyword you can choose any name of your choice which will become your new type name (i.e. an alias for your type definition). After the name you use an equal sign to define your type definition for the alias.
+      > The equal sign is used because Type Alias is a pure TypeScript feature. This code will be thrown out of the window when the code is compiled to regular JavaScript code.
+
+         type Car = {
+            make: string,
+            model: string,
+            doors: number
+         };
+         let car1: Car;
+         car1 = {
+            make: 'BMW',
+            model: '4 Series',
+            doors: 5
+         }
+         let cars: Car[];
+
+      > From the example above the type definition was defined once as a Type Alias and that alias could be used wherever that definition is required without repeating the type definition wherever it is needed. This feature can save you a lot of typing work and make your code more concise and easier to maintain by abiding to the DRY principal of programming.
+
+   Generics:
+         function insertAtBeginning(array: any[], value: any) {
+            const newArray = [value, ...array];
+            return newArray;
+         };
+         const demoArray = [1, 2, 3];
+         const updatedArray = insertAtBeginning(demoArray, 0);
+
+      > In the above example, there is a utility function called insertAtBeginning which takes an array of type any and a value of type any. This simply create a newArray inserting the value at the beginning of the array and returning the newArray as the value. However, you will notice that the updatedArray has an inferred type of any[] and not numbers[] even though the items are all numbers. Why is this?
+      > The reason is because the array argument/parameter in the insertAtBeginning function has the type of any[] which is used to create the newArray which is returned and so the updatedArray will have an inferred type definition of any[] as well.
+      > You could update the array parameter to have a type definition of number[] but this will remove the utility function being used with strings. Therefore, while you would need any[] as the type definition for the flexibility it also at the same time removes all kind of TypeScript support you might be getting after calling the function i.e. there is no good TypeScript support for the updatedArray thereafter.
+      > For example, 'updatedArray[0].split('')' would not return an error in the IDE but you would get a runtime error instead because you cannot call split() on a number. TypeScript does not know that the first element in the array is a type number to throw that error in the IDE. To work around such issues you have a feature called Generics.
+      > Generics allows you to convert a function into a Generic Function. The special syntax is to add angle brackets between the function name and the opening and closing round brackets. For example, 'function insertAtBeginning<T>(array: T[], value: T)'. Inside of the angle brackets you would define the Generic Type, typically defined with 'T' but the name of the identifier is entirely your choice.
+      > This is not a standard JavaScript feature but rather a feature that can only be used in TypeScript.
+      > The Generic Type will only be available inside of the function.
+      > Therefore, TypeScript is now able to understand that it should look at the concrete values of the arguments/parameter that are being passed into the function and it can now correctly infer updatedArray to be an array of numbers to provide better TypeScript Support to the IDE.
+      > The utility function can continue to be used flexibly with different array types and values, for example, 'const stringArray = insertAtBeginning(['b', 'c', 'd'], 'a')' would correctly infer stringArray with the type definition of an array of strings. This is because TypeScript would look at both the concrete array and value passed into the function both being a type of string and so will infer the return type to also be an array of string. The IDE can now warn the developer when the split() function is being used on an array containing numbers before the compilation stage.
+      > Therefore, Generics allows you to write functions (in this case) which are type safe yet flexible. The function can work with any type but once a certain type is used for that function execution, that type is locked in and known by TypeScript. This allows you to get the best of both worlds of flexibility and type safety.
+
+   A Closer Look at Generics:
+      > Generic Types ("Generics") can be tricky to wrap your head around. But indeed, we are working with them all the time - one of the most prominent examples is an array. Consider the below example array:
+         let numbers = [1, 2, 3];
+      > Here, the type is inferred, but if we would assign it explicitly, we could do it like this:
+         let numbers: number[] = [1, 2, 3];
+      > The 'number[]' is the TypeScript notation for saying "this is an array of numbers". But actually, 'number[]' is just syntactic sugar!
+      > The actual type is Array. All arrays are of the Array type... BUT, since an array type really only makes sense if we also describe the type of items in the array, Array actually is a generic type.
+      > You could also write the above example like the below instead:
+         let numbers: Array<number> = [1, 2, 3];
+      > Here we have the angle brackets (<>) again! But this time NOT to create our own type (as seen in the previous first Generics example) but instead to tell TypeScript which actual type should be used for the "generic type placeholder" (i.e. 'T' in the previous example). As shown in the first example, TypeScript would be able to infer this as well - we rely on that when we just write:
+         let numbers = [1, 2, 3];
+      > But if we want to explicitly set a type, we could do it like this:
+         let numbers: Array<number> = [1, 2, 3];
+      > Of course it can be a bit annoying to write this rather long and clunky type, that is why we have this alternative (syntactic sugar) for arrays:
+         let numbers: number[] = [1, 2, 3];
+      > If we take the example from the previous first Generics example, we could have also set the concrete type for our placeholder T explicitly:
+         const stringArray = insertAtBeginning<string>(['a', 'b', 'c'], 'd');
+      > So we can not just use the angle brackets to define a generic type but also to USE a generic type and explicitly set the placeholder type that should be used - sometimes this is required if TypeScript is not able to infer the (correct) type.
+
+   Conclusion:
+   > There are more core TypeScript features but the above are the core TypeScript features you should know when working with TypeScript.
+   > You can learn more on TypeScript and its features on the official website (https://www.typescriptlang.org/).
