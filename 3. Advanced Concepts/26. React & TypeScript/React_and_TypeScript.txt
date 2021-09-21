@@ -1,6 +1,7 @@
 React & TypeScript - Summary:
 1. What is TypeScript and How to Install TypeScript
 2. Exploring TypeScript Types
+3. Creating a React & TypeScript Projects
 
 ------------------------------------------------------------------------------------
 1. What is TypeScript and How to Install TypeScript:
@@ -202,3 +203,19 @@ React & TypeScript - Summary:
    Conclusion:
    > There are more core TypeScript features but the above are the core TypeScript features you should know when working with TypeScript.
    > You can learn more on TypeScript and its features on the official website (https://www.typescriptlang.org/).
+
+------------------------------------------------------------------------------------
+3. Creating a React & TypeScript Projects:
+------------------------------------------------------------------------------------
+   > To use TypeScript with React Projects you need to have React Project configured to use TypeScript instead of vanilla JavaScript.
+   > The great thing is that you can continue to use 'create-react-app' to create a new React Project. In the official documentation there is a documentation on how to integrate TypeScript (https://create-react-app.dev/docs/adding-typescript). If the link was to change you could always google "create-react-app typescript" and find the documentation page.
+   > It is easy if you start a new project with TypeScript integration, although you do also get instructions on how you can add TypeScript to an existing project. The command to create a new project is:
+      $: npx create-react-app [app-name] --template typescript
+   > Running this terminal command will create a new React Application with TypeScript integration in the directory that the terminal was 'cd' to.
+   > YOu can continue to use 'npm start' to spin up a dev server as you would normally would do. However, you now have a project directory all configured to work with TypeScript.
+   > You should notice that you now have '.tsx' files instead of '.jsx' files which will indicate that you are now using TypeScript. The file extension is '.jsx' and not '.js' because React uses JSX syntax which will avoid any unnecessary IDE complaints. The code is exactly the same as before and nothing else special.
+   > One thing to note with the dev server is that it now does one thing more behind the scenes than it did before. It is also compiling the TypeScript code to regular JavaScript code. The same would also occur if you were to build your code for production by running the 'npm run build' command.
+   > The 'package.json' file has the same dependencies as before but with some extra dependencies; specifically 'typeScript' as well as '@types/' dependencies. The 'typeScript' package is the language/compiler for TypeScript installed in the project.
+   > The extra '@types/' packages are extra but important packages. They act as translation bridges between vanilla JavaScript libraries and TypeScript projects. For example, the 'react' and 'react-dom' libraries are written for just JavaScript. In order to work with them in TypeScript (and get TypeScript and IDE support) you need translations between the raw vanilla JavaScript libraries and the TypeScript project i.e. extra type annotations that are added to these JavaScript libraries you could say. This is what '@types/react' and '@types/react-dom' packages provides.
+   > Not all libraries need translations because some libraries actually already have built-in type annotations even though you can use them with just JavaScript as well. However, some libraries do need these extra annotations which is why there are some extra packages installed to provide the annotations for those libraries.
+   > You can now write React code with TypeScript.
