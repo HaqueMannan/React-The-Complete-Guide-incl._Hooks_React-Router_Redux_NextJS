@@ -2,6 +2,7 @@ React & TypeScript - Summary:
 1. What is TypeScript and How to Install TypeScript
 2. Exploring TypeScript Types
 3. Creating a React & TypeScript Projects
+4. Working with Components/Props & TypeScript
 
 ------------------------------------------------------------------------------------
 1. What is TypeScript and How to Install TypeScript:
@@ -219,3 +220,91 @@ React & TypeScript - Summary:
    > The extra '@types/' packages are extra but important packages. They act as translation bridges between vanilla JavaScript libraries and TypeScript projects. For example, the 'react' and 'react-dom' libraries are written for just JavaScript. In order to work with them in TypeScript (and get TypeScript and IDE support) you need translations between the raw vanilla JavaScript libraries and the TypeScript project i.e. extra type annotations that are added to these JavaScript libraries you could say. This is what '@types/react' and '@types/react-dom' packages provides.
    > Not all libraries need translations because some libraries actually already have built-in type annotations even though you can use them with just JavaScript as well. However, some libraries do need these extra annotations which is why there are some extra packages installed to provide the annotations for those libraries.
    > You can now write React code with TypeScript.
+
+------------------------------------------------------------------------------------
+4. Working with Components/Props & TypeScript:
+------------------------------------------------------------------------------------
+   Working with Components & TypeScript:
+      > Generally you continue to write the same code as you did before i.e. nothing has changed. You will notice that the new project does not use any special type annotations because it does not need them. It is generally using TypeScript's built-in type inference feature. Simply the boilerplate starting code does not use a lot of Types. We can now explore where we can use TypeScript to enhance your react application code.
+
+      Component TSX File Example:
+         src/components/ToDos.tsx:
+            function ToDos() {
+               return(
+                  <ul>
+                     <li>Learn React</li>
+                     <li>Learn TypeScript</li>
+                  </ul>
+               );
+            };
+            export default ToDos;
+
+      > You continue to build React Components generally as you have learnt it. The above ToDos Component renders a unordered list with two hardcoded list items. The code is exactly the same as using standard JavaScript. It gets slightly more interesting when the Component receives props to output a dynamic list.
+
+   Working with Props & TypeScript:
+      Component with Prop TSX File Example:
+         src/components/ToDos.tsx:
+            function ToDos(props) {
+               return(
+                  <ul>{}</ul>
+               );
+            };
+            export default ToDos;
+
+      > When you add props as an argument/parameter to a Component you will see a red squiggly line appearing in the IDE. The description when hovered will read as "The prop is declared but its value is never read." and "Parameter 'props' implicitly has an 'any' type". This is a little extra help you would get from TypeScript of which you would not get with regular JavaScript projects.
+      > The warning tells you that you have unnecessary code you are not using as well as the implicit type for the 'props' variable. TypeScript warns you that you should not make any implicitly assumptions. You can configure the strictness of TypeScript in the 'tsconfig.json' file. To remove this warning, you need to make it clear which kind of 'props' (i.e. the type of prop) you are getting in the Component function.
+      > Therefore, you could assign a type like so 'props: {}' which will assign the props variable of a type object. We know objects have key:value pairs in which case you can assign the type of object you expect to receive for props e.g. 'props: { items: string[] }'. This will define 'props' as and object with an "items" key which then itself stores an array of strings as a value. However, this would not actually be 100% correct.
+      > Remember: 'props' does not just have the key:value pairs you add on the Component when you use it in JSX. Instead, 'props' is an object which does have those key:value pairs but it also always has a special 'children' prop. You do not know the type of children yet. You could find out the type and then add it but this will quickly become cumbersome if for every component you are defining that is using props you have to always add those built in props to that object along with your custom props.
+      > Since you have that base prop object which you get in every Component, React and TypeScript provides a different way of defining the type. You can use a Generic Type instead. To be precise a functional Component out of the box can be converted into a generic function. This simply means in the end your functional Component will be configured such that you make it clear that it will be a React Component Function and it will have all those base props like children and you can define explicitly you own props e.g. "items" which should be combined into the overall props object.
+      > The example code can be written differently as shown below:
+
+         const ToDos: React.FC<{items: string[]}> = (props) => {
+            return(
+               <ul>{props.children}</ul>
+            );
+         };
+
+   > The Generic 'FC' Type makes it clear to TypeScript that this function is a function that acts as a functional Component. Depending on the project setup you might not need to import the 'React' package into the Component file to use the 'FC' Generic Type which stands for Functional Component. You will now see the IDE red squiggly lines disappear.
+   > If you now use the 'props' object you should now see autocompletion with the children prop. By adding the FC Type annotations, TypeScript and your IDE understands your code is a function that receives a props object as the first argument which will be an object that always has a 'children' property.
+   > Since FC is a Generic Type, it allows you to merge your own props the functional Component will get with those built-in base props like 'children'. Hence, you add the angle brackets after 'FC' and between those angle brackets you simply define your own props.
+   > The angle brackets are used slightly different to how we have previously seen it with creating your own Generic Types. Here, there 'React.FC' is already a Generic Type (i.e. it describes a type defined by the React package) that is already generic. When you add an angle brackets after 'FC', you are not setting up a new Generic Type with some placeholder type e.g. 'T' but instead you are plugging in a concrete value for that internally used Generic Type (i.e. the type 'T' defined by the React.FC type).
+   > You do this because you are not calling some generic function with some parameters where the values then could be used for the inference. Instead, you are defining a function and you want to let TypeScript know how it should then treat this function internally i.e. it should get some props defined by us and merge those with some base props like the 'children' prop which all functional Components have.
+   > Therefore, here we are seeing that you use a Generic Type and you explicitly set the concrete type that should be used for this usage of this Generic FC Type. It is generic because different functional Components have different props definitions. Thus, this is how you define the type with React and TypeScript.
+   > If you now type "props." in your IDE you should get autocompletion suggestion for the props object. In the above example you would see "children" and "items" as autocompletion suggestions for this props object. It will also tell the type for the items property which should be a string array. This is because your own prop object definition is merged with the base prop object definition.
+   > This may seem all confusing to explain the internal workings, but using 'FC' is super simple. You build functional Component with React and TypeScript by using the React.FC Generic Type on your function Component constant. You then use the angle brackets and between those angle brackets you define your own 'props' objects type definition if your Component gets some custom props (omitting the angle brackets means there are no custom props to be merged with the base props object type definition). In the Component you can then use those custom props defined. You will get autocompletion by your IDE as TypeScript will know the types e.g. a prop which has a type of string array can use array methods such as '.map()'.
+
+      src/components/ToDos.tsx:
+         const ToDos: React.FC<{items: string[]}> = (props) => {
+            return(
+               <ul>{props.items.map(item => <li key={item}>{item}</li>)}</ul>
+            );
+         };
+      src/App.tsx:
+         import ToDos from './components/ToDos';
+            function App() {
+               return (
+                  <div>
+                     <ToDos />
+                  </div>
+               );
+            };
+            export default App;
+
+   > The above is the final code for the ToDos Component with proper Type annotations i.e. this Component uses 'props' to dynamically set list items in the unordered list.
+   > The great thing about using TypeScript with React is now not just that the code is more descriptive and you get the autocompletion when you work inside of the Component, but you also now see that you have errors in the App Component file which imports the ToDos Component. Due to the Type annotations, the project setup now understands that you are using the ToDos Component in an incorrect way.
+   > The above makes it clear that the ToDos Component will have an items prop which holds a string array and that this prop is not optional. To make something optional you simply add a question mark before the colon (e.g 'items?: string[]'). However, if you do this you should also make sure to handle in your JSX the case that you do not necessarily have items if it is optional.
+   > Therefore, if the prop is not optional this will indicate that the prop is required when being used as a Component in other files. This is another strong reason for using TypeScript in React projects. You can really describe the shape of your Components and which props they need and therefore using the Component incorrectly is pretty much impossible because you get errors like this directly in the IDE.
+
+      src/App.tsx:
+         import ToDos from './components/ToDos';
+            function App() {
+               return (
+                  <div>
+                     <ToDos item={['Learn React', 'Learn TypeScript']} />
+                  </div>
+               );
+            };
+            export default App;
+
+   > To correct the error in the App.tsx file you would simply define the items prop in the ToDos Component e.g. "<ToDos item={['Learn React', 'Learn TypeScript']} />" which will create the list items dynamically in the Component. All errors should be gone and your project compiles a working React project files.
+   > It is the above Type annotation you want to add to every custom Component you are building and if you are using your own props you add the 'FC' Generic Type and describe your custom props between the angle brackets which gets merged with the base props.
