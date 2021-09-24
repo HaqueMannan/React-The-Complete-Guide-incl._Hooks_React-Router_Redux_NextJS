@@ -3,6 +3,7 @@ React & TypeScript - Summary:
 2. Exploring TypeScript Types
 3. Creating a React & TypeScript Projects
 4. Working with Components/Props & TypeScript
+5. Adding a Data Model
 
 ------------------------------------------------------------------------------------
 1. What is TypeScript and How to Install TypeScript:
@@ -308,3 +309,52 @@ React & TypeScript - Summary:
 
    > To correct the error in the App.tsx file you would simply define the items prop in the ToDos Component e.g. "<ToDos item={['Learn React', 'Learn TypeScript']} />" which will create the list items dynamically in the Component. All errors should be gone and your project compiles a working React project files.
    > It is the above Type annotation you want to add to every custom Component you are building and if you are using your own props you add the 'FC' Generic Type and describe your custom props between the angle brackets which gets merged with the base props.
+
+------------------------------------------------------------------------------------
+5. Adding a Data Model
+------------------------------------------------------------------------------------
+   > When working in your project you may want to work with objects to describe your data modals. For example, in the previous example the todo is simply a string and a list of ToDos is an array of string. However, it is not unrealistic that every todo is an object e.g. an object with ID, todo text, title, subtitle and maybe more meta-data attached to the todo like author, created data, etc. There are endless ways to describe a todo item.
+   > You could create a subfolder in the src directory called models to hold .ts files for your models. Note: that these are .ts file and not .jsx because the code holds JavaScript code and not a Component file. In the .ts file you can describe how the model should look like. Below is an example for the ToDo model.
+
+   Adding a Data Model Example:
+      src/models/todo.ts:
+         class Todo {
+            id: string;
+            text: string;
+            constructor(todoText: string) {
+               this.id = Math.random().toString();
+               this.text = todoText;
+            };
+         };
+         export default Todo;
+      src/components/ToDos.tsx:
+         import Todo from '../models/todo';
+         const ToDos: React.FC<{items: Todo[]}> = (props) => {
+            return(
+               <ul>{props.items.map(item => <li key={item.id}>{item.text}</li>)}</ul>
+            );
+         };
+         export default ToDos;
+      src/app.tsx:
+         import ToDos from './components/ToDos';
+         import Todo from './models/todo';
+         function App() {
+            const todos = [
+               new Todo('Learn React'),
+               new Todo('Learn TypeScript')
+            ];
+            return (
+               <div><ToDos items={todos} /></div>
+            );
+         };
+         export default App;
+
+   > You can create your own object model type. You can do this using the 'type' keyword, 'interface' keyword or you can create a JavaScript class object which you can instantiate. The above example uses the class method but wither approach will work. You would create the object as you would using vanilla JavaScript.
+   > In the object you would describe how the class object would look like. It is here where it would look different to how you would have done it using regular JavaScript. When working with TypeScript in classes, if your class has different properties/attributes which you want to add, you do not need to add it to the constructor() method as you would have in regular JavaScript. You can add them directly to the class object (similar to other programming languages like C#). The properties will receive types.
+   > You would see some errors regarding the properties that they have no initialisers and not assigned in the constructor. This warning tells you that you are defining a class which is meant to be instantiated (which is the main idea behind classes in general) but those properties which you setup and describe and set the types never receives a value. To ensure that they do you would use the 'constructor()' method.
+   > The constructor method could also want some arguments/parameters. Inside of the constructor you would set the properties defined in the class object. Therefore, whenever you create a new object from the class, the properties will get instantiated with a value, which removes the error.
+   > You can then export the model class object definition which can now be used as your data model type definition in other files of your application.
+   > The class object is nearly the same as you would create it in regular JavaScript but in TypeScript you need to define the properties outside of the constructor method i.e. ahead of time to make it clear which type of values will be stored in the properties.
+   > You would instantiate the class object as you would in regular JavaScript. In the App.tsx you now have an array of ToDos but instead of having a string of todo you now have and array of todo objects.
+   > The data model defined as a class also acts not just as a constructor function which you can call to create new objects but also as a type. You can use the class name as a Type definition. In the Component class above the ToDos is defined as a React Function Component which holds an items prop that has a type definition of an array of Todo class objects.
+   > The visual output does not change from the previous example but the code has definitely changed. With all the the type annotations and classes being used in your project you are making it very clear which shape the data should have and which shape the Components should have. This simply allows you as a developer to ensure the code is clean and has a clear structure and it is way harder to misuse your Components or data. This also prevents errors from being made during development instead of at runtime when you test the application (i.e warnings are presented in the IDE rather than an error at some point when running the application). This is the benefit of using TypeScript.
