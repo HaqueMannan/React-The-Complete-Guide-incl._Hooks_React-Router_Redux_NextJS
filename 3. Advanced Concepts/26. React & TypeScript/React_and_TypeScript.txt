@@ -6,6 +6,7 @@ React & TypeScript - Summary:
 5. Adding a Data Model
 6. Form Submissions in TypeScript Projects
 7. The Context API & TypeScript
+8. Exploring tsconfig.json TypeScript Configuration File
 
 ------------------------------------------------------------------------------------
 1. What is TypeScript and How to Install TypeScript:
@@ -639,3 +640,29 @@ React & TypeScript - Summary:
       > Note that the "TodoItem.tsx" file does not change because it does not require the context API and the code uses regular JavaScript syntax but with TypeScript annotation for defining the props expected for that Component.
       > The "TodosContextProvider" needs to be imported into the App.tsx file so that it can wrap around all the application Component so that the Components which require the context store will have access to it. This is a super important step because without this wrapper Context Provider Component it will simply not work.
       > You now have the same application as before but now using the Context API to manage the application state and how TypeScript can be used to setup type definitions with the Context API.
+
+------------------------------------------------------------------------------------
+8. Exploring tsconfig.json TypeScript Configuration File:
+------------------------------------------------------------------------------------
+   > The "tsconfig.json" is a file that you can add to any projects where you are using TypeScript (i.e. compiling TypeScript code to regular JavaScript code). This file is used to configure the compilation process.
+   > In a 'create-react-app' project the TypeScript compilation process is automatically invoked when you start the development server or running the production build command to build the production code. This uses the behind the scenes build-workflow setup where the TypeScript compiler is integrated.
+   > In the "tsconfig.json" file you have various options. To understand all the options you should look at the official document on the TypeScript webpage.
+   > You could also hover over an option in the "tsconfig.json" file and view the short description for that option as well as a link to the documentation which provides an explanation for that particular option.
+   > Below provides descriptions for the more important options you may be interested in configuring:
+      - target: option to control the target JavaScript version to which the TypeScript code will be compiled and transformed to. The ES5 JavaScript is a old version which is supported by all browsers. Note that this option may not be the only thing that influences the output. There are projects setups where the TypeScript code is compiled to JavaScript code and then there might be another compilation step with other tools such as Babel that take that output JavaScript code and transform it even more.
+      - lib: the default TypeScript libraries that are included and it influences what kind of types are known out of the box by the TypeScript code. These are some libraries that are built into TypeScript and therefore do not need to install extra packages. However, to unlock them in the project you still need to list them in this option array. For example the "dom" lib ensures that some default DOM types are understood by TypeScript for example the HTMLInputElement type is unlocked by the "dom" lib added to the "lib" options array.
+      - allowJs: option to allow you to include '.js' files in your projects and import from a '.js' file without causing any error. This allows you to mix JavaScript and TypeScript files in your projects.
+      - strict: option to set the strictest possible settings for the project. This influences things such as not being able to have any implicitly 'any' type values i.e. you need to explicitly set the 'any' type in places where TypeScript is not bale to infer that type. there are other strict features unlocked by this option (inferred 'any' type being one of them).
+      - jsx: option controls the support for JSX code and the output code should be generated.
+   > The default settings of the "tsconfig.json" file created by the 'create-react-app [appName] --template typescript' command should be more than enough and you should only change the TypeScript settings file if you know what you are doing. It is important to note that you use the "tsconfig.json" file to configure the behaviour of TypeScript in your project.
+   > You now have a rough understanding of what this file does and can always dive into the official documentation to learn more.
+
+------------------------------------------------------------------------------------
+Conclusion:
+------------------------------------------------------------------------------------
+   > To conclude, you have seen many examples and concepts of using TypeScript in React projects but of course this is only scratching the surface of TypeScript in general.
+   > The above section provides a summary of how React and TypeScript can work together. If you want to learn more about TypeScript there are a couple of resources that could be useful for independent learning.
+   > The Official Documentation for TypeScript can be found on https://www.typescriptlang.org/ and is a great starting place to learn more about TypeScript and its features/syntax. The TypeScript Documentation or Handbook provides information on all the core TypeScript features with examples. This is a really good resource for learning TypeScript in the greatest detail as possible.
+   > The https://create-react-app.dev/docs/adding-typescript/ is a good resource for setting up React with TypeScript. It also provides more resources on getting started with TypeScript and React for example it has an example project, Cheat Sheet and a link to the official TypeScript documentation page.
+   > You can view youtube videos on the TypeScript Language or purchase courses on the language itself. However, the free resources are more than enough to learn the topic.
+   > These are the possible next step you could take to build up on the knowledge gained from the above section to build React projects with TypeScript if you prefer that over just React with regular JavaScript.
