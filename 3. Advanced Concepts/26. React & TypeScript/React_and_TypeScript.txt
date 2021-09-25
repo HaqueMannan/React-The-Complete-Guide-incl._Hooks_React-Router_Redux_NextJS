@@ -5,6 +5,7 @@ React & TypeScript - Summary:
 4. Working with Components/Props & TypeScript
 5. Adding a Data Model
 6. Form Submissions in TypeScript Projects
+7. The Context API & TypeScript
 
 ------------------------------------------------------------------------------------
 1. What is TypeScript and How to Install TypeScript:
@@ -508,3 +509,133 @@ React & TypeScript - Summary:
    > The initial empty array does not conflict with the Type definition of an array of "Todos". This is the proper way of defining the state.
    > You can now manipulate the state using the state updating function as you normally would do.
    > All of the above code allows you to have a Form Component which takes the input of the user to create a new Todo item to create a dynamic list of ToDos list using TypeScript to define the type definition.
+
+------------------------------------------------------------------------------------
+7. The Context API & TypeScript:
+------------------------------------------------------------------------------------
+   > To wrap things up with the introduction of TypeScript with React the below example demonstrates how you can use React's Context API with TypeScript.
+
+   The Context API & TypeScript Example:
+      src/store/todos-context.tsx:
+         import React, { useState } from 'react';
+         import Todo from '../models/todo';
+         type TodosContextObj = {
+            items: Todo[];
+            addTodo: (text: string) => void;
+            removeTodo: (id: string) => void;
+         };
+         export const TodosContext = React.createContext<TodosContextObj>({
+            items: [],
+            addTodo: () => {},
+            removeTodo: (id: string) => {}
+         });
+         const TodosContextProvider: React.FC = (props) => {
+            const [todos, setTodos] = useState<Todo[]>([]);
+            const addTodoHandler = (todoText: string) => {
+               const newTodo = new Todo(todoText);
+               setTodos((prevTodos) => {
+                  return prevTodos.concat(newTodo);
+               });
+            };
+            const removeTodoHandler = (todoId: string) => {
+               setTodos((prevTodos) => {
+                  return prevTodos.filter(todo => todo.id !== todoId);
+               });
+            };
+            const contextValue: TodosContextObj = {
+               items: todos,
+               addTodo: addTodoHandler,
+               removeTodo: removeTodoHandler
+            };
+            return (
+               <TodosContext.Provider value={contextValue}>{props.children}</TodosContext.Provider>
+            );
+         };
+         export default TodosContextProvider;
+      src/App.tsx:
+         import NewTodo from './components/NewTodo';
+         import ToDos from './components/ToDos';
+         import TodosContextProvider from './store/todos-context';
+         function App() {
+            return (
+               <TodosContextProvider>
+                  <NewTodo />
+                  <ToDos />
+               </TodosContextProvider>
+            );
+         };
+         export default App;
+      src/components/ToDos.tsx:
+         import { useContext } from 'react';
+         import TodoItem from './TodoItem';
+         import { TodosContext } from '../store/todos-context';
+         import classes from './ToDos.module.css';
+         const ToDos: React.FC = () => {
+            const todosCtx = useContext(TodosContext);
+            return(
+               <ul className={classes.todos}>
+                  {todosCtx.items.map((item) => (
+                     <TodoItem key={item.id} text={item.text} onRemoveTodo={todosCtx.removeTodo.bind(null, item.id)} />
+                  ))}
+               </ul>
+            );
+         };
+         export default ToDos;
+      src/components/NewTodo.tsx:
+         import { useRef, useContext } from 'react';
+         import { TodosContext } from '../store/todos-context';
+         import classes from './NewTodo.module.css';
+         const NewTodo: React.FC = () => {
+            const todosCtx = useContext(TodosContext);
+            const todoTextInputRef = useRef<HTMLInputElement>(null);
+            const submitHandler = (event: React.FormEvent) => {
+               event.preventDefault();
+               const enteredText = todoTextInputRef.current!.value;
+               if(enteredText.trim().length === 0) {
+                  // throw and error
+                  return;
+               };
+               todosCtx.addTodo(enteredText);
+            };
+            return(
+               <form onSubmit={submitHandler} className={classes.form}>
+                  <label htmlFor="text">Todo Text</label>
+                  <input id="text" type="text" ref={todoTextInputRef} />
+                  <button>Add Todo</button>
+               </form>
+            );
+         };
+         export default NewTodo;
+      src/components/TodoItem.tsx:
+         import classes from './TodoItem.module.css';
+         const TodoItem: React.FC<{ text: string, onRemoveTodo: () => void }> = (props) => {
+            return(
+               <li className={classes.item} onClick={props.onRemoveTodo}>{props.text}</li>
+            );
+         };
+         export default TodoItem;
+
+   Creating Context Store:
+      > It is not a bad idea to import the React library to make it more transparent where the 'React.createContext' method is coming from. the '.createContext' wants one default value which can be an object which describes the shape of the todos context. React infers a React.Context type definition.
+      > The properties between the round brackets are concrete JavaScript code where you are creating a JavaScript object and the properties and are not setting up the type. The only type you are setting there is the argument type for the concrete function parameter i.e. what this "removeTodo" properties function value expects to receive as an argument/parameter.
+      > The 'React.createContext' is a Generic Type and therefore you can use the angle brackets to provide a more concrete definition which better describes the context object for the context instance.
+      > Therefore, the angle brackets is the type definition for the object in the 'React.createContext' Generic Type while the object in the round brackets is the concrete value for the context object being created by the method from 'React.createContext'. You now have created a context store.
+
+   Creating Context Provider Component:
+      > You now need to create a Context Provider Component which will be responsible for managing the context store state.
+      > The Context Provider Component is a Functional Component and therefore should be defined the type of 'React.FC' Generic Type. This will make it clear that you are storing a Functional Component when creating the Context Provider Component.
+      > You need to return some JSX code in side of the Functional Component. This is also the reason why the context file has the file extension of '.tsx' and not '.ts' because you need to write some JSX code.
+      > The "TodosContext.Provider" Component is rendered which gets passed the 'props.children' as the return JSX code which creates the context provider that can be exported and used in the Components as a wrapper where the Context Store API is required. Remember: you do not need to describe the shape of 'children' because it is a default property provided by 'React.FC' type definition.
+      > You can use the useState Hook to manage the context state and add all the necessary function logic in the context file. The "contextValue" describes the concrete object which has the shape defined by the type definition in the angle brackets of 'React.createContext'.
+      > The "contextValue" can now be passed as the value to the "value" prop of the "TodosContext.Provider" Component.
+      > The "contextValue" should be assigned a type definition otherwise it will be inferred the type any which will display TypeScript errors in the IDE.
+      > The "TodosContextObj" is used to create an alias so that it can be used wherever the type definition is required instead of copying and pasting values in different parts of the context code which violates the DRY principal.
+      > Finally, you can export the "TodosContextProvider" Functional Component which can now be used to wrap the Components in the App.tsx file which will provide the Context API to the application. You should also export the context itself (e.g. "TodosContext") because you would need that context Hook in other files to use the Context Store and dispatch actions to update the store.
+
+   Using the Exported Context Provider Component and Context Object:
+      > The "App.tsx" file can now become more leaner. This is because the "Todos.tsx" and "NewTodo.tsx" files can now import the "useContext" Hook from React and tap into the "TodosContext" store which manages the application state and the dispatch actions for updating the state.
+      > If you hover over the "todosCtx" variable which stores the return object from the "useContext" Hook you will see that TypeScript automatically knows the type of value that is manageable by your Context. This is all thanks to TypeScript and you linking everything correctly. You can now use the "TodosContext" object in the Component file.
+      > The Component Function no longer requires our own "props" to pass the data and function around Components because you are now using the Context API and therefore you should also get rid of the 'props' type definition on the 'React.FC' type. This simplifies and leans the Component Function code even more.
+      > Note that the "TodoItem.tsx" file does not change because it does not require the context API and the code uses regular JavaScript syntax but with TypeScript annotation for defining the props expected for that Component.
+      > The "TodosContextProvider" needs to be imported into the App.tsx file so that it can wrap around all the application Component so that the Components which require the context store will have access to it. This is a super important step because without this wrapper Context Provider Component it will simply not work.
+      > You now have the same application as before but now using the Context API to manage the application state and how TypeScript can be used to setup type definitions with the Context API.
