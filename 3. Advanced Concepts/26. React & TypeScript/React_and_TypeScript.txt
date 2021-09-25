@@ -4,6 +4,7 @@ React & TypeScript - Summary:
 3. Creating a React & TypeScript Projects
 4. Working with Components/Props & TypeScript
 5. Adding a Data Model
+6. Form Submissions in TypeScript Projects
 
 ------------------------------------------------------------------------------------
 1. What is TypeScript and How to Install TypeScript:
@@ -217,7 +218,7 @@ React & TypeScript - Summary:
    > YOu can continue to use 'npm start' to spin up a dev server as you would normally would do. However, you now have a project directory all configured to work with TypeScript.
    > You should notice that you now have '.tsx' files instead of '.jsx' files which will indicate that you are now using TypeScript. The file extension is '.jsx' and not '.js' because React uses JSX syntax which will avoid any unnecessary IDE complaints. The code is exactly the same as before and nothing else special.
    > One thing to note with the dev server is that it now does one thing more behind the scenes than it did before. It is also compiling the TypeScript code to regular JavaScript code. The same would also occur if you were to build your code for production by running the 'npm run build' command.
-   > The 'package.json' file has the same dependencies as before but with some extra dependencies; specifically 'typeScript' as well as '@types/' dependencies. The 'typeScript' package is the language/compiler for TypeScript installed in the project.
+   > The 'package.json' file has the same dependencies as before but with some extra dependencies; specifically 'TypeScript' as well as '@types/' dependencies. The 'TypeScript' package is the language/compiler for TypeScript installed in the project.
    > The extra '@types/' packages are extra but important packages. They act as translation bridges between vanilla JavaScript libraries and TypeScript projects. For example, the 'react' and 'react-dom' libraries are written for just JavaScript. In order to work with them in TypeScript (and get TypeScript and IDE support) you need translations between the raw vanilla JavaScript libraries and the TypeScript project i.e. extra type annotations that are added to these JavaScript libraries you could say. This is what '@types/react' and '@types/react-dom' packages provides.
    > Not all libraries need translations because some libraries actually already have built-in type annotations even though you can use them with just JavaScript as well. However, some libraries do need these extra annotations which is why there are some extra packages installed to provide the annotations for those libraries.
    > You can now write React code with TypeScript.
@@ -358,3 +359,152 @@ React & TypeScript - Summary:
    > You would instantiate the class object as you would in regular JavaScript. In the App.tsx you now have an array of ToDos but instead of having a string of todo you now have and array of todo objects.
    > The data model defined as a class also acts not just as a constructor function which you can call to create new objects but also as a type. You can use the class name as a Type definition. In the Component class above the ToDos is defined as a React Function Component which holds an items prop that has a type definition of an array of Todo class objects.
    > The visual output does not change from the previous example but the code has definitely changed. With all the the type annotations and classes being used in your project you are making it very clear which shape the data should have and which shape the Components should have. This simply allows you as a developer to ensure the code is clean and has a clear structure and it is way harder to misuse your Components or data. This also prevents errors from being made during development instead of at runtime when you test the application (i.e warnings are presented in the IDE rather than an error at some point when running the application). This is the benefit of using TypeScript.
+
+------------------------------------------------------------------------------------
+6. Form Submissions in TypeScript Projects:
+------------------------------------------------------------------------------------
+   > It is typical to have Forms within your React Projects to get user inputs. Below is an example code for a Form Component that uses TypeScript.
+
+   Form Submissions in TypeScript Example:
+      src/components/NewTodo.tsx:
+         const NewTodo = () => {
+            const todoTextInputRef = useRef<HTMLInputElement>(null);
+            const submitHandler = (event: React.FormEvent) => {
+               event.preventDefault();
+            };
+            return(
+               <form onSubmit={submitHandler}>
+                  <label htmlFor="text">Todo Text</label>
+                  <input id="text" type="text" />
+                  <button>Add Todo</button>
+               </form>
+            );
+         };
+         export default NewTodo;
+
+   > There are two approaches for listening to user inputs i.e. listing to the keystroke event or using the useState Hook. The above example takes the former approach using a event handler function.
+   > While you as the developer know that the 'event' argument will be an event object which is passed automatically when you connect the function to the appropriate event listener; however, TypeScript does not know of this event object. Therefore, you need to add a type annotation here.
+   > Since you will add the function to the submit event through React (i.e. with the help of React's onSubmit property) the type definition for the event argument/parameter will be 'React.FormEvent'. This is a special type provided by the React package which is the even object type that is expected to be received automatically when listening to the form submission.
+   > Note: 'React.MouseEvent' type definition would be used if you were listening to the 'onClick' event listener. If you used the 'React.MouseEvent' type definition for a function that was used for the 'onSubmit' event function, you will receive this error in the IDE to point this out to you. This is an extra check which will help catch errors before runtime of the application.
+
+   Working with useRef & Ref in TypeScript Example:
+      src/components/NewTodo.tsx:
+         import { useRef } from 'react';
+         const NewTodo = () => {
+            const todoTextInputRef = useRef<HTMLInputElement>(null);
+            const submitHandler = (event: React.FormEvent) => {
+               event.preventDefault();
+               const enteredText = todoTextInputRef.current!.value;
+               if(enteredText.trim().length === 0) {
+                  // throw and error
+                  return;
+               };
+            };
+            return(
+               <form onSubmit={submitHandler}>
+                  <label htmlFor="text">Todo Text</label>
+                  <input id="text" type="text" ref={todoTextInputRef} />
+                  <button>Add Todo</button>
+               </form>
+            );
+         };
+         export default NewTodo;
+
+   > To extract information from a Form you would use reference and the 'useRef' Hook. First import the 'useRef' Hook from react and then define a variable that calls and stores the 'useRef' hook to create such a reference. You can then go to the HTML element to which you want to connect this reference (typically an input, text area, etc. element) and set the special 'ref' property on that element and point at the reference variable.
+   > However, you will notice that you will receive an error in TypeScript that the 'ref' property is receiving the wrong type of data. The 'ref' property wants a reference created with the 'useRef' Hook which is not wrong. However, you are not explicit enough about the reference you are creating with the 'useRef' Hook.
+   > In vanilla JavaScript the code would work because it does not have the concept of extra type annotations. When working with TypeScript, it wants to know a little bit more about your reference. When you create the reference variable, TypeScript has no idea that you will connect it to an input element. It is only clear in the JSX part of the code.
+   > Since it is not clear when you create the reference, you could use the variable in any possible way and connect it to any HTML element and this is the error you would get from TypeScript.
+   > To be explicit about the kind of data you would store in the reference variable that uses the useHook function you would use a Generic Type. The 'useRef' Hook is a Generic Type out of the box. You can add the angle brackets after 'useRef' to explicitly set the concrete type of reference you want to create for the instance it is being called.
+   > The 'useRef' is able to work with all kinds of data which you could store in the reference (i.e. all kinds of HTML object you could connect with the reference) but you need to specify which concrete value or HTML element you plan on storing into this specific instance of the reference object you are creating.
+   > The 'HTMLInputElement' is a built-in type. All DOM elements have built-in types which you can use in TypeScript to refer to them for type definition. Therefore, for input element you would define the type as 'HTMLInputElement', for a button element it's type definition would be 'HTMLButtonElement', for a paragraph element it would be HTMLParagraphElement and so on.
+   > You can always visit the Mozilla Developer Network (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) document page for an element to find these types of information on HTML elements even though it has nothing to do with TypeScript. For example input elements are based on the 'HTMLInputElement' interface which is why you would use the built-in type definition of 'HTMLInputElement' for input elements in TypeScript.
+   > You now need to set a default value fort the 'useRef' to remove the TypeScript error on 'ref' because the reference could already be assigned to some other element out of the box by default maybe? Therefore, you should always provide a starting value in the 'useRef' argument/parameter. At the beginning you have no connections; thus, the starting value should be 'null'. The error should now go away from the 'ref' property in the JSX.
+   > This is how you create reference in TypeScript and connect it to an element via the special 'ref' property.
+   > You can now use the 'ref' prop to retrieve the user input in your event function handler to listen to every keypress entered into the input element connected.
+   > Due to TypeScript and specifically defining the type for the reference variable you now get great autocompletion in the IDE for the variable when used since TypeScript knowns that the useRef Hook instance returns a HTMLInputElement object.
+   > Your IDE may add a question mark automatically after the ".current?." when calling a method. This is because the reference is not necessarily set to a value yet when you use it. Of course as a developer we know that when the "submitHandler" is called the "todoTextInputRef" will be connected to an element because the function can only be called when the form was submitted and the form can only be submitted after the 'ref' property was connected to the "submitHandler" function. However, theoretically you could also try to extract the value after defining the reference variable, in which case the reference would not be connected yet to an element. TypeScript does not deeply analyse your code i.e. the "submitHandler" can't technically be called before the connection has been established. Hence, the question mark addition signals to TypeScript that when it tries to access the method/property and it succeeds the value you would be stored but if the connection failed then 'null' will be stored.
+   > If you as a developer know that at this point of time there will be a non-null value you can use an exclamation mark instead of a question mark (e.g. "todoTextInputRef.current!.value"). This special annotation tells TypeScript that you know that this possible nullish value will never be null in this spot. You should only use this annotation if you are 100% certain that the value cannot be null (i.e. the connection will be established).
+   > The "enteredText" variable now has a inferred type of 'string' instead of 'string|undefined' (undefined is similar to a null value).
+   > Important Disclaimer: The question mark and exclamation mark operators are not related to 'refs' specifically. This is also not a React specific feature. Instead these are regular operators which you can use in TypeScript when you are working with values that could be null (or undefined). With '?' you are always saying to try to get the value and if it is null then store null in the variable storing the value. With '!' you are always saying that you are certain that you will not be dealing null (or undefined) as a return value and therefore drill into the object property and give you the actual stored non-null value. These are generally two important operators in TypeScript.
+   > Once you make it pass the if check to see whether a todo was entered you now want to add the todo to the list of todos. You probably would not want to do this in the NewTodo Component function. Instead the list of ToDos are being managed in the App.tsx Component. Hence, you would need a way of communicating back to the App Component to add the new todo item there when the form is submitted.
+
+   Working with Function Props in TypeScript Example:
+      src/components/NewTodo.tsx:
+         import { useRef } from 'react';
+         const NewTodo: React.FC<{ onAddTodo: (text: string) => void }> = (props) => {
+            const todoTextInputRef = useRef<HTMLInputElement>(null);
+            const submitHandler = (event: React.FormEvent) => {
+               event.preventDefault();
+               const enteredText = todoTextInputRef.current!.value;
+               if(enteredText.trim().length === 0) {
+                  // throw and error
+                  return;
+               };
+               props.onAddTodo(enteredText);
+            };
+            return(
+               <form onSubmit={submitHandler}>
+                  <label htmlFor="text">Todo Text</label>
+                  <input id="text" type="text" ref={todoTextInputRef} />
+                  <button>Add Todo</button>
+               </form>
+            );
+         };
+         export default NewTodo;
+      src/App.tsx:
+         import ToDos from './components/ToDos';
+         import Todo from './models/todo';
+         import NewTodo from './components/NewTodo';
+         function App() {
+            const todos = [ new Todo('Learn React'), new Todo('Learn TypeScript') ];
+            const addTodoHandler = (todoText: string) => {
+
+            };
+            return (
+               <div>
+                  <NewTodo onAddTodo={addTodoHandler} />
+                  <ToDos items={todos} />
+               </div>
+            );
+         };
+         export default App;
+
+   > The "NewTodo" Component wants to call a function that is stored in the "App" Component. This is a pattern used a lot in React Projects. We know that pointers at functions can be passed as props to Components.
+   > As seen previously when adding props you would need to define the Component Function as a 'React.FC' and in the angle brackets use an object passing in your own custom props that should be merged to the Functional Component default props. In the above the "onAddTodo" is a prop we expect to receive. However, what type should you use for this prop?
+   > We know that the prop should be a function. In TypeScript you can define a so-called function type. To define a function type you simply add an arrow function which is TypeScript's syntax for defining the shape of a function. Between the brackets you would describe the parameters the function would get and after the arrow you describe the return type of the function.
+   > If the function should not return anything you do not need a return value and hence can set the value to void as an expected return value of the function definition.
+   > This will make it clear that the "onAddTodo" prop should be passed a function which receives a string as an argument and this function does not return any value. This is because the "NewTodo" Component does not execute the function but simply uses the function pointer which gets executed in the "App" Component.
+   > In the place you use the "NewTodo" Component e.g. in the "App" Component you would now see an error on the "<NewTodo />" Component if the "onAddTodo" prop is not set which it expects a function that has the shape defined in the "NewTodo" Component. The "addTodoHandler" function mirrors the shape of the "onAddTodo" definition.
+   > It is in the "addTodoHandler" where you want to manipulate the "ToDos" array using a state managed array.
+
+   Managing State & TypeScript Example:
+      src/App.tsx:
+         import { useState } from 'react';
+         import ToDos from './components/ToDos';
+         import Todo from './models/todo';
+         import NewTodo from './components/NewTodo';
+         function App() {
+            const [todos, setTodos] = useState<Todo[]>([]);
+            const addTodoHandler = (todoText: string) => {
+               const newTodo = new Todo(todoText);
+               setTodos((prevTodos) => {
+                  return prevTodos.concat(newTodo);
+               });
+            };
+            return (
+               <div>
+                  <NewTodo onAddTodo={addTodoHandler} />
+                  <ToDos items={todos} />
+               </div>
+            );
+         };
+         export default App;
+
+   > You would do what you normally would with the useState Hook to manage state.
+   > The state updating function is inferred the type of React.Dispatch by TypeScript. This is the type definition for the state updating function which you can call to dispatch a change action to the state.
+   > The normal syntax for creating a state in React using the useState Hook for example is "const [todos, setTodos] = useState([]);"; hoever, this syntax would introduce an error. The "todo" state will be inferred a type of 'never[]' by TypeScript which basically means the todo must always be an empty array (that is what 'never' type means here).
+   > TypeScript will infer the never type because it is not able to infer that it should eventually be a type of todos array. The initial value has no information about that.
+   > To make it clear that the useState can have an initial empty array but that it eventually you want an array full of todo items you again need to tell TypeScript that. The useState out of the box is a generic function (a generic type exactly for the reason mentioned). Using angle brackets you can make it clear what type of data should be managed by the state eventually i.e. an array of "Todo" from the data model.
+   > The initial empty array does not conflict with the Type definition of an array of "Todos". This is the proper way of defining the state.
+   > You can now manipulate the state using the state updating function as you normally would do.
+   > All of the above code allows you to have a Form Component which takes the input of the user to create a new Todo item to create a dynamic list of ToDos list using TypeScript to define the type definition.
